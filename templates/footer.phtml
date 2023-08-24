@@ -1,0 +1,315 @@
+<footer class="footer footer-static footer-light">
+    <p class="clearfix mb-0"><span class="float-md-end d-none d-md-block">&copy; <?php echo SITE_NAME; ?> - <?php echo date('Y'); ?></span></p>
+</footer>
+
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/vendors.min.js"></script>
+   
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/forms/select/select2.full.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/jquery.dataTables.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/dataTables.bootstrap5.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/dataTables.responsive.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/responsive.bootstrap5.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/datatables.buttons.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/jszip.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/pdfmake.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/vfs_fonts.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/buttons.html5.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/buttons.print.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/tables/datatable/dataTables.rowGroup.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/forms/cleave/cleave.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/vendors/js/forms/cleave/addons/cleave-phone.us.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/plugin/toast/toastr.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/plugin/typeahead.js-master/dist/typeahead.bundle.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/js/lightbox.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/plugin/session-timeout/jquery.sessionTimeout.min.js"></script>
+
+
+<script src="<?= URL_ROOT ?>/app-assets/js/core/app-menu.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/js/core/app.min.js"></script>
+
+<!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBTq2fQyVvsgMLnwLAu3dUI52GY9UE8GDc&libraries=places&sensor=false"></script> -->
+<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBTq2fQyVvsgMLnwLAu3dUI52GY9UE8GDc&libraries=places&sensor=false"></script>
+
+
+
+<script>
+    $(window).on('load', function() {
+        if (feather) {
+            feather.replace({
+                width: 14,
+                height: 14
+            });
+        }
+    });
+
+    let sinDiacriticos = (function(){
+    let de = 'ÁÃÀÄÂÉËÈÊÍÏÌÎÓÖÒÔÚÜÙÛÑÇáãàäâéëèêíïìîóöòôúüùûñ´ç°ª–”“†ÿŸÇ',
+        a = 'AAAAAEEEEIIIIOOOOUUUUNCaaaaaeeeeiiiioooouuuun c        C',
+        re = new RegExp('['+de+']' , 'ug');
+
+    return texto =>
+    texto.replace(
+        re, 
+        match => a.charAt(de.indexOf(match))
+    );
+    })();
+
+    let setError = (function(elem,msg){
+        console.log(elem,msg)
+        $('#'+elem).tooltip('destroy');
+        msg = '<span class="ddsicon-info-sign"></span> '+msg;
+        $('#'+elem).tooltip({title: msg, trigger: 'manual', template: '<div class="tooltip tooltip-error"><div class="tooltip-arrow"></div class="tooltip-inner"></div></div>', html: true});
+        $('#'+elem).tooltip('show');
+        $('#'+elem).focus();
+    });
+
+    var apiUrl = '<?= URL_ROOT ?>/';
+
+    toastr.options = {									
+        "positionClass": "toast-top-center",
+        "progressBar": true,
+        "timeOut": "4000",
+    }
+
+    $.sessionTimeout({
+        heading: 'h5',
+        title: 'Sesión por expirar',
+        message: 'Tu sesión está a punto de expirar. ¿Deseas seguir conectado?',
+        countdownMessage: "Se cerrará en {timer} segundos.",
+        warnAfter: 550000, //270000
+        redirUrl: '<?= URL_ROOT ?>/usuario/logout', 
+        redirAfter: 600000, //300000
+        keepAlive: true,
+        keepAliveUrl: '<?= URL_ROOT ?>/usuario/renovarToken/', 
+        logoutUrl: '<?= URL_ROOT ?>/usuario/logout', 
+        keepAliveButton: 'Seguir conectado',
+        logoutButton: 'Salir',
+        ignoreUserActivity: false,
+    });
+
+    // función del modal $menuDatos "Mis datos" para pintar los datos en el formulario.
+    $('#menuDatos').click(function(e){
+        e.preventDefault();
+        id = $.trim($('#pers-id_actualizar').val());
+        
+        $.ajax({
+            url: apiUrl+'usuario/get/'+id,
+            type:'GET',
+            dataType: "json",
+            success: function(resp){
+
+                $.each(resp.result, function(index, val) { $('#pers-'+index).val(val); });
+
+            }
+        });
+
+        $('#frm-datos').modal('show');
+    });
+
+    //Funcion en el #btnActualizar del modal "menuDatos" para actualizar los datos del usuario.
+    $('#btnActualizar').on('click',function(){
+        $('.alert').remove();
+        err = $('<div class="alert alert-blink-danger"></div>');
+
+        data = {
+            nombre: sinDiacriticos( $.trim($('#pers-nombre').val())),
+            apellidos: sinDiacriticos( $.trim($('#pers-apellidos').val())),
+            email: $.trim($('#pers-email').val()),
+            tel_casa: $.trim($('#pers-tel_casa').val()), 
+            tel_cel: $.trim($('#pers-tel_cel').val()), 
+            calle: sinDiacriticos( $.trim($('#pers-calle').val())),
+            colonia: sinDiacriticos( $.trim($('#pers-colonia').val())),
+            numero: sinDiacriticos( $.trim($('#pers-numero').val())),
+            num_int: $.trim($('#pers-num_int').val()),
+            del_muni: sinDiacriticos( $.trim($('#pers-del_muni').val())),
+            ciudad: sinDiacriticos( $.trim($('#pers-ciudad').val())),
+            login: sinDiacriticos( $.trim($('#pers-login').val())),
+            id_usuario: $.trim($('#pers-id_actualizar').val()),
+            // fk_id_tipo_usuario : $.trim($('#fk_id_tipo_usuario').val()),
+            contrasena: $.trim($('#contrasena').val()),
+        };
+
+        btn = $(this);
+        btn.addClass('disabled');
+
+        if(data.nombre.length == 0 || data.nombre.length < 4){
+            $(err).removeClass('alert-blink-warning');
+            $(err).addClass('alert-blink-danger');
+            $(err).append('Debe ingresar un nombre valido.');
+            $('#pers-nombre').parent().append(err);
+            $('#pers-nombre').focus();
+            btn.removeClass('disabled');
+        }else if(data.apellidos.length == 0 || data.apellidos.length < 4){
+            $(err).removeClass('alert-blink-warning');
+            $(err).addClass('alert-blink-danger');
+            $(err).append('Debe ingresar un apellido valido.');
+            $('#pers-apellidos').parent().append(err);
+            $('#pers-ape').focus();
+            btn.removeClass('disabled');
+        }else if(id == 0 && (data.tel_casa.length == 0 || data.tel_casa.length < 10)){
+            $(err).removeClass('alert-blink-warning');
+            $(err).addClass('alert-blink-danger');
+            $(err).append('Debe ingresar un número de teléfono valido.');
+            $('#pers-tel_casa').parent().append(err);
+            $('#pers-tel_casa').focus();
+            btn.removeClass('disabled');
+        }else if(id == 0 && (data.tel_cel.length == 0 || data.tel_cel.length < 10)){
+            $(err).removeClass('alert-blink-warning');
+            $(err).addClass('alert-blink-danger');
+            $(err).append('Debe ingresar un número de celular.');
+            $('#pers-tel_cel').parent().append(err);
+            $('#pers-tel_cel').focus();
+            btn.removeClass('disabled');
+        }else {
+            $.post(apiUrl+'usuario/editPersona/'+data.id_usuario,data, function(resp){
+                if(resp.response){
+                    toastr["success"]("Listo!", 'Datos de usuario actualizados.');
+                    btn.removeClass('disabled');
+                    $('#frm-datos').modal('hide');                   
+                }else{  
+                    toastr["warning"]("Verifique la información!", 'No hay datos que actualizar');
+                    btn.removeClass('disabled');
+                }
+            },'json');
+        }
+    });
+
+    $('#menuContrasena').click(function(e){
+        $('#frm-contrasena').modal('show');
+    });
+
+    $('#btnActCon').on('click',function(){
+        $('.alert').remove();
+        err = $('<div class="alert alert-blink-danger"></div>');
+        id = $('#pers-id_actualizarC').val();
+
+        data = {
+            contrasena: $.trim($('#kypass1').val()),
+            contrasenaNue: $.trim($('#kypass2').val()),
+            contrasenaRep: $.trim($('#kypass3').val()),
+        };
+
+        btn = $(this);
+        btn.addClass('disabled');
+
+        if(data.contrasena.length == 0 || data.contrasena.length < 7){
+            $(err).removeClass('alert-blink-warning');
+            $(err).addClass('alert-blink-danger');
+            $(err).append('Debe ingresar una contraseña con más de 7 carácteres.');
+            $('#kypass1').parent().append(err);
+            $('#kypass1').focus();
+            btn.removeClass('disabled');
+        }else if(data.contrasenaNue.length == 0 || data.contrasenaNue.length < 7){
+            $(err).removeClass('alert-blink-warning');
+            $(err).addClass('alert-blink-danger');
+            $(err).append('Debe ingresar una contraseña con más de 7 carácteres.');
+            $('#kypass2').parent().append(err);
+            $('#kypass2').focus();
+            btn.removeClass('disabled');
+        }else if(data.contrasenaRep.length == 0 || data.contrasenaRep.length < 7){
+            $(err).removeClass('alert-blink-warning');
+            $(err).addClass('alert-blink-danger');
+            $(err).append('Debe ingresar una contraseña con más de 7 carácteres.');
+            $('#kypass3').parent().append(err);
+            $('#kypass3').focus();
+            btn.removeClass('disabled');
+        }else{
+            $.post(apiUrl+'password/cambiarContrasena/'+id, data, function(resp){
+                if(resp.response){
+                    toastr["success"]("Listo!", 'Contraseña actualizada.');
+                    btn.removeClass('disabled');
+                    $('#frm-contrasena').modal('hide');                   
+                }else{  
+                    toastr["error"]("Verifique la contraseña actual ingresada!", resp.message);
+                    btn.removeClass('disabled');
+                }
+            },'json');
+        }
+    });
+
+    $('#costos').click(function(e){
+        cleanModalCostos();
+        costos();
+        $('#frm-costos').modal('show');
+
+    });
+
+    
+    // FUNCIONES.
+
+    function editCostos(data, id){
+        // id = data.id;
+        // window.alert(id);
+        $.ajax({
+            url: apiUrl+'costos/updateCostos/'+id,
+            type: 'PUT',
+            data: data,
+            dataType: 'json',
+            success: function(resp){
+                if(resp.response){
+                    toastr["success"]('Se guardó correctamete los costos.', "Listo!");
+
+                }else{
+                    toastr["warning"]("No se realizó correctamente!", 'Intentar más tarde.');
+
+                }
+            }
+        });
+    }
+    function costos(){
+        $.get(apiUrl+'costos/getCostos/', function(data){
+            // console.log(data.result);
+            $('#distancia').val(data.result.distancia);
+            $('#km_addon').val(data.result.km_adicional);
+            $('#tiempo_espera').val(data.result.tiempo_espera);
+            $('#envio_falla').val(data.result.envio_falla);
+
+            $('#peso_extra').val(data.result.peso_extra);
+            $('#dim_extra').val(data.result.dimension_extra);
+
+            $('#minimo').val(data.result.guias1);
+            $('#g5_10').val(data.result.guias2);
+            $('#g10_20').val(data.result.guias3);
+            $('#g20_30').val(data.result.guias4);
+            $('#g30_40').val(data.result.guias5);
+            $('#mas_de_40').val(data.result.guias6);
+
+            $('#costos_id').val(data.result.id);
+
+            $.each(data.result, function(index, val){
+                $('#costo-'+index).val(val);
+            });
+
+
+            
+        }, 'json');
+
+    }
+
+    function cleanModalCostos(){
+
+        $('#distancia').val('');
+        $('#km_addon').val('');
+        $('#tiempo_espera').val('');
+        $('#envio_falla').val('');
+
+        $('#peso_extra').val('');
+        $('#dim_extra').val('');
+
+        $('#minimo').val('');
+        $('#g5_10').val('');
+        $('#g10_20').val('');
+        $('#g20_30').val('');
+        $('#g30_40').val('');
+        $('#mas_de_40').val('');
+
+        $('#costos_id').val('');
+
+        $.each($('[id^="costo-"'), function(index, elem) {
+            // console.log(elem);
+            $(elem).val('');
+        });
+    }
+
+</script>

@@ -1,0 +1,124 @@
+<?php 
+	include 'header.phtml';
+
+    if(!in_array(MOD_BITACORA_ACCIONES, $permisos)) {
+		header('Location: '.URL_ROOT.'/403');
+		exit;
+	}
+?>
+
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+    <div class="app-content content ">
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body">
+                <section>
+                    <div class="card">
+                        <div class="card-body border-bottom">
+                            <div class="card-body filtrosFechas" style="margin-bottom: -45px;">
+                                <div class ="row justify-content-end">
+                                    <div class ="col-2">
+                                        <label for="filter_since" class="form-label input-sm" >Desde:</label>
+                                        <input type="date" id="filter_since" class="form-control input-sm" placeholder="Fecha" data-bs-toggle="tooltip" title="Fecha" value="<?= date('Y-m-d') ?>">                                         
+                                    </div>
+                                    <div class ="col-2">
+                                        <label class="form-label input-sm-1" for="filter_to">Hasta:</label>
+                                        <input type="date" id="filter_to" class="form-control input-sm" placeholder="Fecha" data-bs-toggle="tooltip" title="Fecha" value="<?= date('Y-m-d') ?>">
+                                    </div>
+                                    <div class ="col-sm-1" style="margin-top: auto;">
+                                        <button id="buscarfecha" type="button" class="btn btn-s waves-effect btn-warning" style="width: 8rem;"><i class="fas fa-search"></i> Buscar</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br>
+                            <div class="card-datatable table-responsive pt-0 " >
+                                <table id="tbl-log" class="table table-bordered">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>Fecha</th>
+                                            <th>Usuario</th>
+                                            <th>Descripción</th>
+                                            <th>Adicional</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <?php include 'footer.phtml';?>
+
+    <script>
+
+    var apiUrl = '<?= URL_ROOT ?>/seg_log/',
+        dtLogTable = $('#tbl-log');
+
+        getItems('tbl-log');
+
+        $('#filter_since').change(function(){
+            desde = new Date($(this).val());
+            hasta = new Date($('#filter_to').val());
+            if(desde>hasta){
+                $('#filter_since').val($('#filter_to').val());
+            }
+        });
+
+        $('#buscarfecha').on('click', function(){
+            getItems('tbl-log');
+        });
+
+        function getItems(tbl){
+            cleanTable(tbl);
+            $('#'+tbl+' tbody').empty();
+            createTable(tbl);
+        }
+
+        function cleanTable(tbl){
+            if($.fn.dataTable.isDataTable('#'+tbl)){
+                table = $('#'+tbl).DataTable();
+                table.destroy();
+            }
+        }
+
+        function createTable(){
+            if(dtLogTable.length){
+                from = $('#filter_since').val();
+                to= $('#filter_to').val();
+                dtLogTable.DataTable({
+                    ajax:{
+                        url: apiUrl+'getLog/'+from+'/'+to,
+                        type: 'GET',
+                    },
+                    columns: [
+                        {data: 'fecha'},
+                        {data: 'usuario'},
+                        {data: 'descripcion'},
+                        {data: 'adicional'}
+                    ], 
+                    order: [[0, 'desc']], 
+                    dom:
+                        '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
+                        '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
+                        '<"col-sm-12 col-lg-10 ps-xl-75 ps-0"<"dt-action-buttons d-flex align-items-center justify-content-center justify-content-lg-end flex-lg-nowrap flex-wrap"<"me-1"l>>>' +
+                        '>t' +
+                        '<"d-flex justify-content-between mx-2 row mb-1"' +
+                        '<"col-sm-12 col-md-6"i>' +
+                        '<"col-sm-12 col-md-6"p>' +
+                        '>'
+                        ,
+                    language: {
+                        url:'../spanish.json'
+                    },
+                });
+            }
+        }
+
+
+    </script>
+
+</html>
