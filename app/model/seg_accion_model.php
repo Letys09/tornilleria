@@ -43,7 +43,7 @@
 		public function getByModulo($seg_modulo_id) {
 			$this->response->result = $this->db
 				->from($this->table)
-				->where('fk_modulo', $seg_modulo_id)
+				->where('seg_modulo_id', $seg_modulo_id)
 				->where('status', 1)
 				->fetchAll();
 

@@ -51,6 +51,7 @@
 					'seg_sesion'			  => new App\Model\SegSesionModel($c->db),
 					'transaction' 			  => new App\Lib\Transaction($c->db),
 					'seg_log' 				  => new App\Model\SegLogModel($c->db),
+					'sucursal' 				  => new App\Model\SucursalModel($c->db),
 				];
 			};
 ?>

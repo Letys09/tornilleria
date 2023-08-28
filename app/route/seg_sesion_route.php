@@ -18,10 +18,10 @@
 		});
 		
 		/*** Ruta para obtener los datos de los seg_sesion de un mismo usuario ***/
-		$this->get('getByUsuario/{fk_usuario}[/{since}/{to}]', function ($request, $response, $arguments) {
+		$this->get('getByUsuario/{usuario_id}[/{since}/{to}]', function ($request, $response, $arguments) {
 			$arguments['since'] = isset($arguments['since'])? $arguments['since']: null;
 			$arguments['to'] = isset($arguments['to'])? $arguments['to']: null;
-			return $response->withJson($this->model->seg_sesion->getAll($arguments['fk_usuario'], $arguments['since'], $arguments['to']));
+			return $response->withJson($this->model->seg_sesion->getAll($arguments['usuario_id'], $arguments['since'], $arguments['to']));
 		});
 
 		/*** Ruta para agregar un seg_sesion ***/

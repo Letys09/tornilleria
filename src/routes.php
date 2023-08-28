@@ -15,7 +15,7 @@
 				if($args['name'] == '') {
 					return $this->view->render($response, 'login.phtml', $args);
 				}else if($args['name'] == 'bienvenida'){
-					$user = $_SESSION['usuario']->id_usuario;
+					$user = $_SESSION['usuario']->id;
 					$permisos = $this->model->usuario->getAcciones($user, 0);
 					$arrPermisos = getPermisos($permisos); 
 					$params = array('vista' => ucfirst($args['name']), 'permisos' => $arrPermisos, 'todo' => $this);
@@ -23,7 +23,7 @@
 				}else{
 					$params = array('vista' => ucfirst($args['name']));
 					try{
-							$user = $_SESSION['usuario']->id_usuario;
+							$user = $_SESSION['usuario']->id;
 							$permisos = $this->model->usuario->getAcciones($user, 0);
 							$arrPermisos = getPermisos($permisos); 
 							$params = array('vista' => ucfirst($args['name']), 'permisos' => $arrPermisos, 'todo' => $this);
@@ -43,7 +43,7 @@
 	function getPermisos($arrPermisos) {
 		$res = array();
 		foreach($arrPermisos as $permisos) {
-			$res[] = $permisos->id_accion;
+			$res[] = $permisos->id;
 		}
 		return $res;
 	}

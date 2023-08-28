@@ -15,7 +15,7 @@
             foreach($registros as $registro){
                 $adicional = "";
                 if($registro->descripcion == 'Inicio de sesión'){
-                    $fkSession = $registro->fk_session;
+                    $fkSession = $registro->seg_session_id ;
                     $session = $this->model->seg_log->getSession($fkSession);
                     $info = parse_user_agent($session->user_agent);
                     $adicional = $info['browser'].' en '.$info['platform'].' ['.$session->ip_address.']';

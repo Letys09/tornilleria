@@ -118,8 +118,8 @@
 			try {
 				$this->response->result = $this->db
 					->deleteFrom($this->table)
-					->where('fk_usuario', $usuario_id)
-					->where('fk_accion', $seg_accion_id)
+					->where('usuario_id', $usuario_id)
+					->where('seg_accion_id', $seg_accion_id)
 					->execute();
 
 				if($this->response->result!=0)	$this->response->SetResponse(true, 'id eliminado');
@@ -136,9 +136,9 @@
 		public function getPermisos($accionesModulo) {
 			$this->response->result = $this->db
 			  ->from($this->table)
-			  ->where('fk_usuario', $_SESSION['user'])
-			  ->where('fk_accion in '.$accionesModulo)
-			  ->orderBy('fk_accion')
+			  ->where('usuario_id', $_SESSION['usuario_id'])
+			  ->where('seg_accion_id in '.$accionesModulo)
+			  ->orderBy('seg_accion_id')
 			  ->fetchAll();
 		
 			  return $this->response->SetResponse(true);

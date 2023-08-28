@@ -22,7 +22,6 @@
                         <div class="card-body border-bottom">
                             <div class="card-body border-bottom alignRight">
                                 <div class="dt-buttons btn-group">
-                                    <?php if(in_array(MOD_USUARIOS_ADD, $permisos)) :  ?>
                                         <button type="button "id="btnAdd" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-pers" tabindex="0" 
                                         aria-controls="DataTables_table_0" type="button" data-toggle="modal"
                                         data-target="#frm-pers">
@@ -32,8 +31,7 @@
                                         aria-controls="DataTables_table_0" type="button" data-toggle="modal"
                                         data-target="#frm-tipos_usuarios">
                                         <i data-feather="user"></i>&nbsp;&nbsp;<span>Tipos de Usuario</span></button>
-                                    <?php endif; ?>
-                                    <!-- <?php if($_SESSION['user'] == 1 || $_SESSION['user'] == 2 || $_SESSION['user'] == 51) : ?>
+                                    <!-- <?php if($_SESSION['usuario_id'] == 1 || $_SESSION['usuario_id'] == 2 || $_SESSION['usuario_id'] == 51) : ?>
                                         <?php if($lockdown == 0) : ?>
                                             &nbsp;&nbsp;<button id="btnLockdown" type="button" class="btn waves-effect waves-foat waves-light btn-success buttonModal"><i data-feather="check"></i> Desbloquear Sistema</button>
                                         <?php else: ?>
@@ -343,10 +341,10 @@
                                                             <div class="card-content collapse show">
                                                                 <div class="card-body cardBody">
                                                                     <?php 
-                                                                        $acciones = $todo->model->seg_accion->getByModulo($modulo->id_modulo)->result; 
+                                                                        $acciones = $todo->model->seg_accion->getByModulo($modulo->id)->result; 
                                                                         foreach ($acciones as $accion) : ?>
-                                                                            <input type="checkbox" id="chkperm-<?= $accion->id_accion ?>" value="<?= $accion->id_accion ?>" class="filled-in checkPermiso">	
-                                                                            <label for="chkperm-<?= $accion->id_accion ?>"><?= $accion->nombre ?></label><br>
+                                                                            <input type="checkbox" id="chkperm-<?= $accion->id ?>" value="<?= $accion->id ?>" class="filled-in checkPermiso">	
+                                                                            <label for="chkperm-<?= $accion->id ?>"><?= $accion->nombre ?></label><br>
                                                                     <?php endforeach; ?>
                                                                 </div>
                                                             </div>
@@ -393,10 +391,10 @@
                                                             <div class="card-content collapse show">
                                                                 <div class="card-body cardBody">
                                                                     <?php 
-                                                                        $acciones = $todo->model->seg_accion->getByModulo($modulo->id_modulo)->result; 
+                                                                        $acciones = $todo->model->seg_accion->getByModulo($modulo->id)->result; 
                                                                         foreach ($acciones as $accion) : ?>
-                                                                            <input type="checkbox" id="chkpermTypeUser-<?= $accion->id_accion ?>" value="<?= $accion->id_accion ?>" class="filled-in checkPermTypeUser">	
-                                                                            <label for="chkpermTypeUser-<?= $accion->id_accion ?>"><?= $accion->nombre ?></label><br>
+                                                                            <input type="checkbox" id="chkpermTypeUser-<?= $accion->id ?>" value="<?= $accion->id ?>" class="filled-in checkPermTypeUser">	
+                                                                            <label for="chkpermTypeUser-<?= $accion->id ?>"><?= $accion->nombre ?></label><br>
                                                                     <?php endforeach; ?>
                                                                 </div>
                                                             </div>
@@ -483,7 +481,7 @@
                     $('.alert').remove();
                     err = $('<div class="alert alert-blink-danger"></div>');
                     data = {
-                        fk_id_tipo_usuario: $.trim($('#cboTUsr').val()),
+                        usuario_tipo_id: $.trim($('#cboTUsr').val()),
                         nombre: sinDiacriticos( $.trim($('#pers-nom').val())),
                         apellidos: sinDiacriticos( $.trim($('#pers-ape').val())), 
                         email: $.trim($('#email').val()),
@@ -507,7 +505,7 @@
                     btn = $(this);
                     btn.addClass('disabled');
                     
-                    if(data.fk_id_tipo_usuario == 0){
+                    if(data.usuario_tipo_id == 0){
                         $(err).removeClass('alert-blink-warning');
                         $(err).addClass('alert-blink-danger');
                         $(err).append('Debe seleccionar un Tipo de Usuario.');
@@ -741,7 +739,7 @@
                             if (resp.response) {
                                 $.each(resp.result, function (index1, valTU1) {
                                     $.each(valTU1, function (index, valTU) {
-                                        if (index == 'fk_accion') {
+                                        if (index == 'seg_accion_id') {
                                             $('#chkpermTypeUser-' + valTU).attr('checked', 'checked');
                                         }
                                     });
@@ -760,7 +758,7 @@
                     agrega = $(this).is(':checked');
                     data = {
                         fk_perfil : user,
-                        fk_accion : accion,
+                        seg_accion_id : accion,
                         agrega    : agrega
                     };
                     $.ajax({
@@ -821,7 +819,7 @@
                 $('#frm-type-user').modal('hide');
             });
 
-            // <?php if($_SESSION['user'] == 1 || $_SESSION['user'] == 2 ||$_SESSION['user'] == 51) : ?>
+            // <?php if($_SESSION['usuario_id'] == 1 || $_SESSION['usuario_id'] == 2 ||$_SESSION['usuario_id'] == 51) : ?>
             //     // Bloquea/desbloquea el sistema general
             //     $('#btnLockdown').click(function(e){
             //     e.preventDefault();
@@ -858,7 +856,7 @@
                             infoUser = resp.result;
                             $('#kypass').attr("placeholder", "Dejar en blanco para no modificar");
                             
-                            if(infoUser['fk_id_tipo_usuario'] == 1 || infoUser['fk_id_tipo_usuario'] == 2 || infoUser['fk_id_tipo_usuario'] == 5 || infoUser['fk_id_tipo_usuario'] == 8 || infoUser['fk_id_tipo_usuario'] == 9 || infoUser['fk_id_tipo_usuario'] == 11){
+                            if(infoUser['usuario_tipo_id'] == 1 || infoUser['usuario_tipo_id'] == 2 || infoUser['usuario_tipo_id'] == 5 || infoUser['usuario_tipo_id'] == 8 || infoUser['usuario_tipo_id'] == 9 || infoUser['usuario_tipo_id'] == 11){
                                 $("#fgKm").show();
                             }else{
                                 $("#fgKm").hide();
@@ -870,7 +868,7 @@
                                 $("#UsuarioPass").hide();
                             <?php endif; ?>
 
-                            $('#cboTUsr option[value="'+infoUser['fk_id_tipo_usuario']+'"]').attr("selected", true)
+                            $('#cboTUsr option[value="'+infoUser['usuario_tipo_id']+'"]').attr("selected", true)
                             $('#pers-nom').val(infoUser['nombre']);
                             $('#pers-ape').val(infoUser['apellidos']);
                             $('#calle').val(infoUser['calle']);
@@ -894,7 +892,7 @@
                 });
             <?php endif; ?>
 
-            // <?php if($_SESSION['user'] == 1 || $_SESSION['user'] == 2 ||$_SESSION['user'] == 51) : ?>
+            // <?php if($_SESSION['usuario_id'] == 1 || $_SESSION['usuario_id'] == 2 ||$_SESSION['usuario_id'] == 51) : ?>
             //     $('#tbl-usuarios').on('click', '.btnBloquear', function(e) {
             //         e.preventDefault();
             //         id = $(this).data('id');
@@ -964,7 +962,7 @@
                         id = $('#id_user_del').val();
                         data = { 
                             baja: baja,
-                            edo_usuario: 0,
+                            status: 0,
                             motivo: $('#motivo_baja').val(),
                             observaciones: sinDiacriticos($('#observaciones_baja').val())
                         }
@@ -1005,7 +1003,7 @@
                     btn.addClass('disabled');
 
                     id = $('#id_user_activar').val();
-                    data = { edo_usuario: 1}
+                    data = { status: 1}
                 
                     $.ajax({
                         url: apiUrl+'usuario/estatusUser/'+id,
@@ -1038,7 +1036,7 @@
                         dataType: "json",
                         success: function(resp) {
                             $.each(resp, function(index, val) {
-                                $('#chkperm-'+val['fk_accion']).attr('checked', 'checked');
+                                $('#chkperm-'+val['seg_accion_id']).attr('checked', 'checked');
                             });
                         }  
                     });
@@ -1050,7 +1048,7 @@
                     accion = $(this).val();
                     chk = $(this);
                     if($(this).is(':checked')) {
-                        $.post(apiUrl+'seg_permiso/add/', {fk_usuario: user, fk_accion: accion}, function(resp) {
+                        $.post(apiUrl+'seg_permiso/add/', {usuario_id: user, seg_accion_id: accion}, function(resp) {
                             if(!resp.response) {
                                 chk.prop('checked', false)
                             }
@@ -1149,7 +1147,7 @@
                         }
                     },'json');
                 }else{
-                    data['id_usuario'] = id;
+                    data['id'] = id;
                     $.post(apiUrl+'usuario/editPersona/'+id, data, function(resp){
                         if(resp.response){
                             toastr["success"]("Listo!", 'Datos de usuario actualizados.');
@@ -1249,8 +1247,7 @@
                             type: 'GET',
                         },
                         columns: [
-                        // columns according to JSON
-                        { data: 'id_fact' },
+                        { data: 'id' },
                         { data: 'nombre' },
                         { data: 'apellidos' },
                         { data: 'type_user' },
@@ -1325,10 +1322,6 @@
                                     id = full['data_id'];
                                     name = full['nombre']+' '+full['apellidos'];
                                     type_user = full['id_type_user'];
-                                    iniciar = full['iniciar'];
-                                    colorIniciar = iniciar == 1 ? 'danger' : 'success';
-                                    claseIniciar = iniciar == 1 ? 'btnBloquear' : 'btnDesbloquear';
-                                    // textIniciar = iniciar == 1 ? 'Bloquear sistema' : 'Desbloquear sistema';
                                     status = full['status'];
                                     colorStatus = status == 'Activo' ? 'danger' : 'success';
                                     claseStatus = status == 'Activo' ? 'btnDesactivar' : 'btnActivar';
@@ -1340,11 +1333,6 @@
                                                 feather.icons['more-vertical'].toSvg({ class: 'font-small-4' }) +
                                             '</a>' +
                                             '<div class="dropdown-menu dropdown-menu-end" style="width:max-content;">' +
-                                                <?php if($_SESSION['user'] == 1 || $_SESSION['user'] == 2 || $_SESSION['user'] == 51) : ?>
-                                                    // '<button type="button" id="btnLock" class="btn btn-outline-'+colorIniciar+' btn-sm '+claseIniciar+classHide+'" data-id="'+id+'" data-toggle="tooltip" title="'+textIniciar+'" style="margin-left:4px; margin-right:4px;">'+
-                                                    //     feather.icons['slash'].toSvg({ class: 'font-small-4 me-20' })+
-                                                    // '</button>'+
-                                                <?php endif; ?>
                                                 <?php if(in_array(MOD_USUARIOS_EDIT, $permisos)) : ?>
                                                     '<button type="button" class="btn btn-outline-blink-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
                                                         feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+

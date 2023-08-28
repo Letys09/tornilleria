@@ -5,11 +5,11 @@
 class UsuarioModel {
 	private $db;
 	private $table = 'usuario';
-	private $tableTU = 'tipo_usuario';
+	private $tableTU = 'usuario_tipo';
 	private $tableSesion = 'seg_session';
 	private $tableModulo = 'seg_modulo';
 	private $tableAccion = 'seg_accion';
-	private $tablePermiso = 'seg_permiso_user';
+	private $tablePermiso = 'seg_permiso';
 	private $tableSPP  = 'seg_permiso_perfil';
 	private $response;
 	
@@ -25,10 +25,10 @@ class UsuarioModel {
 
 		$usuario = $this->db
 			->from($this->table)
-			->select(null)->select("$this->table.id_usuario, $this->table.nombre, $this->table.fk_id_tipo_usuario as typeUser, $this->table.fk_empresarial, $this->table.empresa, $this->table.iniciar")
+			->select(null)->select("$this->table.id, $this->table.nombre, $this->table.usuario_tipo_id as typeUser")
 			->where('login', $user)
 			->where('contrasena', $contrasena)
-			->where('edo_usuario', 1)
+			->where('status', 1)
 			->fetch();
 			
 		$this->response->result = $usuario;
@@ -45,10 +45,10 @@ class UsuarioModel {
 
 		$usuario = $this->db
 			->from($this->table)
-			->select(null)->select("$this->table.id_usuario, CONCAT_WS(' ',$this->table.nombre, $this->table.apellidos) as nombre, $this->table.email, $this->table.iniciar")
+			->select(null)->select("$this->table.id, CONCAT_WS(' ',$this->table.nombre, $this->table.apellidos) as nombre, $this->table.email, $this->table.iniciar")
 			->where('login',$users)
-			->where('edo_usuario',1)
-			->where('fk_id_tipo_usuario != 2')
+			->where('status',1)
+			->where('usuario_tipo_id != 2')
 			->fetch();
 		$this->response->result = $usuario;
 		if($this->response->result){
@@ -77,7 +77,7 @@ class UsuarioModel {
 	public function getByPass($pass, $id){
 		$usuario = $this->db
 			->from($this->table)
-			->where('id_usuario', $id)
+			->where('id', $id)
 			->where('contrasena', $pass)
 			->fetch();
 			
@@ -113,7 +113,7 @@ class UsuarioModel {
 		try {
 			$this->response->result = $this->db
 				->update($this->table, $data)
-				->where('id_usuario', $id)
+				->where('id', $id)
 				->execute();
 
 				if($this->response->result) { $this->response->SetResponse(true); }
@@ -138,8 +138,8 @@ class UsuarioModel {
 	public function getUserPermisos($id){
 		$this->response->result = $this->db
 			->from($this->tablePermiso)
-			->select(null)->select('fk_accion')
-			->where('fk_usuario', $id)
+			->select(null)->select('seg_accion_id')
+			->where('usuario_id', $id)
 			->fetchAll();
 
 		return $this->response;
@@ -148,7 +148,7 @@ class UsuarioModel {
 	public function get($id) {
 		$this->response->result = $this->db
 			->from($this->table)
-			->where('id_usuario', $id)
+			->where('id', $id)
 			->fetch();
 
 		if($this->response->result) { $this->response->SetResponse(true); }
@@ -162,7 +162,7 @@ class UsuarioModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->limit("$inicio, $l")
-			->orderBy('id_usuario DESC')
+			->orderBy('id DESC')
 			->fetchAll();
 		
 		$this->response->total = $this->db
@@ -178,90 +178,80 @@ class UsuarioModel {
 		$this->response->admin = $this->db
 		->from($this->table)
 		->select('COUNT(*) admin')
-		->where('fk_id_tipo_usuario', 1)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 1)
+		->where('status', 1)
 		->fetch()
 		->admin;
 
 	$this->response->mensajeros = $this->db
 		->from($this->table)
 		->select('COUNT(*) mensajeros')
-		->where('fk_id_tipo_usuario', 2)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 2)
+		->where('status', 1)
 		->fetch()
 		->mensajeros;
 
 	$this->response->clientes = $this->db
 		->from($this->table)
 		->select('COUNT(*) clientes')
-		->where('fk_id_tipo_usuario', 3)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 3)
+		->where('status', 1)
 		->fetch()
 		->clientes;
 
 	$this->response->directivos = $this->db
 		->from($this->table)
 		->select('COUNT(*) directivos')
-		->where('fk_id_tipo_usuario', 4)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 4)
+		->where('status', 1)
 		->fetch()
 		->directivos;
 
 	$this->response->comisionistas = $this->db
 		->from($this->table)
 		->select('COUNT(*) comisionistas')
-		->where('fk_id_tipo_usuario', 5)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 5)
+		->where('status', 1)
 		->fetch()
 		->comisionistas;
 
 	$this->response->mecanicos = $this->db
 		->from($this->table)
 		->select('COUNT(*) mecanicos')
-		->where('fk_id_tipo_usuario', 7)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 7)
+		->where('status', 1)
 		->fetch()
 		->mecanicos;
 
 	$this->response->rescatistas = $this->db
 		->from($this->table)
 		->select('COUNT(*) rescatistas')
-		->where('fk_id_tipo_usuario', 8)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 8)
+		->where('status', 1)
 		->fetch()
 		->rescatistas;
 
 	$this->response->operadores = $this->db
 		->from($this->table)
 		->select('COUNT(*) operadores')
-		->where('fk_id_tipo_usuario', 9)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 9)
+		->where('status', 1)
 		->fetch()
 		->operadores;
 
 	$this->response->coordinadores = $this->db
 		->from($this->table)
 		->select('COUNT(*) coordinadores')
-		->where('fk_id_tipo_usuario', 10)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 10)
+		->where('status', 1)
 		->fetch()
 		->coordinadores;
 		
 	$this->response->bicicleta = $this->db
 		->from($this->table)
 		->select('COUNT(*) bicicleta')
-		->where('fk_id_tipo_usuario', 11)
-		->where('edo_usuario', 1)
-		->where('fk_empresarial', 1)
+		->where('usuario_tipo_id', 11)
+		->where('status', 1)
 		->fetch()
 		->bicicleta;
 
@@ -271,21 +261,21 @@ class UsuarioModel {
 	public function getAllDataTable() {
 		$this->response->result = $this->db
 			->from($this->table)
-			->select(null)->select("id_usuario, fk_id_tipo_usuario as fk_id_usuario, nombre, apellidos, email, edo_usuario, id_fact, iniciar, $this->tableTU.descripcion")
-			->innerJoin("$this->tableTU ON id_tipo_usuario = $this->table.fk_id_tipo_usuario")
-			->where('fk_id_tipo_usuario != 3')
-			->where('fk_empresarial = 1')
+			->select(null)
+			->select("usuario.id, usuario_tipo_id, usuario.nombre, apellidos, email, usuario.status, $this->tableTU.nombre as tipo_usuario")
+			// ->innerJoin("$this->tableTU ON id_tipo_usuario = $this->table.usuario_tipo_id")
+			// ->where('usuario_tipo_id != 3')
 			->fetchAll(); 
 					
 		return $this->response->SetResponse(true);
 	}
 
-	public function getPermisos($usuario, $visible = 0){ 
+	public function getPermisos($usuario){ 
 		$newModulos = array();
-		$modulos = $this->getModulos($visible);
+		$modulos = $this->getModulos();
 		
 		foreach ($modulos as $modulo) {
-			$acciones = $this->getAcciones($usuario, $modulo->id_modulo);
+			$acciones = $this->getAcciones($usuario, $modulo->id);
 			$contador = count($acciones);
 			$accionesUrl = 0;
 			if($contador>0){
@@ -301,27 +291,22 @@ class UsuarioModel {
 		return $newModulos;
 	}
 
-	public function getModulos($visible){
-		$donde = $visible == 0 ? 'TRUE' : 'visible = 1';
+	public function getModulos(){
 		return $this->db
 			->from($this->tableModulo)
-			->where('visible', 1)
-			->orderBy($donde)
 			->fetchAll();
 	}
 
-	public function getAcciones($usuario_id, $seg_modulo_id, $visible = 0){
-		$donde = $visible == 0 ? 'TRUE' : "$this->tableAccion.visible = 1";
+	public function getAcciones($usuario_id, $seg_modulo_id){
 		return $this->db
 			->from($this->tablePermiso)
-			->select(null)->select("DISTINCT $this->tableAccion.id_accion, $this->tableAccion.nombre, $this->tableAccion.url, $this->tableAccion.icono as iconoA, $this->tableAccion.id_html")
-			->innerJoin("$this->tableAccion on $this->tableAccion.id_accion = $this->tablePermiso.fk_accion")
-			->innerJoin("$this->tableModulo on $this->tableModulo.id_modulo = $this->tableAccion.fk_modulo")
-			->where("$this->tablePermiso.fk_usuario", $usuario_id)
-			->where(intval($seg_modulo_id)>0? "$this->tableAccion.fk_modulo = $seg_modulo_id": "TRUE")
+			->select(null)->select("DISTINCT $this->tableAccion.id, $this->tableAccion.nombre, $this->tableAccion.url, $this->tableAccion.icono as iconoA, $this->tableAccion.id_html")
+			->innerJoin("$this->tableAccion on $this->tableAccion.id = $this->tablePermiso.seg_accion_id")
+			->innerJoin("$this->tableModulo on $this->tableModulo.id = $this->tableAccion.seg_modulo_id")
+			->where("$this->tablePermiso.usuario_id", $usuario_id)
+			->where(intval($seg_modulo_id)>0? "$this->tableAccion.seg_modulo_id = $seg_modulo_id": "TRUE")
 			->where("$this->tableAccion.status", 1)
-			->where($donde)
-			->orderBy('id_accion asc')
+			->orderBy('id asc')
 			->fetchAll();
 	}
 
@@ -330,7 +315,7 @@ class UsuarioModel {
 	// 	try {
 	// 		$this->response->result = $this->db
 	// 			->update($this->table, $data)
-	// 			->where('id_usuario', $id)
+	// 			->where('id', $id)
 	// 			->execute();
 
 	// 			if($this->response->result) { 
@@ -348,11 +333,11 @@ class UsuarioModel {
 	// }
 
 	public function estatusUser($data, $id){
-		$accion = $data['edo_usuario'] == 1 ? 'activo' : 'desactivo';
+		$accion = $data['status'] == 1 ? 'activo' : 'desactivo';
 		try {
 			$this->response->result = $this->db
 				->update($this->table, $data)
-				->where('id_usuario', $id)
+				->where('id', $id)
 				->execute();
 
 				if($this->response->result) { 
@@ -462,7 +447,7 @@ class UsuarioModel {
 			$this->response->result = $this->db
 				->deleteFrom($this->tableSPP)
 				->where('fk_perfil', $id)
-				->where('fk_accion', $data)
+				->where('seg_accion_id', $data)
 				->execute();
 			if($this->response->result) { $this->response->SetResponse(true); }
 			else { $this->response->SetResponse(false, 'no se actualizo el registro'); }

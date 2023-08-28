@@ -69,24 +69,24 @@
     toastr.options = {									
         "positionClass": "toast-top-center",
         "progressBar": true,
-        "timeOut": "4000",
+        "timeOut": "3000",
     }
 
-    $.sessionTimeout({
-        heading: 'h5',
-        title: 'Sesión por expirar',
-        message: 'Tu sesión está a punto de expirar. ¿Deseas seguir conectado?',
-        countdownMessage: "Se cerrará en {timer} segundos.",
-        warnAfter: 550000, //270000
-        redirUrl: '<?= URL_ROOT ?>/usuario/logout', 
-        redirAfter: 600000, //300000
-        keepAlive: true,
-        keepAliveUrl: '<?= URL_ROOT ?>/usuario/renovarToken/', 
-        logoutUrl: '<?= URL_ROOT ?>/usuario/logout', 
-        keepAliveButton: 'Seguir conectado',
-        logoutButton: 'Salir',
-        ignoreUserActivity: false,
-    });
+    // $.sessionTimeout({
+    //     heading: 'h5',
+    //     title: 'Sesión por expirar',
+    //     message: 'Tu sesión está a punto de expirar. ¿Deseas seguir conectado?',
+    //     countdownMessage: "Se cerrará en {timer} segundos.",
+    //     warnAfter: 550000, //270000
+    //     redirUrl: '<?= URL_ROOT ?>/usuario/logout', 
+    //     redirAfter: 600000, //300000
+    //     keepAlive: true,
+    //     keepAliveUrl: '<?= URL_ROOT ?>/usuario/renovarToken/', 
+    //     logoutUrl: '<?= URL_ROOT ?>/usuario/logout', 
+    //     keepAliveButton: 'Seguir conectado',
+    //     logoutButton: 'Salir',
+    //     ignoreUserActivity: false,
+    // });
 
     // función del modal $menuDatos "Mis datos" para pintar los datos en el formulario.
     $('#menuDatos').click(function(e){
@@ -125,8 +125,8 @@
             del_muni: sinDiacriticos( $.trim($('#pers-del_muni').val())),
             ciudad: sinDiacriticos( $.trim($('#pers-ciudad').val())),
             login: sinDiacriticos( $.trim($('#pers-login').val())),
-            id_usuario: $.trim($('#pers-id_actualizar').val()),
-            // fk_id_tipo_usuario : $.trim($('#fk_id_tipo_usuario').val()),
+            id: $.trim($('#pers-id_actualizar').val()),
+            // usuario_tipo_id : $.trim($('#usuario_tipo_id').val()),
             contrasena: $.trim($('#contrasena').val()),
         };
 
@@ -162,7 +162,7 @@
             $('#pers-tel_cel').focus();
             btn.removeClass('disabled');
         }else {
-            $.post(apiUrl+'usuario/editPersona/'+data.id_usuario,data, function(resp){
+            $.post(apiUrl+'usuario/editPersona/'+data.id,data, function(resp){
                 if(resp.response){
                     toastr["success"]("Listo!", 'Datos de usuario actualizados.');
                     btn.removeClass('disabled');

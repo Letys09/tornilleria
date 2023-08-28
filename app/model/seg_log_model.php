@@ -15,24 +15,23 @@
 			$this->response = new Response();
 		}
 
-        public function add($descripcion, $registro, $tipo){
+        public function add($descripcion, $tabla, $registro, $mostrar=0){
 			if (!isset($_SESSION)) {
 				session_start();
 			}
-			if(isset($_SESSION['user'])){
-                $user = $_SESSION['user'];
+			if(isset($_SESSION['usuario_id'])){
+                $user = $_SESSION['usuario_id'];
 				$sesion = $_SESSION['logID'];
-                $enterprise = $_SESSION['enterprise'];
 			}
 	
 			$data = array(
-				'fk_id_usuario' => $user, 
-				'fk_session' => $sesion, 
+				'usuario_id ' => $user, 
+				'seg_session_id ' => $sesion, 
 				'fecha' => date('Y-m-d H:i:s'), 
 				'descripcion' => $descripcion, 
+				'tabla' => $tabla, 
 				'registro' => $registro, 
-				'tipo' => $tipo,
-				'fk_empresarial' => $enterprise);
+				'mostrar' => $mostrar);
 			try {
 				$this->response->result = $this->db
 					->insertInto($this->table, $data)
@@ -56,8 +55,8 @@
 			$result = $this->db
 					->from($this->table)
 					->select(null)
-					->select("$this->table.fecha, $this->table.fk_session, $this->table.fk_id_usuario, $this->table.descripcion, $this->table.registro, $this->tableUsuario.login")
-					->leftJoin($this->tableUsuario.' on '.$this->tableUsuario.'.id_usuario ='.$this->table.'.fk_id_usuario')
+					->select("$this->table.fecha, $this->table.seg_session_id , $this->table.usuario_id , $this->table.descripcion, $this->table.registro, $this->tableUsuario.login")
+					->leftJoin($this->tableUsuario.' ON '.$this->tableUsuario.'.id ='.$this->table.'.usuario_id ')
 					->where("DATE_FORMAT($this->table.fecha, '%Y-%m-%d') BETWEEN '$from' AND '$to'")
 					->fetchAll();
 

@@ -18,38 +18,31 @@ use App\Lib\Auth,
 			$contrasena = $parsedBody['contrasena'];
 			$date = date("Y-m-d H:i:s");
 
-			$usuario = $this->model->usuario->login( $user, $contrasena);
+			$usuario = $this->model->usuario->login($user, $contrasena);
 			if($usuario->response){
 				$infoUser = $usuario->result;
-				$acciones = $this->model->usuario->getPermisos($infoUser->id_usuario, 1);
-				if($infoUser->iniciar == 1){
-					$_SESSION['usuario'] = $infoUser;
-					$_SESSION['user'] = $infoUser->id_usuario;
-					$_SESSION['usertype'] = $infoUser->typeUser;
-					$_SESSION['enterprise'] = $infoUser->fk_empresarial;
-					// $_SESSION['lockdown'] = $config->lockdown;
-					$_SESSION['permisos'] = $acciones;
-					$enterprise = $_SESSION['enterprise'];
-					$_SESSION['folioEmp'] = substr($infoUser->empresa, 0, 3).$enterprise.'-';
-					
-					$browser = $_SERVER['HTTP_USER_AGENT'];
-					$ipAddr = $_SERVER['REMOTE_ADDR'];
+				$acciones = $this->model->usuario->getPermisos($infoUser->id, 1);
+				$_SESSION['usuario'] = $infoUser;
+				$_SESSION['usuario_id'] = $infoUser->id;
+				$_SESSION['permisos'] = $acciones;
+				
+				$browser = $_SERVER['HTTP_USER_AGENT'];
+				$ipAddr = $_SERVER['REMOTE_ADDR'];
 
-					$token = $this->model->seg_sesion->crearToken($infoUser->id_usuario);
-						
-					$data = [
-						'fk_id_usuario' => $infoUser->id_usuario,
-						'ip_address' => $ipAddr,
-						'user_agent' => $browser,
-						'token' => $token,
-						'started'    => $date,
-					];
-					$sesion = $this->model->seg_sesion->add($data);
-					if($sesion){
-						$_SESSION['logID'] = $sesion->result;
-						$_SESSION['token'] = $token;
-						$seg_log = $this->model->seg_log->add('Inicio de sesión', $infoUser->id_usuario, '0');
-					}
+				$token = $this->model->seg_sesion->crearToken($infoUser->id);
+					
+				$data = [
+					'usuario_id' => $infoUser->id,
+					'ip_address' => $ipAddr,
+					'user_agent' => $browser,
+					'token' => $token,
+					'iniciada'    => $date,
+				];
+				$sesion = $this->model->seg_sesion->add($data);
+				if($sesion){
+					$_SESSION['logID'] = $sesion->result;
+					$_SESSION['token'] = $token;
+					$seg_log = $this->model->seg_log->add('Inicio de sesión', 'usuario', $infoUser->id, 1);
 				}
 			}
 			return $res->withJson($usuario);
@@ -57,7 +50,7 @@ use App\Lib\Auth,
 
 		$this->get('logout', function($req, $res, $args) use ($app) {
 			if(!isset($_SESSION)) { session_start(); }
-			$userId = $_SESSION['user'];
+			$userId = $_SESSION['usuario_id'];
 			$this->model->seg_sesion->logout();
 
 			return $res->withRedirect('../login');
@@ -81,31 +74,20 @@ use App\Lib\Auth,
 				$newPass = randomString(8);
 				$newpassBD = strrev(md5(sha1(trim($newPass)))); //<-----------
 
-				$nombre = $infoUser->nombre;
+				$nombre = $infoUser->nombre;			
 
-				// print_r($nombre);exit();
-				$iniciar = $infoUser->iniciar; 
-				if($iniciar == 1){
-				
-					if($nombre == ""){ 
-						$nombre = $infoUser->empresa;
-					}
+				$disc = "\n\n\n-------------------------------------\n";
+				$disc .="Este correo fue enviado desde una cuenta no monitoreada. Por favor no respondas este correo.";
+				$to = $mail;
+				$subject = "Recuperación de Contraseña";
+				$body = "Hola ". $nombre ."\n\nTu contraseña provisional es $newPass \nPuedes cambiarla en cuanto inicies sesión en ".URL_ROOT;
+				$body = $body.$disc;
+				$header = "From: ".SITE_NAME." <notifica@blinkmensajeros.com>\r\n";
+				$resultMail = mail($to, $subject, $body, $header); 
+				//$arrRes = array('error' => false, 'msg' => 'Te enviamos una nueva contraseña a tu correo. Si no encuentras el mensaje, verifica tu bandeja de correo no deseado o spam.');
+			
+				$usuario->msg = 'Te enviamos una nueva contraseña a tu correo. <br> Si no encuentras el mensaje, verifica tu bandeja de correo no deseado o spam';
 
-					$disc = "\n\n\n-------------------------------------\n";
-					$disc .="Este correo fue enviado desde una cuenta no monitoreada. Por favor no respondas este correo.";
-					$to = $mail;
-					$subject = "Recuperación de Contraseña";
-					$body = "Hola ". $nombre ."\n\nTu contraseña provisional es $newPass \nPuedes cambiarla en cuanto inicies sesión en ".URL_ROOT;
-					$body = $body.$disc;
-					$header = "From: ".SITE_NAME." <notifica@blinkmensajeros.com>\r\n";
-					$resultMail = mail($to, $subject, $body, $header); 
-					//$arrRes = array('error' => false, 'msg' => 'Te enviamos una nueva contraseña a tu correo. Si no encuentras el mensaje, verifica tu bandeja de correo no deseado o spam.');
-				
-					$usuario->msg = 'Te enviamos una nueva contraseña a tu correo. <br> Si no encuentras el mensaje, verifica tu bandeja de correo no deseado o spam';
-					//print_r($nombre);exit();
-				}else{
-					$usuario->msg = 'Sistema bloqueado. <br> Póngase en contacto con el administrador.'; 
-				}
 			}else{
 				$usuario->msg = 'No encontramos al usuario con el username ingresado';
 			}
@@ -117,16 +99,13 @@ use App\Lib\Auth,
 			$this->model->transaction->iniciaTransaccion();
 			$parsedBody = $req->getParsedBody();
 			$login = $parsedBody['login'];
-			$tipo_usuario = $parsedBody['fk_id_tipo_usuario'];
-			$parsedBody['fk_empresarial'] = $_SESSION['enterprise'];
-			$parsedBody['edo_usuario'] = 1;
-			$parsedBody['email_confir'] = $parsedBody['email'];
-			$parsedBody['alta'] = date('Y-m-d H:i:s');
+			$tipo_usuario = $parsedBody['usuario_tipo_id'];
+			$parsedBody['fecha_registro'] = date('Y-m-d H:i:s');
 			$ingreso = date('Y-m-d');
 			
 			$UserName = $this->model->usuario->getUserByUsername($login);
 
-			// if($UserName->response && $parsedBody['fk_id_tipo_usuario'] != '2' ){
+			// if($UserName->response && $parsedBody['usuario_tipo_id'] != '2' ){
 			if($UserName->response){
 				$UserName->setResponse(false,'El nombre de usuario ya existe');
 				$UserName->state= $this->model->transaction->regresaTransaccion();
@@ -173,10 +152,6 @@ use App\Lib\Auth,
 			];
 
 			if(!$igual){
-				// if($parsedBody['fk_id_tipo_usuario'] == 0) {
-				// 	$editUsuario = 'Debe seleccionar un tipo de usuario';
-				// 	$this->model->transaction->regresaTransaccion();
-				// }else{
 					$editUsuario = $this->model->usuario->editPersona($parsedBody, $args['id']);
 					if($editUsuario->response){
 							$seg_log = $this->model->seg_log->add('Modifica usuario', $args['id'], '1');
@@ -188,7 +163,6 @@ use App\Lib\Auth,
 					}else{
 						$editUsuario->state = $this->model->transaction->regresaTransaccion();
 					}
-				// }
 			}else{
 				$editUsuario = 'No existen datos diferentes a los antes registrados';
 			}
@@ -206,24 +180,20 @@ use App\Lib\Auth,
 		});
 
 		$this->get('getAllDataTable', function($req, $res, $args){
-			$usuarios = $this->model->usuario->getAllDataTable(); /* print_r($usuarios); exit(); */
+			$usuarios = $this->model->usuario->getAllDataTable();
 
 			$data = [];
 			if(!isset($_SESSION)) { session_start(); }
 			foreach($usuarios->result as $usuario) {
-				// $foto = $this->model->rh->getFoto($usuario->id_usuario);
 				$data[] = array(
-					"id_fact" => $usuario->id_fact == '' ? '' : $usuario->id_fact,
+					"id" => $usuario->id,
 					"nombre" => $usuario->nombre,
 					"apellidos" => $usuario->apellidos,
-					"id_type_user" => $usuario->fk_id_usuario,
-					"type_user" => $usuario->descripcion,
+					"id_type_user" => $usuario->usuario_tipo_id,
+					"type_user" => $usuario->tipo_usuario,
 					"email" => $usuario->email,
-					"status" => $usuario->edo_usuario == '1' ? 'Activo' : 'Inactivo',
-					"iniciar" => $usuario->iniciar,
-					// "foto" => $foto,
+					"status" => $usuario->status == '1' ? 'Activo' : 'Inactivo',
 					"foto" => "",
-					"data_id" => $usuario->id_usuario,
 				);
 			}
 
@@ -239,12 +209,12 @@ use App\Lib\Auth,
 			$parsedBody = $request->getParsedBody();
 				if(isset($arguments['id'])){
 					$id = $arguments['id'];
-					$accion = $parsedBody['edo_usuario'] == 1 ? 'Alta' : 'Baja';
-					$data = array('edo_usuario' => $parsedBody['edo_usuario']);
+					$accion = $parsedBody['status'] == 1 ? 'Alta' : 'Baja';
+					$data = array('status' => $parsedBody['status']);
 					
 					$edit = $this->model->usuario->estatusUser($data, $arguments['id']);
 					if($edit->response){
-						if($parsedBody['edo_usuario'] == 0){
+						if($parsedBody['status'] == 0){
 							$data = array(
 								'fk_empleado' => $arguments['id'],
 								'fecha' => $parsedBody['baja'],
@@ -358,20 +328,20 @@ use App\Lib\Auth,
 			$parsedBody = $req->getParsedBody();
 			$agrega = $parsedBody['agrega']; 
 			$data = array('fk_perfil'   => $parsedBody['fk_perfil'], 
-						  'fk_accion'   => $parsedBody['fk_accion'],);
+						  'seg_accion_id'   => $parsedBody['seg_accion_id'],);
 			if ($agrega == true) {
 				return $res->withJson($this->model->usuario->updatePermitTypeUser($data));
 			}else if ($agrega == false){
 				$id = $parsedBody['fk_perfil']; 
-				$fk_accion = $parsedBody['fk_accion']; 
-				return $res->withJson($this->model->usuario->DeleteTypeUser($fk_accion, $id));
+				$seg_accion_id = $parsedBody['seg_accion_id']; 
+				return $res->withJson($this->model->usuario->DeleteTypeUser($seg_accion_id, $id));
 			}
  		});
 
 		$this->post('renovarToken/', function($request, $response, $arguments) {
 			if(!isset($_SESSION)) { session_start(); }
 			$data = [
-				'token' => $this->model->seg_sesion->crearToken($_SESSION['user']),
+				'token' => $this->model->seg_sesion->crearToken($_SESSION['usuario_id']),
 				'finished' => date('Y-m-d H:i:s'),
 			];
 			

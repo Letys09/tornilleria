@@ -25,7 +25,7 @@
 
 				$addPermiso = $this->model->seg_permiso->add($parsedBody);
 				if($addPermiso->response){
-					$seg_log = $this->model->seg_log->add('Asigna permiso', $parsedBody['fk_usuario'], '14');
+					$seg_log = $this->model->seg_log->add('Asigna permiso', $parsedBody['usuario_id'], '14');
 					if($seg_log->response){
 						$seg_log->state = $this->model->transaction->confirmaTransaccion();
 					}else{

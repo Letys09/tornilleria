@@ -40,18 +40,18 @@ class SegSesionModel {
 		public function getByUsuario($usuario_id, $status=1, $since=null, $to=null, $limite=1) {
 			$this->response->result = $this->db
 				->from($this->table)
-				->where('fk_id_usuario', $usuario_id)
-				->where((!is_null($since) && !is_null($to))? "CAST(started AS DATE) BETWEEN '$since' AND '$to'": "TRUE")
+				->where('usuario_id ', $usuario_id)
+				->where((!is_null($since) && !is_null($to))? "CAST(iniciada AS DATE) BETWEEN '$since' AND '$to'": "TRUE")
 				->where('status'.($status==0? '>': '=').$status)
-				->orderBy('status DESC, started DESC')
+				->orderBy('status DESC, iniciada DESC')
 				->limit($limite)
 				->fetchAll();
 
 			$this->response->total = $this->db
 				->from($this->table)
 				->select(null)->select('COUNT(*) AS total')
-				->where('fk_id_usuario', $usuario_id)
-				->where((!is_null($since) && !is_null($to))? "CAST(started AS DATE) BETWEEN '$since' AND '$to'": "TRUE")
+				->where('usuario_id ', $usuario_id)
+				->where((!is_null($since) && !is_null($to))? "CAST(iniciada AS DATE) BETWEEN '$since' AND '$to'": "TRUE")
 				->where('status'.($status==0? '>': '=').$status)
 				->fetch()
 				->total;
@@ -129,7 +129,7 @@ class SegSesionModel {
 				'nbf' => time(),
 				// 'exp' => time() + 14400,
 				'aud' => SITE_NAME,
-				'id_usuario' => $usuario,
+				'id' => $usuario,
 			];
 
 			return $JWT->crearToken(json_encode($datos));

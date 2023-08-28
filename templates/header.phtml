@@ -1,21 +1,15 @@
 <?php
     include 'core/defines.php';
-    $id = $_SESSION['user'];
+    $id = $_SESSION['usuario_id'];
     $nombreEmp = $_SESSION['usuario']->nombre;
-    $typeUser = $_SESSION['usertype'];
 
     $icono = '';
     // echo($vista);
     switch ($vista) {
-        case 'Usuarios': $icono = 'user'; break;
-        case 'Bienvenida': $vista = ''; break;
-        case 'Log': $icono = 'check-square'; $vista = 'Bitácora de Acciones'; break;
-
-    }
-
-    switch($typeUser){
-      case '1': $typeUser = 'Administrador'; break;
-      case '2': $typeUser = 'General'; break;
+        case 'Usuarios': $icono = 'fas fa-user'; break;
+        case 'Sucursales': $icono = 'fas fa-store'; break;
+        // case 'Bienvenida': $vista = ''; break;
+        // case 'Log': $icono = 'fas fa-list-ul'; $vista = 'Bitácora de Acciones'; break;
     }
 
 	include 'core/actions.php';
@@ -65,6 +59,8 @@
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/assets/css/style.css">
         <!-- END: Custom CSS-->
 
+        <link rel="stylesheet" type="text/css" href="public/app-assets/css/fontawesome-all.min.css">    
+
         <link href="<?= URL_ROOT ?>/app-assets/plugin/toast/toastr.min.css" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/lightbox.min.css">
     </head>
@@ -84,8 +80,7 @@
                 </ul>
                 <ul class="nav navbar-nav bookmark-icons">
                     &nbsp; <li class="nav-item d-none d-lg-block ">
-                    <!-- <i class="feather-16 titleIcon" data-feather=<?= $icono ?>></i> -->
-                    <i class="fas fa-<?= $icono?> titleIcon"></i>
+                    <i class="<?= $icono?> titleIcon"></i>
                     </li> &nbsp; &nbsp; <!-- icono del módulo -->
                     <div class="user-nav d-sm-flex d-none title"> 
                     <span class="name-vista fw-bolder"><h2><?= $vista ?></h2></span>
@@ -97,11 +92,10 @@
                     <a class="nav-link dropdown-toggle dropdown-user-link" id="dropdown-user" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     <div class="user-nav d-sm-flex d-none">
                         <span class="user-name fw-bolder"><?= $nombreEmp ?></span>
-                        <span class="user-status"><?= $typeUser ?></span>
                     </div>
                     <span class="avatar">
                         <!-- <img class="round" src="<?= URL_DATA ?>empleado/foto<?= $id ?>.jpg" alt="avatar" height="40" width="40"> -->
-                        <img class="round" src="http://localhost/base_inventario/public/app-assets/images/profile.png" alt="avatar" height="40" width="40">
+                        <img class="round" src="http://localhost/tornilleria/public/app-assets/images/profile.png" alt="avatar" height="40" width="40">
                         <span class="avatar-status-online"></span>
                     </span>
                     </a>

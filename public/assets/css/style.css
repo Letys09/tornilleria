@@ -214,7 +214,7 @@ input[type="search"]{
 	display: none !important;
 }
 
-.buttonsFrmUser{
+.buttonsEnd{
 	text-align: end;	
 }
 
@@ -415,7 +415,5 @@ input[type="search"]{
 	background-color: #3376af;
 	color: white;
 }
-
-
 
 

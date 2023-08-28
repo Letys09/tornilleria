@@ -21,13 +21,13 @@
                             $urlModulo = URL_ROOT.$modulo->url;
                             if($modulo->url != ''){
                                 // echo '<li class=" nav-item"><a class="d-flex align-items-center" href="'.$urlModulo.'"><i data-feather="'.$modulo->icono_nuevo.'"></i><span class="menu-title text-truncate" data-i18n="Kanban">'.$modulo->nombre.'</span></a></li>';
-                                echo '<li class=" nav-item"><a class="d-flex align-items-center" href="'.$urlModulo.'"><i class="fas fa-'.$modulo->icono_nuevo.'"></i><span class="menu-title text-truncate" data-i18n="Kanban">'.$modulo->nombre.'</span></a></li>';
+                                echo '<li class=" nav-item"><a class="d-flex align-items-center" href="'.$urlModulo.'"><i class="'.$modulo->icono.'"></i><span class="menu-title text-truncate" data-i18n="Kanban">'.$modulo->nombre.'</span></a></li>';
                             }
                         }else{
                 ?>
                             <li class=" nav-item">
                                 <a class="d-flex align-items-center" href="<?= $urlModulo ?>">
-                                    <i class="fas fa-<?php echo $modulo->icono?>"></i>
+                                    <i class="<?php echo $modulo->icono?>"></i>
                                     <span class="menu-title text-truncate" data-i18n="Kanban"><?php echo $modulo->nombre ?></span>
                                 </a>
 							    <ul class="menu-content">
