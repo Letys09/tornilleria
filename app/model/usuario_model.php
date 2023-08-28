@@ -25,10 +25,11 @@ class UsuarioModel {
 
 		$usuario = $this->db
 			->from($this->table)
-			->select(null)->select("$this->table.id, $this->table.nombre, $this->table.usuario_tipo_id as typeUser")
-			->where('login', $user)
+			->select(null)
+			->select("$this->table.id, $this->table.nombre, $this->table.usuario_tipo_id as typeUser, sucursal.nombre as sucursal")
+			->where('username', $user)
 			->where('contrasena', $contrasena)
-			->where('status', 1)
+			->where("$this->table.status", 1)
 			->fetch();
 			
 		$this->response->result = $usuario;

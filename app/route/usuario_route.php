@@ -25,6 +25,7 @@ use App\Lib\Auth,
 				$_SESSION['usuario'] = $infoUser;
 				$_SESSION['usuario_id'] = $infoUser->id;
 				$_SESSION['permisos'] = $acciones;
+				$_SESSION['sucursal'] = $infoUser->sucursal;
 				
 				$browser = $_SERVER['HTTP_USER_AGENT'];
 				$ipAddr = $_SERVER['REMOTE_ADDR'];
@@ -100,7 +101,7 @@ use App\Lib\Auth,
 			$parsedBody = $req->getParsedBody();
 			$login = $parsedBody['login'];
 			$tipo_usuario = $parsedBody['usuario_tipo_id'];
-			$parsedBody['fecha_registro'] = date('Y-m-d H:i:s');
+			$parsedBody['registro'] = date('Y-m-d H:i:s');
 			$ingreso = date('Y-m-d');
 			
 			$UserName = $this->model->usuario->getUserByUsername($login);
