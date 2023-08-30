@@ -59,7 +59,7 @@ use App\Lib\Auth,
                         $sucursal->state = $this->model->transaction->confirmaTransaccion();	
                         return $res->withJson($sucursal);
                     }else{
-                        $seg_log->state = $this->model->transaction->confirmaTransaccion();	
+                        $seg_log->state = $this->model->transaction->regresaTransaccion();	
                         return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
                     }
                 }else{
