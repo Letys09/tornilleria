@@ -52,6 +52,8 @@
 					'transaction' 			  => new App\Lib\Transaction($c->db),
 					'seg_log' 				  => new App\Model\SegLogModel($c->db),
 					'sucursal' 				  => new App\Model\SucursalModel($c->db),
+					'producto' 				  => new App\Model\ProductoModel($c->db),
+					'cliente' 				  => new App\Model\ClienteModel($c->db),
 				];
 			};
 ?>

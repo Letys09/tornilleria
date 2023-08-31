@@ -312,4 +312,17 @@
         });
     }
 
+    function error(elem, msg){
+        $error = $('<div class="invalid-feedback"></div>');
+        $('#'+elem).addClass('is-invalid').focus();
+        $error.html(msg)
+        $('#'+elem).after($error);
+        $error.show();
+
+        setTimeout(() => {
+            $('.invalid-feedback').remove();
+            $('#'+elem).removeClass('is-invalid')
+        }, 4000);
+    }
+
 </script>
