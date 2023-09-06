@@ -38,13 +38,13 @@
   border: none;
   border-radius: 50%;
   background: #fff;
-  border: 2px solid #7367f0; }
+  border: 2px solid #458eed; }
 
 .noUi-handle:after, .noUi-handle:before {
   display: none; }
 
 .noUi-connect {
-  background: #7367f0;
+  background: #458eed;
   box-shadow: none; }
 
 .noUi-tooltip {
