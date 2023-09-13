@@ -1,20 +1,12 @@
 <!DOCTYPE html>
 <html class="loading" lang="es" data-textdirection="ltr">
-  <!-- BEGIN: Head-->
-  <head>
+    <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width,initial-scale=1.0,user-scalable=0,minimal-ui">
     <meta name="description" content="">
     <title>Ingresar</title>
-    <!-- <link rel="shortcut icon" type="image/x-icon" href="<?= URL_ROOT ?>/app-assets/images/logo/favicon.ico">
-   -->
-
-    <!-- BEGIN: Vendor CSS-->
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/vendors/css/vendors.min.css">
-    <!-- END: Vendor CSS-->
-
-    <!-- BEGIN: Theme CSS-->
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/bootstrap.min.css">
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/bootstrap-extended.min.css">
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/colors.min.css">
@@ -22,263 +14,246 @@
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/themes/dark-layout.min.css">
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/themes/bordered-layout.min.css">
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/themes/semi-dark-layout.min.css">
-
-    <!-- BEGIN: Page CSS-->
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/core/menu/menu-types/vertical-menu.min.css">
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/plugins/forms/form-validation.css">
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/pages/authentication.css">
-
-    <!-- END: Page CSS-->
-
-    <!-- BEGIN: Custom CSS-->
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/assets/css/style.css">
-    <!-- END: Custom CSS-->
-
-  </head>
-  <!-- END: Head-->
-
-  <!-- BEGIN: Body-->
-  <body class="vertical-layout vertical-menu-modern blank-page navbar-floating footer-static" data-open="click">
-    <!-- BEGIN: Content-->
-    <div class="app-content content ">
-      <div class="content-overlay"></div>
-      <div class="header-navbar-shadow"></div>
-      <div class="content-wrapper">
-        <div class="content-header row">
-        </div>
-        <div class="content-body">
-          <div class="auth-wrapper auth-cover">
-            <div class="auth-inner row m-0">
-              <!-- Left Text-->
-              <div class="d-none d-lg-flex col-lg-8">
-                <div class="w-100 d-lg-flex align-items-bottom justify-content-center">
-                  <!-- <img class="img-fluid " src="<?= URL_ROOT ?>/app-assets/images/portada/box.png" alt="Imagen portada"/> -->
+    </head>
+    <body class="vertical-layout vertical-menu-modern blank-page navbar-floating footer-static" data-open="click" onload="getSucursales()">
+        <div class="app-content content ">
+            <div class="content-overlay"></div>
+            <div class="header-navbar-shadow"></div>
+            <div class="content-wrapper">
+                <div class="content-header row">
                 </div>
-              </div>
-              <!-- /Left Text-->
-              <!-- Login-->
-              <div class="d-flex col-lg-4 align-items-center auth-bg px-2 px-lg-5">
-                <div class="col-12 col-sm-8 col-md-6 col-lg-12 px-xl-2 mx-auto">
-                  <h2 class="card-title fw-bold mb-1"></h2>
-                  <p class="card-text mb-2"></p>
-                  <form class="auth-login-form mt-2" id="formLogin">
-                    <div class="mb-1">
-                      <div id="bienvenida">
-                        <h2>¡Bienvenido!</h2>
-                        <br>
-                        <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Logo blink"/>
-                      </div>
-                      <br><hr>
-                      <label class="form-label" for="first-name-icon"><h5>Usuario</h5></label>
-                      <div class="input-group input-group-merge">
-                        <span class="input-group-text"><img src="<?= URL_ROOT ?>/app-assets/images/icons/user.svg"></img></span>
-                        <input type="text" id="login-user" class="form-control" placeholder="Usuario"/>
-                      </div>
-                    </div>
-                    <div class="mb-1">
-                    <label class="form-label" for="first-name-icon"><h5>Contraseña</h5></label>
-                        <div class="input-group input-group-merge form-password-toggle">
-                          <span class="input-group-text"><img src="<?= URL_ROOT ?>/app-assets/images/icons/lock.svg"></img></span>
-                          <input type="password" class="form-control form-control-merge" id="login-password" placeholder="Contraseña" aria-describedby="login-password" />
-                          <span id="passwordView" class="input-group-text cursor-pointer" ><img id="passwordViewImg" src="<?= URL_ROOT ?>/app-assets/images/icons/eye.svg"></img> </span>
-                          <input class="hidden" id="passwordViewEye" value="0">
+                <div class="content-body">
+                    <div class="auth-wrapper auth-cover">
+                        <div class="auth-inner row m-0">
+                            <div class="d-flex col-lg align-items-center auth-bg px-2 px-lg-5">
+                                <div class="col-12 col-sm-8 col-md-6 col-lg-4 px-xl-2 mx-auto">
+                                    <h2 class="card-title fw-bold mb-1"></h2>
+                                    <p class="card-text mb-2"></p>
+                                    <form class="auth-login-form mt-2" id="formLogin">
+                                        <div class="mb-1">
+                                            <div class="text-center" id="bienvenida">
+                                                <h2>BIENVENIDO</h2>
+                                                <br>
+                                                <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/torni-removebg-preview.png" alt="Logo"/>
+                                            </div>
+                                            <br><hr>
+                                            <?php if(!isset($_SESSION['sucursal_id'])) : ?>
+                                                <label class="form-label" for="login-sucursal"><h5>Sucursal</h5></label>
+                                                <div class="input-group input-group-merge mb-1">
+                                                    <span class="input-group-text"><img src="<?= URL_ROOT ?>/app-assets/images/icons/home.svg"></img></span>
+                                                    <select id="login-sucursal" class="form-control"><option value="0" selected disabled>Seleccione una sucursal</option></select>
+                                                </div>
+                                            <?php endif; ?>
+                                            <label class="form-label" for="login-user"><h5>Usuario</h5></label>
+                                            <div class="input-group input-group-merge">
+                                                <span class="input-group-text"><img src="<?= URL_ROOT ?>/app-assets/images/icons/user.svg"></img></span>
+                                                <input type="text" id="login-user" class="form-control" placeholder="Usuario"/>
+                                            </div>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label" for="login-password"><h5>Contraseña</h5></label>
+                                            <div class="input-group input-group-merge form-password-toggle">
+                                                <span class="input-group-text"><img src="<?= URL_ROOT ?>/app-assets/images/icons/lock.svg"></img></span>
+                                                <input type="password" class="form-control form-control-merge" id="login-password" placeholder="Contraseña" aria-describedby="login-password" />
+                                                <span id="passwordView" class="input-group-text cursor-pointer" ><img id="passwordViewImg" src="<?= URL_ROOT ?>/app-assets/images/icons/eye.svg"></img> </span>
+                                                <input class="hidden" id="passwordViewEye" value="0">
+                                            </div>
+                                            <div id="recuperarPass">
+                                                <button id="btnForgot" type="button" class="btn btn-link" >¿Olvidaste tu contraseña?</button>
+                                            </div>
+                                        </div>
+                                        <div class="alert datosLogin fs-4">
+                                        </div>
+                                        <div>
+                                            <input type="text" class="hidden" id="sucursal_id" value="0">
+                                            <button id="btnLogin" class="btn w-100" tabindex="4">Iniciar Sesión</button>
+                                        </div>
+                                    </form>
+
+                                    <form class="auth-login-form mt-2" id="formForgot">
+                                        <div class="mb-1">
+                                            <div id="Forgotmesssage">
+                                                <h3 class="text-uppercase">restablecer contraseña</h3>
+                                                <br>
+                                                <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/torni-removebg-preview.png" alt="Logo"/>
+                                            </div>
+                                            <hr>
+                                            <label class="form-label" for="first-name-icon"><h5>Usuario</h5></label>
+                                            <div class="input-group input-group-merge">
+                                                <span class="input-group-text"><img src="<?= URL_ROOT ?>/app-assets/images/icons/user.svg"></img></span>
+                                                <input type="text" id="user" class="form-control" placeholder="Usuario" autofocus>
+                                            </div>
+                                            <br>
+                                            <div id="btngc" class="btn-group btn-group-justified">
+                                                <button id="btnForgotCancel" class="btn btn-default w-100" tabindex="4">Cancelar</button>
+                                                <hr>
+                                                <button id="btnGenerate" class="btn w-100" tabindex="4">Generar</button>
+                                            </div>
+                                        </div>
+                                    </form> 
+
+                                    <hr>
+                                    <p class="text-center text-muted"><small>&copy; <?php echo SITE_NAME; ?> - <?php echo date('Y'); ?></small></p>
+                                </div>
+                            </div>
                         </div>
-                      <!-- </div> -->
-                      <div id="recuperarPass">
-                        <!-- <a href="auth-forgot-password-cover.html">¿Olvidaste tu contraseña?</a> -->
-                        <button id="btnForgot" type="button" class="btn btn-link" >¿Olvidaste tu contraseña?</button>
-                      </div>
                     </div>
-                    <div>
-                      <button id="btnLogin" class="btn w-100" tabindex="4">Iniciar Sesión</button>
-                    </div>
-                  </form>
-
-                  <!-- Inicia FormForgot. -->
-                  <form class="auth-login-form mt-2" id="formForgot">
-                    <div class="mb-1">
-                      <div id="Forgotmesssage">
-                        <h3>Restablecer Contraseña</h3>
-                        <br>
-                        <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Logo blink"/>
-                      </div>
-                      <hr>
-                      <label class="form-label" for="first-name-icon"><h5>Usuario</h5></label>
-                      <div class="input-group input-group-merge">
-                        <span class="input-group-text"><img src="<?= URL_ROOT ?>/app-assets/images/icons/user.svg"></img></span>
-                        <input type="text" id="user" class="form-control" placeholder="Usuario" autofocus>
-                      </div>
-                      <br>
-                      <div id="btngc" class="btn-group btn-group-justified">
-                      <button id="btnForgotCancel" class="btn btn-default w-100" tabindex="4">Cancelar</button>
-                      <hr>
-                      <button id="btnGenerate" class="btn w-100" tabindex="4">Generar</button>
-                      </div>
-                  </form> 
-
-                  <hr>
-                  <p class="text-center text-muted"><small>&copy; <?php echo SITE_NAME; ?> - <?php echo date('Y'); ?></small></p>
                 </div>
-              </div>
-              <!-- /Login-->
             </div>
-          </div>
         </div>
-      </div>
-    </div>
 
-    <script src="<?= URL_ROOT ?>/app-assets/vendors/js/vendors.min.js"></script>
-    <script src="<?= URL_ROOT ?>/app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
-    <script src="<?= URL_ROOT ?>/app-assets/js/core/app-menu.min.js"></script>
-    <script src="<?= URL_ROOT ?>/app-assets/js/core/app.min.js"></script>
-
-    <!-- <script src="<?= URL_ROOT ?>/app-assets/js/scripts/pages/auth-login.js"></script> -->
-
-    <script>
-      //  $(window).on('load',  function(){
-           
-      //     });
-      $('#passwordView').click(function(){
-        if($('#passwordViewEye').val() == 0){
-          $('#passwordViewEye').val('1');
-          $('#passwordViewImg').prop('src', '<?= URL_ROOT ?>/app-assets/images/icons/eye-off.svg');
-        }else if($('#passwordViewEye').val() == 1){
-          $('#passwordViewEye').val('0');
-          $('#passwordViewImg').prop('src', '<?= URL_ROOT ?>/app-assets/images/icons/eye.svg');
-
-        }
-      });
-      
-       $(function(){
-            $apiUrl = '<?= URL_ROOT ?>/';
-            $('#login-user').focus();
-            $('#formForgot').hide();
-
-            $('#formLogin').submit(function(e){
-                e.preventDefault();
-            });
-            $('#btnLogin').click(function(){
-                usuario = $.trim($('#login-user').val());
-                pass = $.trim($('#login-password').val());
-
-                $('.alert').remove();
-                err = $('<div class="alert alert-blink-danger"></div>');
-                if(usuario == ''){
-                    $(err).removeClass('alert-blink-danger');
-                    $(err).addClass('alert-blink-warning');
-                    $(err).append('Debe ingresar un usuario correcto.');
-                    $('#btnLogin').parent().prepend(err);
-                    $('#login-user').focus();
-                }else if(pass == ''){
-                    $(err).removeClass('alert-blink-danger');
-                    $(err).addClass('alert-blink-warning');
-                    $(err).append('Debe ingresar la contraseña.');
-                    $('#btnLogin').parent().prepend(err);
-                    $('#login-password').focus();
-                }else{
-                    blockPage();
-                    $.post($apiUrl+'usuario/login', {user: usuario, contrasena: pass}, function(resp) {
-                      if(resp.response){
-                        if(resp.result.iniciar == 0){
-                          $(err).removeClass('alert-blink-warning');
-                          $(err).addClass('alert-blink-danger');
-                          $(err).append('<center>Sistema bloqueado.<br>Póngase en contacto con el administrador.</center>');
-                          $('#btnLogin').parent().prepend(err);
-                          $.unblockUI();
-                        }else{
-                            window.location.href = $apiUrl+'bienvenida'; 
-                        }
-                      }else{
-                          $(err).append(resp.message+'<br> Verifica tus datos.');
-                          $('#btnLogin').parent().prepend(err);
-                          $.unblockUI();
-                      }
-                  },'json');
+        <script src="<?= URL_ROOT ?>/app-assets/vendors/js/vendors.min.js"></script>
+        <script src="<?= URL_ROOT ?>/app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
+        <script src="<?= URL_ROOT ?>/app-assets/js/core/app-menu.min.js"></script>
+        <script src="<?= URL_ROOT ?>/app-assets/js/core/app.min.js"></script>
+        <script>
+            $('#passwordView').click(function(){
+                if($('#passwordViewEye').val() == 0){
+                    $('#passwordViewEye').val('1');
+                    $('#passwordViewImg').prop('src', '<?= URL_ROOT ?>/app-assets/images/icons/eye-off.svg');
+                }else if($('#passwordViewEye').val() == 1){
+                    $('#passwordViewEye').val('0');
+                    $('#passwordViewImg').prop('src', '<?= URL_ROOT ?>/app-assets/images/icons/eye.svg');
                 }
             });
+            
+            $(function(){
+                $apiUrl = '<?= URL_ROOT ?>/';
+                $('#login-sucursal').focus();
+                $('#formForgot').hide();
 
-            function blockPage(){
-                $.blockUI({ 
-                    message: '<i class="icon-spinner4 spinner"></i>',
-                    overlayCSS: {
-                        backgroundColor: '#1b2024',
-                        opacity: 0.8,
-                        zIndex: 1200,
-                        cursor: 'wait'
-                    },
-                    css: {
-                        border: 0,
-                        color: '#fff',
-                        padding: 0,
-                        zIndex: 1201,
-                        backgroundColor: 'transparent'
+                $('#formLogin').submit(function(e){
+                    e.preventDefault();
+                });
+
+                $('#login-sucursal').on('change', function(){
+                    $('#sucursal_id').val($(this).val())
+                })
+                
+                $('#btnLogin').click(function(){
+                    sucursal = $('#sucursal_id').val()
+                    usuario = $.trim($('#login-user').val())
+                    pass = $.trim($('#login-password').val())
+                    
+                    if(sucursal == '' || sucursal == 0 || sucursal == null){
+                        error('login-sucursal','Debe seleccionar una sucursal')
+                    }else if(usuario == ''){
+                        error('login-usuario','Debe ingresar su usuario')
+                    }else if(pass == ''){
+                        error('login-password','Debe ingresar su contraseña')
+                    }else{
+                        blockPage();
+                        $.post($apiUrl+'usuario/login', {sucursal: sucursal, user: usuario, contrasena: pass}, function(resp) {
+                            if(resp.response){
+                            window.location.href = $apiUrl+'bienvenida'; 
+                            }else{
+                            $('.datosLogin').append(resp.message+'<br> Verifica tus datos.');
+                            $.unblockUI();
+                            }
+                        },'json');
                     }
                 });
+
+                $('#btnForgot').click(function () {              
+                    $('.alert').alert('close');
+                    $('#formLogin').hide();
+                    $('#formForgot').show();
+                    $('#user').focus();
+                    $('#login-user').val("");
+                    $('#login-password').val("");
+                });
+
+                //Boton "Olvidaste Contraseña" Cancelar.
+                $('#btnForgotCancel').click(function (e) {
+                    e.preventDefault();
+                    $('.alert').alert('close');
+                    $('#formForgot').hide();
+                    $('#formLogin').show();
+                    $('#login-user').focus();
+                    $('#user').val("");
+                });
+
+                //Boton "Olvidaste Contraseña" Generar. 
+                $('#btnGenerate').click(function(e){
+                    e.preventDefault();
+                    $('#user').focus();
+                    $('.alert').alert('close');
+                    users = $.trim($('#user').val());
+                    err = $('<div class="alert alert-danger"></div>');
+                    btn = $(this);
+
+                    if(users.length == 0){
+                        err.append('Debes ingresar tu usuario');
+                        $(this).parent().before(err);
+                    } else { 
+                        btn.addClass('disabled');
+                        $.post($apiUrl+'usuario/recovery', {users: users}, function(resp) { 
+                            if(resp.error){
+                                err.addClass('alert-danger');
+                            }else{  
+                                err.addClass('alert-success');
+                                $(err).append('<center>'+resp.msg+'</center>');
+                            }
+                            $('#user').val('');
+                            setTimeout(function() {
+                                $('#btnForgotCancel').trigger('click');
+                                $('.alert').alert('close');
+                            }, 5000);
+                            btn.parent().before(err);
+                            btn.removeClass('disabled');
+                        },'json'); 
+                    } 
+                });
+
+                function blockPage(){
+                    $.blockUI({ 
+                        message: '<i class="icon-spinner4 spinner"></i>',
+                        overlayCSS: {
+                            backgroundColor: '#1b2024',
+                            opacity: 0.8,
+                            zIndex: 1200,
+                            cursor: 'wait'
+                        },
+                        css: {
+                            border: 0,
+                            color: '#fff',
+                            padding: 0,
+                            zIndex: 1201,
+                            backgroundColor: 'transparent'
+                        }
+                    });
+                }
+               
+            });
+
+            function getSucursales(){
+                <?php if(!isset($_SESSION['sucursal_id'])) : ?>
+                    $.get('<?= URL_ROOT ?>/sucursal/getAll', function(res){
+                        $.each(res, function(index, item){
+                            $('#login-sucursal').append('<option value="'+item.id+'">'+item.nombre+'</option>')
+                        })
+                    })
+                <?php else : ?>
+                    $('#sucursal_id').val(<?= $_SESSION['sucursal_id'] ?>)
+                <?php endif; ?>
             }
 
-            //funcion recuperar contraseña
+            function error(elem, msg){
+                $error = $('<div class="invalid-feedback"></div>');
+                $('#'+elem).addClass('is-invalid').focus();
+                $error.html(msg)
+                $('#'+elem).after($error);
+                $error.show();
 
-            // Boton "Olvidaste Contreseña.
-            $('#btnForgot').click(function () {              
-              $('.alert').alert('close');
-              $('#formLogin').hide();
-              $('#formForgot').show();
-              $('#user').focus();
-              $('#login-user').val("");
-              $('#login-password').val("");
-            });
-
-            //Boton "Olvidaste Contraseña" Cancelar.
-            $('#btnForgotCancel').click(function (e) {
-              e.preventDefault();
-              $('.alert').alert('close');
-              $('#formForgot').hide();
-              $('#formLogin').show();
-              $('#login-user').focus();
-              $('#user').val("");
-            });
-
-            //Boton "Olvidaste Contraseña" Generar. 
-            $('#btnGenerate').click(function(e){
-              e.preventDefault();
-              $('#user').focus();
-              $('.alert').alert('close');
-              users = $.trim($('#user').val());
-              err = $('<div class="alert alert-blink-danger"></div>');
-              btn = $(this);
-
-             
-
-
-              if(users.length == 0){
-                err.append('Debes ingresar tu usuario');
-                $(this).parent().before(err);
-              } else { 
-                  btn.addClass('disabled');
-                   $.post($apiUrl+'usuario/recovery', {users: users}, function(resp) { 
-                    if(resp.error){
-                    err.addClass('alert-danger');
-                    }else{  
-                     
-                      err.addClass('alert-success');
-                      $(err).append('<center>'+resp.msg+'</center>');
-                    }
-                  $('#user').val('');
-                    setTimeout(function() {
-                    $('#btnForgotCancel').trigger('click');
-                    $('.alert').alert('close');
-                  }, 5000);
-                  btn.parent().before(err);
-                  btn.removeClass('disabled');
-                },'json'); 
-                } 
-            });
-
-
-
-            
-       });
-    </script>
-  </body>
-  <!-- END: Body-->
+                setTimeout(() => {
+                    $('.invalid-feedback').remove();
+                    $('#'+elem).removeClass('is-invalid')
+                }, 2000);
+            }
+        </script>
+    </body>
 </html>
