@@ -21,7 +21,7 @@
 		$this->post('add/', function ($request, $response, $arguments) {
 			$this->model->transaction->iniciaTransaccion();
 			$parsedBody = $request->getParsedBody();
-			$parsedBody['fecha_asignacion'] = date('Y-m-d H:i:s');
+			$parsedBody['fecha_asigno'] = date('Y-m-d H:i:s');
 
 				$addPermiso = $this->model->seg_permiso->add($parsedBody);
 				if($addPermiso->response){

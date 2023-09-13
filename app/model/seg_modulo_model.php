@@ -33,6 +33,7 @@
 			$this->response->result = $this->db
 				->from($this->table)
 				->where('status', 1)
+				->orderBy("orden")
 				->fetchAll();
 
 			$this->response->total = $this->db

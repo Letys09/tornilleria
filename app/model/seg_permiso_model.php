@@ -6,7 +6,7 @@
 
 	class SegPermisoModel {
 		private $db;
-		private $table = 'seg_permiso_user';
+		private $table = 'seg_permiso';
 		private $tableA = 'seg_accion';
 		private $response;
 		

@@ -143,9 +143,9 @@ class SegSesionModel {
                 $this->response = $this->edit($data, $_SESSION['logID']);
             }
     
-            session_unset();
-            session_regenerate_id(true);
-            session_destroy();
+            // session_unset();
+            // session_regenerate_id(true);
+            // session_destroy();
     
             return $this->response;
         }
