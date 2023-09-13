@@ -36,10 +36,10 @@
 
 .email-application .content-area-wrapper .sidebar .list-group .list-group-item:hover, .email-application .content-area-wrapper .sidebar .list-group .list-group-item:focus, .email-application .content-area-wrapper .sidebar .list-group .list-group-item.active {
   background: transparent;
-  color: #458eed; }
+  color: #392268; }
 
 .email-application .content-area-wrapper .sidebar .list-group .list-group-item.active {
-  border-color: #458eed; }
+  border-color: #392268; }
 
 .email-application .content-area-wrapper .content-right {
   width: calc(100% - 260px);

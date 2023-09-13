@@ -1,6 +1,6 @@
 .dropzone {
   min-height: 350px;
-  border: 2px dashed #458eed;
+  border: 2px dashed #392268;
   background: #f8f8f8;
   position: relative; }
 
@@ -11,7 +11,7 @@
   left: 0;
   width: 100%;
   height: 100%;
-  color: #458eed;
+  color: #392268;
   display: flex;
   justify-content: center;
   align-items: center;
@@ -28,7 +28,7 @@
   display: inline-block;
   line-height: 1;
   z-index: 2;
-  color: #458eed;
+  color: #392268;
   text-indent: 0px;
   font-weight: normal;
   -webkit-font-smoothing: antialiased; }
