@@ -1,0 +1,1126 @@
+<?php 
+	include 'header.phtml';
+    define('MOD_VER',	    10);
+    define('MOD_ADD',	    11);
+    define('MOD_EDIT',	    12);
+    define('MOD_DEL',	    13);
+    define('MOD_CARGA_M',   18);
+    define('MOD_MODIF_M',   19);
+    define('MOD_PROD_SUC',  23);
+    define('MOD_PROD_BAJA', 27);
+
+    if(!in_array(MOD_VER, $permisos)) {
+		header('Location: '.URL_ROOT.'/403');
+		exit;
+	} 
+?>
+
+<link href="<?= URL_ROOT ?>/app-assets/plugin/dropzone-master/dist/dropzone.css" rel="stylesheet" type="text/css" />
+
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+    <div class="app-content content ">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body">
+                <section>
+                    <div class="card">
+                        <div class="card-body border-bottom">
+                            <div class="card-body border-bottom alignRight">
+                                <div class="dt-buttons btn-group">
+                                    <?php if(in_array(MOD_ADD, $permisos)) :  ?>
+                                        <button type="button "id="btnAdd" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-producto" tabindex="0" 
+                                            aria-controls="DataTables_table_0" type="button" data-toggle="modal"
+                                            data-target="#frm-producto">
+                                            <i class="fas fa-plus"></i>&nbsp;&nbsp;<span>Agregar</span>
+                                        </button>
+                                    <?php endif; ?>
+                                    <?php if(in_array(MOD_CARGA_M, $permisos)) :  ?>
+                                        <button type="button "id="btnMasiva" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-masiva" tabindex="0" 
+                                            aria-controls="DataTables_table_0" type="button" data-toggle="modal"
+                                            data-target="#frm-masiva">
+                                            <i class="fas fa-file"></i>&nbsp;&nbsp;<span>Carga Masiva</span>
+                                        </button>
+                                    <?php endif; ?>
+                                    <?php if(in_array(MOD_MODIF_M, $permisos)) :  ?>
+                                        <button type="button "id="btnModifPre" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-precios" tabindex="0" 
+                                            aria-controls="DataTables_table_0" type="button" data-toggle="modal"
+                                            data-target="#frm-precios">
+                                            <i class="fas fa-dollar-sign"></i>&nbsp;&nbsp;<span>Modificación Precios</span>
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="card-datatable table-responsive pt-0">
+                                <table id="tbl-producto" class="table">
+                                    <thead class="table-light">
+                                        <tr class="text-center">
+                                            <th>Código</th>
+                                            <th>Categoría</th>
+                                            <th>Subcategoría</th>
+                                            <th>Existencia</th>
+                                            <th>Nombre</th>
+                                            <th>Marca</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-producto" >
+                                <div class="modal-dialog modal-lg">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase"></h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">
+                                            <div class="mb-1 form-group row">
+                                                <div class="col-sm-4 area">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-prod_area_id">Área</label>
+                                                    <select class="form-control" id="prod-prod_area_id"></select>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="categoria">Categoría *</label>
+                                                    <select class="form-control" id="categoria">
+                                                        <option value="0" selected disabled>Seleccione una opción</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-4 subcategoria hidden">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-prod_categoria_id">Subcategoria *</label>
+                                                    <select class="form-control" id="prod-prod_categoria_id"></select>
+                                                </div>
+                                            </div>
+
+                                            <div class="mb-1 mt-1 form-group row">
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-nombre">Nombre *</label>
+                                                    <input type="text" class="form-control" id="prod-nombre">
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-codigo">Código</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-text">
+                                                            <span><i class="fas fa-barcode"></i></span>
+                                                        </div>
+                                                        <input type="text" class="form-control" id="prod-codigo">
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-marca">Marca</label>
+                                                    <input type="text" class="form-control" id="prod-marca">
+                                                </div>
+                                            </div>
+                                            <div class="col-sm">
+                                                <label class="form-label fw-bolder fs-5" for="prod-descripcion">Descripción</label>
+                                                <input type="text" class="form-control" id="prod-descripcion">
+                                            </div>
+                                                    
+                                            <div class="mb-1 mt-1 form-group row">
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-costo">Costo</label>
+                                                    <div class="input-group">
+                                                        <div class="input-group-text">
+                                                            <span>$</span>
+                                                        </div>
+                                                        <input type="text" class="form-control text-end" id="prod-costo" placeholder="0.00" disabled>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-stock">Stock</label>
+                                                    <input type="text" class="form-control text-end" id="prod-stock" placeholder="0" disabled>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-minimo">Stock Mínimo</label>
+                                                    <input type="text" class="form-control text-end" id="prod-minimo" placeholder="0">
+                                                </div>                            
+                                            </div>
+                                            <div class="mb-1 mt-1 rangos">
+                                                <label class="form-label fw-bolder fs-5" for="prod-stock">Rangos de Precios</label>
+                                                <table id="tbl-rangos" class="table">
+                                                    <thead class="table-light">
+                                                        <tr class="text-center">
+                                                            <th>Tipo</th>
+                                                            <th>Hasta</th>
+                                                            <th>Precio</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Menudeo</td>
+                                                            <td><input type="text" class="form-control text-end" id="prod-menudeo" placeholder="0"></td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-text">
+                                                                        <small>$</small>
+                                                                    </div>
+                                                                    <input type="text" class="form-control text-end" id="prod-precio_menudeo" placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Medio mayoreo</td>
+                                                            <td><input type="text" class="form-control text-end" id="prod-medio" placeholder="0"></td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-text">
+                                                                        <small>$</small>
+                                                                    </div>
+                                                                    <input type="text" class="form-control text-end" id="prod-precio_medio" placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Mayoreo</td>
+                                                            <td><input type="text" class="form-control text-end" id="prod-mayoreo" placeholder="0"></td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-text">
+                                                                        <small>$</small>
+                                                                    </div>
+                                                                    <input type="text" class="form-control text-end" id="prod-precio_mayoreo" placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Distribuidor</td>
+                                                            <td><input type="text" class="form-control text-end" id="distribuidor" placeholder="0"></td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-text">
+                                                                        <small>$</small>
+                                                                    </div>
+                                                                    <input type="text" class="form-control text-end" id="prod-precio_distribuidor" placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                            <div class="mb-1 mt-1 form-group row">
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-cant_kilo">Venta por kilo <small>(Cantidad)</small></label> 
+                                                    <div class="input-group mb-3">
+                                                        <div class="input-group-text">
+                                                            <input class="form-check-input mt-0" type="checkbox" id="kilo">
+                                                        </div>
+                                                        <input type="number" class="form-control" id="prod-cant_kilo" placeholder="Cantidad" disabled>
+                                                    </div>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-precio_kilo">Venta por kilo <small>(Precio)</small></label> 
+                                                    <div class="input-group mb-3">
+                                                        <div class="input-group-text">
+                                                            <span>$</span>
+                                                        </div>
+                                                        <input type="number" class="form-control" id="prod-precio_kilo" placeholder="Precio" disabled>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-success mb-1 data-submit" id="btnSave">Guardar</button>
+                                                <input type="hidden" id="prod_id" value="0">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-sucursales" >
+                                <div class="modal-dialog modal-lg">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase"></h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">                                                   
+                                            <div>
+                                                <table id="tbl-sucursales" class="table">
+                                                    <thead class="table-light">
+                                                        <tr class="text-center">
+                                                            <th>Sucursal</th>
+                                                            <th>Stock</th>
+                                                            <th>Última entrada</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Salir</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-listadoP" >
+                                <div class="modal-dialog modal-lg">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase"></h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">                                                   
+                                            <div>
+                                                <table id="tbl-listadoP" class="table">
+                                                    <thead class="table-light">
+                                                        <tr class="text-center">
+                                                            <th>Tipo</th>
+                                                            <th>Hasta</th>
+                                                            <th>Precio</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody>
+                                                        <tr>
+                                                            <td>Menudeo</td>
+                                                            <td><input type="text" class="form-control text-end" id="rango-menudeo" placeholder="0"></td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-text">
+                                                                        <small>$</small>
+                                                                    </div>
+                                                                    <input type="text" class="form-control text-end" id="rango-precio_menudeo" placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Medio mayoreo</td>
+                                                            <td><input type="text" class="form-control text-end" id="rango-medio" placeholder="0"></td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-text">
+                                                                        <small>$</small>
+                                                                    </div>
+                                                                    <input type="text" class="form-control text-end" id="rango-precio_medio" placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Mayoreo</td>
+                                                            <td><input type="text" class="form-control text-end" id="rango-mayoreo" placeholder="0"></td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-text">
+                                                                        <small>$</small>
+                                                                    </div>
+                                                                    <input type="text" class="form-control text-end" id="rango-precio_mayoreo" placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                        <tr>
+                                                            <td>Distribuidor</td>
+                                                            <td><input type="text" class="form-control text-end" id="r-distribuidor" placeholder="0"></td>
+                                                            <td>
+                                                                <div class="input-group">
+                                                                    <div class="input-group-text">
+                                                                        <small>$</small>
+                                                                    </div>
+                                                                    <input type="text" class="form-control text-end" id="rango-precio_distribuidor" placeholder="0.00">
+                                                                </div>
+                                                            </td>
+                                                        </tr>
+                                                    </tbody>
+                                                </table>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Salir</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="statis" data-bs-keyboard="false" id="frm-baja">
+                                <div class="modal-dialog modal-lg">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase"></h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">    
+                                            <div class="form-group row mb-1">
+                                                <label class="col-sm-3 d-flex align-items-center justify-content-start form-label fs-5" for="nameP">Producto</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control-plaintext fs-5 text-uppercase empty" id="nameP" readonly></input>
+                                                </div>
+                                                <label class="col-sm-3 d-flex align-items-center justify-content-start form-label fs-5" for="existencia">Existencia actual</label>
+                                                <div class="col-sm-9">
+                                                    <input type="text" class="form-control-plaintext fs-5 empty" id="existencia" readonly></input>
+                                                </div>
+                                            </div>       
+                                            <div class="form-group row mt-1">
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fs-5" for="baja-fecha">Fecha *</label>
+                                                    <input type="date" id="baja-fecha" class="form-control" min="<?= date('Y-m-01') ?>" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-d')?>">
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fs-5" for="baja-cantidad">Cantidad del producto a dar de baja *</label>
+                                                    <input type="number" id="baja-cantidad" class="form-control" min="1">
+                                                </div>
+                                            </div>                                        
+                                            <div class="form-group row mt-1">
+                                                <div class="col-sm-12">
+                                                    <label class="form-label fs-5" for="baja-comentarios">Comentarios *</label>
+                                                    <textarea id="baja-comentarios" placeholder="Indique el motivo por el que se da de baja el inventario del producto." rows="10" cols="90"></textarea>
+                                                </div>
+                                            </div>                                        
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Salir</button>
+                                                <button type="button" class="btn btn-danger me-1" id="btnBajaP">Dar de Baja</button>
+                                                <input  type="hidden" id="prod_id_baja" value="0">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="modal modal-slide-in modal-danger fade" id="frm-del">
+                                <div class="modal-dialog">
+                                    <form class="modal-content pt-0">
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase">eliminar producto</h4>
+                                        </div>
+                                        <div class="modal-body flex-grow-1">
+                                            <div class="mb-1 confirmacion hidden">
+                                                ¿Estas seguro de eliminar el producto <strong></strong>?
+                                            </div>
+                                            <div class="mb-1 imposible hidden">
+                                                Por el momento no se puede eliminar el producto <strong></strong> ya que hay stock disponible de éste en las siguientes sucursales: <br><br>
+                                                <table id="tbl-info" class="table">
+                                                    <thead class="table-light">
+                                                        <tr class="text-center">
+                                                            <th>Sucursal</th>
+                                                            <th>Stock</th>
+                                                        </tr>
+                                                    </thead>
+                                                    <tbody></tbody>
+                                                </table>
+                                                <br>Para eliminar el producto primero debe dar de baja el inventario en cada sucursal.
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd hidden">
+                                                <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-danger me-1" id="btnEliminar">Eliminar</button>
+                                                <input  type="hidden" id="prod_id_del" value="0">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-masiva">
+                                <div class="modal-dialog modal-lg">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase">carga masiva de inventario</h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">
+                                            <div class="card">
+                                                <div class="card-header" id="cardData">
+                                                    <div class="container-fluid">
+                                                        <div class="row" data-bs-toggle="collapse" href="#inventario" role="button" aria-expanded="true" aria-controls="inventario">
+                                                            <h5 class="fw-bolder fs-5 text-uppercase">
+                                                                <i class="fas fa-caret-down m-1"></i>
+                                                                <small> instrucciones </small>
+                                                            </h5> 
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body cardBody">
+                                                    <div class="" id="inventario">
+                                                        <div class="alert alert-info p-1 text" role="alert">
+                                                            <p>
+                                                                Este módulo es para dar de alta de forma masiva los productos, contenidos en un Excel con el layout siguiente:
+                                                                <br><center><b>Categoría, Subcategoría, Área, Nombre, Descripción, Código, Marca, Mínimo, Venta por kilo, Venta por kilo (Cantidad), Venta por kilo (Precio) y Rangos de precios.</b></center> <br>
+                                                                * Columna I -> Venta por kilo, para indicar que el producto se vende por kilo colocar 1 en caso de que no colocar 0. <br>
+                                                                * Columna J -> Venta por kilo (Cantidad), si en la columna I especificó que el producto se vende por kilo (1), en esta columna debe indicar el número de piezas que conforman un kilo del producto. <br>
+                                                                * Columna K -> Venta por kilo (Precio), si en la columna I especificó que el producto se vende por kilo (1), en esta columna debe indicar el precio en el que vende el kilo del producto.
+                                                                <br>
+                                                                Antes de continuar verifique que el Excel que está seleccionando cumple con ese layout, de lo contrario no se podrán agregar los productos. <br>Si requiere descargar el formato del layout, lo puede hacer desde 
+                                                                <button class="btn btn-sm btn-success" id="btnExcel">Aquí</button><br><br>
+                                                                <b>Especificaciones: <br>
+                                                                    * No modificar las columnas del layout.<br>
+                                                                    * No agregar ni quitar columnas. <br>
+                                                                    * No poner ninguna clase de estilos (fuente, bordes, colores) al layout.
+                                                                </b>
+                                                            </p><br>
+                                                            <p>
+                                                                Una vez que los datos del inventario estén completos en el layout, regrese a este modulo para continuar con el proceso.<br><br>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="cargarArchivo">
+                                                        <label class="col-form-label ml-0 pl-0 font-weight-bold" for="layout">Archivo Excel*</label>
+                                                        <div id="layout" class="">
+                                                            <div class="dz-message">Arrastre el archivo o de click para seleccionar</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-success mb-1 data-submit" id="btnCargar">Guardar</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-precios">
+                                <div class="modal-dialog modal-lg">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase">modificación masiva de precios</h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">
+                                            <div class="card">
+                                                <div class="card-header" id="cardData">
+                                                    <div class="container-fluid">
+                                                        <div class="row" data-bs-toggle="collapse" href="#inventario" role="button" aria-expanded="true" aria-controls="inventario">
+                                                            <h5 class="fw-bolder fs-5 text-uppercase">
+                                                                <i class="fas fa-caret-down m-1"></i>
+                                                                <small> instrucciones </small>
+                                                            </h5> 
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="card-body cardBody">
+                                                    <div class="" id="inventario">
+                                                        <div class="alert alert-info p-1 text" role="alert">
+                                                            Seleccione área, categoría y subcategoría a las que pertenecen los productos de los cuales va a modificar el precio.
+                                                            <div class="form-group row">
+                                                                <div class="col-sm-4">
+                                                                    <label class="form-label fw-bolder fs-5" for="precios-area">Área *</label>
+                                                                    <select class="form-control" id="precios-area"></select>
+                                                                </div>
+                                                                <div class="col-sm-4">
+                                                                    <label class="form-label fw-bolder fs-5" for="precios-cat">Categoría *</label>
+                                                                    <select class="form-control" id="precios-cat"></select>
+                                                                </div>
+                                                                <div class="col-sm-4 preciosSub hidden">
+                                                                    <label class="form-label fw-bolder fs-5" for="precios-sub">Subcategoría *</label>
+                                                                    <select class="form-control" id="precios-sub"></select>
+                                                                </div>
+                                                            </div><br>
+                                                            <p>
+                                                                Este módulo es para modificar de forma masiva el precio de los productos contenidos en un Excel con el layout siguiente:
+                                                                <br><center><b>Id, Nombre, Precio Menudeo, Precio Medio-Mayoreo, Precio Mayoreo, Precio Distribuidor.</b></center><br>
+                                                                Antes de continuar verifique que el Excel que está seleccionando cumple con ese layout, de lo contrario no se podrá modificar el precio de los productos. <br>Descargue el layout desde 
+                                                                <button class="btn btn-sm btn-success" id="btnPrecios">Aquí</button><br><br>
+                                                                <b>Especificaciones: <br>
+                                                                    * No modificar las columnas A y B del layout.<br>
+                                                                    * No modificar los nombres de las columnas en el layout.<br>
+                                                                    * No agregar ni quitar columnas. <br>
+                                                                    * No poner ninguna clase de estilos (fuente, bordes, colores) al layout.
+                                                                </b>
+                                                            </p><br>
+                                                            <p>
+                                                                Una vez que los precios de los productos sean correctos, regrese a este modulo para continuar con el proceso.<br><br>
+                                                            </p>
+                                                        </div>
+                                                    </div>
+                                                    <div class="cargarPrecios">
+                                                        <label class="col-form-label ml-0 pl-0 font-weight-bold" for="layout_precios">Archivo Excel*</label>
+                                                        <div id="layout_precios" class="">
+                                                            <div class="dz-message">Arrastra el archivo o da click para seleccionar</div>
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-success mb-1 data-submit" id="btnCambiarPrecios">Guardar</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <?php include 'footer.phtml'; ?>
+    <script src="<?= URL_ROOT ?>/app-assets/plugin/dropzone-master/dist/dropzone.js"></script>
+
+    <script>
+        $(function(){
+            var apiUrl = '<?= URL_ROOT ?>/',
+                cat = 0,
+                area = 0;
+
+            getItems('tbl-producto')
+
+            $('#categoria').change(function(){
+                $('#prod-prod_categoria_id').empty();
+                $('#prod-prod_categoria_id').append('<option value="0" selected disabled>Seleccione una opción</option>');
+                cat = $(this).val()
+                $.get(apiUrl+'producto/getSub/'+cat, function(data){
+                    $.each(data, function(index, elem){
+                        $('#prod-prod_categoria_id').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
+                    })
+                }, 'json')
+                $('.subcategoria').removeClass('hidden')
+            })
+
+            $('#kilo').change(function(){
+                if($(this).is(':checked')){
+                    $('#prod-cant_kilo').attr('disabled', false).prop('disabled', false).focus()
+                    $('#prod-precio_kilo').attr('disabled', false).prop('disabled', false)
+                }else{
+                    $('#prod-cant_kilo').attr('disabled', true).prop('disabled', true).val('')
+                    $('#prod-precio_kilo').attr('disabled', true).prop('disabled', true).val('')
+                }
+            })
+
+            <?php if(in_array(MOD_PROD_SUC, $permisos)) : ?>
+                $('#tbl-producto').on('click', '.btnVer', function(){
+                    $('#tbl-sucursales tbody').empty()
+                    prod_id = $(this).data('id')
+                    producto = $(this).data('producto')
+                    $.get(apiUrl+'producto/getStockSuc/'+prod_id, function(resp){
+                        elem =  $('#tbl-sucursales tbody')
+                        if(resp){
+                            if(resp.msg){
+                                tr = $('<tr></tr>')
+                                tr.append('<td colspan="3" class="text-center">No se han registrado entradas del producto en otras sucursales</td>')
+                                elem.append(tr)
+                            }else{
+                                $.each(resp, function(index, item){
+                                    if(item.id != <?= $_SESSION['sucursal_id'] ?>){
+                                        tr = $('<tr></tr>')
+                                        tr.append('<td>'+item.nombre+'</td>')
+                                        tr.append('<td class="text-center">'+item.stock+'</td>')
+                                        tr.append('<td class="text-center">'+item.date+'</td>')
+                                        elem.append(tr)
+                                    }
+                                })
+                            }
+                        }
+                    },'json');
+                    $('#frm-sucursales h4').html('stock de "'+producto+'" en otras sucursales')
+                    $('#frm-sucursales').modal('show')
+                })
+            <?php endif; ?>
+
+            $('#tbl-producto').on('click', '.btnlistadoP', function(){
+                prod_id = $(this).data('id')
+                producto = $(this).data('producto')
+                $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                    console.log(resp)
+                    $.each(resp, function(index, item){
+                        $('#rango-'+index).val(item)
+                    })
+                    $('#r-distribuidor').val(parseInt(resp.mayoreo)+1)
+                })
+                $('#frm-listadoP h4').html('rangos de precios "'+producto+'"')
+                $('#frm-listadoP').modal('show')
+            })
+
+            <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
+                $('#tbl-producto').on('click', '.btnBaja', function(){
+                    prod_id = $(this).data('id')
+                    tr = $(this).closest('tr')
+                    name = $(tr).find('td:eq(4)').text()
+                    stock = $(tr).find('td:eq(3)').text()
+                    $('#frm-baja h4').html('baja de inventario')
+                    $('#nameP').val(name)
+                    $('#existencia').val(stock)
+                    $('#baja-cantidad').val(stock)
+                    $('#baja-cantidad').attr('max', stock)
+                    $('#prod_id_baja').val(prod_id)
+                    if(stock == 0){
+                        error('existencia', 'No hay stock disponible para dar de baja')
+                        $('#baja-fecha').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#baja-cantidad').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#baja-comentarios').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#btnBajaP').prop('disabled', true).attr('disabled', 'disabled')
+                    }else{
+                        $('#baja-fecha').prop('disabled', false).attr('disabled', false)
+                        $('#baja-cantidad').prop('disabled', false).attr('disabled', false)
+                        $('#baja-comentarios').prop('disabled', false).attr('disabled', false)
+                        $('#btnBajaP').prop('disabled', false).attr('disabled', false)
+                    }
+                    $('#frm-baja').modal('show')
+                })
+
+                $('#baja-cantidad').change(function(){
+                    existencia = $('#existencia').val()
+                    cant = $(this).val()
+                    if(cant < 1){
+                        error('baja-cantidad', 'No podemos dar de baja menos de 1 unidad del producto')
+                        $(this).val(1)
+                    }else if(cant > existencia){
+                        error('baja-cantidad', 'No podemos dar de baja más unidades que la existencia actual del producto')
+                        $(this).val(existencia)
+                    }
+                })
+
+                $('#btnBajaP').click(function(){
+                    data = {}
+                    $.each($('#frm-baja input, #frm-baja textarea'), function(index, elem){
+                        if(!$(elem).hasClass('empty')){
+                            ide = $(elem).attr('id').replace('baja-','')
+                            data[ide] = $.trim($(elem).val())
+                        }
+                    })
+                    console.log(data)
+                    if(data.fecha == ''){
+                        error('baja-fecha', 'Este campo es requerido')
+                    }else if(data.comentarios == ''){
+                        error('baja-comentarios', 'Este campo es requerido')
+                    }else{
+                        $.post(apiUrl+'producto/baja/', data, function(resp){
+                            if(resp.response){
+                                toastr["success"]("¡Listo!", "Se dio de baja el inventario del producto.")
+                                $('#frm-baja').modal('hide')
+                                getItems('tbl-producto')
+                            }else{
+                                toastr["error"]("¡Ocurrió un problema!", "No pudimos dar de baja el inventario del producto.")
+                            }
+                        },'json')
+                    }
+                })
+            <?php endif; ?>
+
+            <?php if(in_array(MOD_ADD, $permisos)) :  ?>
+                $('#btnAdd').click(function(){
+                    clear()
+                    $.get(apiUrl+'producto/getCodigo', function(data){
+                       $('#prod-codigo').val(parseInt(data.id)+1)
+                    }, 'json')
+
+                    categorias('categoria'); areas('prod-prod_area_id');
+                    $('#frm-producto h4').html('agregar producto')
+                    $('#frm-producto').modal('show')
+                })
+            <?php endif; ?>
+
+            <?php if(in_array(MOD_EDIT, $permisos)) : ?>
+                $('#tbl-producto').on('click', '.btnEdit', function(){
+                    categorias('categoria'); areas('prod-prod_area_id'); clear();
+                    $('#frm-producto h4').html('editar producto')
+                    id = $(this).data('id')
+                    $('#prod_id').val(id)
+                    $.get(apiUrl+'producto/get/'+id, function(data){
+                        $.each(data, function(index, elem){
+                            $('#prod-'+index).val(elem)
+                        })
+
+                        $.each(data.precios, function(index, elem){
+                            $('#prod-precio_'+index).val(elem)
+                        })
+                        if(data.venta_kilo == 1){
+                            $('#kilo').prop('checked', true)
+                            $('#prod-cant_kilo').val(data.kilo.cantidad).attr('disabled', false).prop('disabled', false)
+                            $('#prod-precio_kilo').val(data.kilo.precio).attr('disabled', false).prop('disabled', false)
+                        }
+                        $('#categoria').val(data.categoria).trigger('change')
+                        $('#prod-prod_categoria_id').val(data.prod_categoria_id)
+                        $('#distribuidor').val(parseInt(data.mayoreo)+1)
+
+                    },'json')
+                    $('#frm-producto').modal('show')
+                })
+            <?php endif; ?>
+
+            $('#btnSave').click(function(){
+                id = $('#prod_id').val()
+                data = {}
+                $.each($('#frm-producto input, #frm-producto select'), function(index, elem) {
+                    if($(elem).attr('type') != 'radio'){
+                        if($(elem).attr('id').includes('prod')){
+                            ide = $(elem).attr('id').replace('prod-','')
+                            data[ide] = $.trim($(elem).val())
+                        }
+                    }
+                });
+                data['venta_kilo'] = $('#kilo').is(':checked') ? 1 : 0
+                data['prod_area_id'] = $('input[name=areaProd]:checked', '#frm-producto').val()
+
+                if($('#categoria').val() == 0 || $('#categoria').val() == null){
+                    error('categoria', 'Este campo es obligatorio')
+                }else if(data['prod_categoria_id'] == ''){
+                    error('prod-prod_categoria_id', 'Este campo es obligatorio')
+                }else if(data['nombre'] == ''){
+                    error('prod-nombre', 'Este campo es obligatorio')
+                }else if(data['nombre'].length < 3){
+                    error('prod-nombre', 'El nombre debe contener al menos 3 caracteres')
+                }else if(data['venta_kilo'] == 1 && data['cant_kilo'] == ''){
+                    error('prod-cant_kilo', 'Este campo es obligatorio')
+                }else if(data['venta_kilo'] == 1 && data['precio_kilo'] == ''){
+                    error('prod-precio_kilo', 'Este campo es obligatorio')
+                }else if(data['minimo'] == ''){
+                    error('prod-minimo', 'Este campo es obligatorio')
+                }else{
+                    if(id == 0){
+                        $.post(apiUrl+'producto/add/', data, function(resp){
+                            if(resp.response){
+                                toastr["success"]("¡Listo!", "Se ha agregado el producto.")
+                                $('#frm-producto').modal('hide')
+                                getItems('tbl-producto')
+                            }else if(resp.error == 23000){
+                                toastr["warning"]("¡Verifique la información!", resp.message)
+                            }else{
+                                toastr["error"]("¡Ocurrió un problema!", "No pudimos agregar el producto.")
+                            }
+                        }, 'json')
+                    }else{
+                        console.log(data)
+                        $.post(apiUrl+'producto/edit/'+id, data, function(resp){
+                            if(resp.response){
+                                toastr["success"]("¡Listo!", "Se editó la información del producto.")
+                                getItems('tbl-producto')
+                                $('#frm-producto').modal('hide')
+                            }else if(resp.code){
+                                toastr["info"]("No hay cambios!", resp.msg); 
+                            }else{
+                                toastr["error"]("¡Ocurrió un problema!", "No pudimos editar la información del producto.")
+                            }
+                        }, 'json')
+                    }
+                }
+            })
+
+            <?php if(in_array(MOD_DEL, $permisos)) : ?>
+                $('#tbl-producto').on('click', '.btnDel', function(){
+                    $('#tbl-info tbody').empty()
+                    prod_id = $(this).data('id')
+                    tr = $(this).closest('tr')
+                    name = $(tr).find('td:eq(4)').text()
+                    $.get(apiUrl+'producto/getStockSuc/'+prod_id, function(resp){
+                        if(resp){
+                            if(resp.msg){
+                                $('.confirmacion').removeClass('hidden')
+                                $('.confirmacion strong').html(name)
+                                $('.imposible').addClass('hidden')
+                                $('.buttonsEnd').removeClass('hidden')
+                            }else{
+                                elem =  $('#tbl-info tbody')
+                                $.each(resp, function(index, item){
+                                    if(item.id != <?= $_SESSION['sucursal_id'] ?>){
+                                        tr = $('<tr></tr>')
+                                        tr.append('<td>'+item.nombre+'</td>')
+                                        tr.append('<td class="text-center">'+item.stock+'</td>')
+                                        elem.append(tr)
+                                    }
+                                })
+                                $('.buttonsEnd').addClass('hidden')
+                                $('.confirmacion').addClass('hidden')
+                                $('.imposible strong').html(name)
+                                $('.imposible').removeClass('hidden')
+                            }
+                        }
+                    },'json');
+                    $('#prod_id_del').val(prod_id)
+                    $('#frm-del').modal('show')
+                })
+
+                $('#btnEliminar').click(function(){
+                    id = $('#prod_id_del').val()
+                    $.post(apiUrl+'producto/del/'+id, function(resp){
+                        if(resp.response){
+                            toastr["success"]("¡Listo!", "Se eliminó el producto.")
+                            getItems('tbl-producto')
+                            $('#frm-del').modal('hide')
+                        }else{
+                            toastr["error"]("¡Ocurrió un problema!", "No pudimos eliminar el producto.")
+                        }
+                    },'json')
+                })
+            <?php endif; ?>
+
+            <?php if(in_array(MOD_CARGA_M, $permisos)) : ?>
+                $('#btnMasiva').click(function(){
+                    $('#frm-masiva').modal('show')
+                })
+
+                $('#btnExcel').click(function(e){
+                    e.preventDefault();
+                    window.open(apiUrl+'producto/excel/')
+                })
+
+                $('#layout').dropzone({
+                    paramName: 'file', 
+                    maxFiles: 1,
+                    url: apiUrl+'producto/cargarInv/', 
+                    acceptedFiles: '.xlsx', 
+                    dictRemoveFile: 'Quitar archivo',
+                    autoProcessQueue: false, 
+                    parallelUploads: 1,
+                }).addClass('dropzone');
+
+                Dropzone.forElement("#layout").on("maxfilesexceeded", function(file) { this.removeFile(file); });
+
+                Dropzone.forElement("#layout").on('addedfile', function(file){
+                    var btnDelFile = Dropzone.createElement('<a href="#" class="btnDelFile text-danger"><small><i class="fas fa-trash"></i> Quitar archivo</small></a>');
+                    dz = Dropzone.forElement("#layout");
+
+                    btnDelFile.addEventListener('click', function(e){
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dz.removeFile(file);
+                    });
+                    file.previewElement.appendChild(btnDelFile);
+                });
+
+                Dropzone.forElement("#layout").on("success", function(file, resp, formData) {
+                    console.log(resp)
+                    if(resp.response){
+                        toastr["success"]("¡Listo!", "Se realizó la carga del inventario.")
+                        $('#frm-masiva').modal('hide')
+                    }else{
+                        if(resp.error == 23000) toastr["error"]("¡Código repetido!", resp.message)
+                        else toastr["error"]("¡Ocurrió un error inesperado!", 'No se pudo completar la carga de productos.')
+                    }
+                });
+
+                $('#btnCargar').on('click', function(e){
+                    e.preventDefault();
+                    if(Dropzone.forElement("#layout").files.length == 0){
+                        error('layout', 'Debe agregar un archivo con el inventario.');
+                    }else{
+                        Dropzone.forElement("#layout").processQueue();
+                        setTimeout(() => {
+                        }, 15000);
+                    }
+                });
+            <?php endif; ?>
+
+            <?php if(in_array(MOD_MODIF_M, $permisos)): ?>
+                $('#precios-cat').change(function(){
+                    $('#precios-sub').empty()
+                    cat = $(this).val()
+                    $('#precios-sub').append('<option value="" selected disabled>Seleccione una opción</option>')
+                    $('#precios-sub').append('<option value="0" selected>Todas</option>')
+                    $.get(apiUrl+'producto/getSub/'+cat, function(data){
+                        $.each(data, function(index, elem){
+                            $('#precios-sub').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
+                        })
+                    }, 'json')
+                    $('.preciosSub').removeClass('hidden')
+                })
+
+                $('#btnModifPre').click(function(){
+                    categorias('precios-cat'); areas('precios-area');
+                    $('#frm-precios').modal('show')
+                })
+
+                $('#btnPrecios').click(function(e){
+                    e.preventDefault();
+                    cat = $('#precios-cat').val()
+                    sub = $('#precios-sub').val()
+                    area = $('#precios-area').val()
+                    window.open(apiUrl+'producto/precios/'+cat+'/'+sub+'/'+area)
+                })
+
+                $('#layout_precios').dropzone({
+                    paramName: 'file', 
+                    maxFiles: 1,
+                    url: apiUrl+'producto/cambiarP/', 
+                    acceptedFiles: '.xlsx', 
+                    dictRemoveFile: 'Quitar archivo',
+                    autoProcessQueue: false, 
+                    parallelUploads: 1,
+                }).addClass('dropzone');
+
+                Dropzone.forElement("#layout_precios").on("maxfilesexceeded", function(file) { this.removeFile(file); });
+
+                Dropzone.forElement("#layout_precios").on('addedfile', function(file){
+                    var btnDelFile = Dropzone.createElement('<a href="#" class="btnDelFile text-danger"><small><i class="fas fa-trash"></i> Quitar archivo</small></a>');
+                    dz = Dropzone.forElement("#layout_precios");
+
+                    btnDelFile.addEventListener('click', function(e){
+                        e.preventDefault();
+                        e.stopPropagation();
+                        dz.removeFile(file);
+                    });
+                    file.previewElement.appendChild(btnDelFile);
+                });
+
+                Dropzone.forElement("#layout_precios").on("success", function(file, resp, formData) {
+                    console.log(resp)
+                    if(resp.response){
+                        toastr["success"]("¡Listo!", "Se actualizaron los precios de los prodcutos.")
+                        $('#frm-precios').modal('hide')
+                    }else{
+                        toastr["error"]("¡Ocurrió un error inesperado!", 'No se pudo completar la actualización de precios.')
+                    }
+                });
+
+                $('#btnCambiarPrecios').on('click', function(e){
+                    e.preventDefault();
+                    if(Dropzone.forElement("#layout_precios").files.length == 0){
+                        error('layout', 'Debe agregar un archivo con precios de los productos.');
+                    }else{
+                        Dropzone.forElement("#layout_precios").processQueue();
+                        setTimeout(() => {
+                        }, 15000);
+                    }
+                });
+            <?php endif; ?>
+
+            function categorias(elem){
+                $('#'+elem).empty();
+                if(elem == 'precios-cat'){
+                    $('#'+elem).append('<option value="" selected disabled>Seleccione una opción</option>')
+                    $('#'+elem).append('<option value="0">Todas</option>')
+                }else{
+                    $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
+                }
+                $.get(apiUrl+'producto/getCat', function(data){
+                    $.each(data, function(index, item){
+                        $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
+                    })
+                }, 'json')
+            }
+
+            function areas(elem){
+                $('#'+elem).empty();
+                if(elem == 'precios-area'){
+                    $('#'+elem).append('<option value="" disabled>Seleccione una opción</option>')
+                    $('#'+elem).append('<option value="0" selected>Todas</option>')
+                }else{
+                    $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
+                }
+                $.get(apiUrl+'producto/getArea', function(resp) {
+                    if(resp.result.length > 0) {
+                        $.each(resp.result, function(index, item) {
+                            $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
+                        });
+                    }
+                }, 'json');
+            }
+
+            function clear(){
+                $.each($('#frm-producto input'), function(index, elem){
+                    ide = $(elem).attr('id')
+                    $('#'+ide).val('')
+                })
+                $('#prod_id').val(0)
+                $('#prod-menudeo_d').val(1)
+                $('#prod-prod_categoria_id').empty();
+                $('#categoria').empty();
+            }
+
+            function getItems(tbl){
+                cleanTable(tbl)
+                $('#'+tbl+' tbody').empty()
+                createTable()
+            }
+
+            function cleanTable(tbl){
+                if($.fn.dataTable.isDataTable('#'+tbl)){
+                    table = $('#'+tbl).DataTable()
+                    table.destroy()
+                }
+            }
+
+            function createTable(tbl){
+                if($('#tbl-producto').length){
+                    $('#tbl-producto').DataTable({
+                        ajax:{
+                            url: apiUrl+'producto/getAllDataTable',
+                            type: 'GET',
+                        },
+                        columns: [
+                            {data: 'codigo'},
+                            {data: 'categoria'},
+                            {data: 'subcategoria'},
+                            {data: 'stock'},
+                            {data: 'nombre'},
+                            {data: 'marca'},
+                            {data: ''}
+                        ],
+                        columnDefs: [
+                            {
+                                targets: -1,
+                                title: 'Acciones',
+                                orderable: false,
+                                render: function (data, type, full, meta) {
+                                    id = full['data_id']
+                                    return (
+                                        '<div class="btn-group">' +
+                                            '<a class="btn btn-sm dropdown-toggle hide-arrow" data-bs-toggle="dropdown">' +
+                                                feather.icons['more-vertical'].toSvg({ class: 'font-small-4' }) +
+                                            '</a>' +
+                                            '<div class="dropdown-menu dropdown-menu-end" style="min-width: 9rem; text-align:center; ">' +
+                                                <?php if(in_array(MOD_PROD_SUC, $permisos)) : ?>
+                                                    '<button type="button" class="btn btn-outline-new-warning btn-sm btnVer" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Ver en Sucursales" style="margin-right:4px;">'+
+                                                        feather.icons['eye'].toSvg({ class: 'font-small-4 me-20' })+
+                                                    '</button>'+
+                                                <?php endif; ?>
+                                                '<button type="button" class="btn btn-outline-new-success btn-sm btnlistadoP" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Precios" style="margin-right:4px;">'+ 
+                                                    feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' }) +
+                                                '</button>'+
+                                                <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
+                                                    '<button type="button" class="btn btn-outline-dark btn-sm btnBaja" data-id="'+id+'" data-toggle="tooltip" title="Baja Inventario" style="margin-right:4px;">'+
+                                                        feather.icons['download'].toSvg({ class: 'font-small-4 me-20' })+
+                                                    '</button>'+
+                                                <?php endif; ?>
+                                                <?php if(in_array(MOD_EDIT, $permisos)) : ?>
+                                                    '<button type="button" class="btn btn-outline-new-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
+                                                        feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
+                                                    '</button>'+
+                                                <?php endif; ?>
+                                                <?php if(in_array(MOD_DEL, $permisos)) : ?>
+                                                    '<button type="button" class="btn btn-outline-danger btn-sm btnDel" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
+                                                        feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
+                                                    '</button>' +
+                                                <?php endif; ?>
+                                            '</div>' +
+                                        '</div>'
+                                    );
+                                }
+                            },
+                            {
+                                targets: 3,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-center">' +
+                                        full['stock'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                        ],
+                        order: [[1, 'asc']], 
+                        dom:
+                            '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
+                            '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
+                            '<"col-sm-12 col-lg-10 ps-xl-75 ps-0"<"dt-action-buttons d-flex align-items-center justify-content-center justify-content-lg-end flex-lg-nowrap flex-wrap"<"me-1"l>>>' +
+                            '>t' +
+                            '<"d-flex justify-content-between mx-2 row mb-1"' +
+                            '<"col-sm-12 col-md-6"i>' +
+                            '<"col-sm-12 col-md-6"p>' +
+                            '>',
+                        language: {
+                            url:'../spanish.json'
+                        },
+                    });
+                }
+            }
+
+        });
+    </script>
+</html>

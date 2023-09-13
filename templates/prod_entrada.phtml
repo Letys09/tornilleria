@@ -1,0 +1,576 @@
+<?php 
+	include 'header.phtml';
+    define('MOD_VER',	  21);
+    define('MOD_ADD',	  22);
+    define('MOD_EDIT',	  24);
+    define('MOD_DEL',	  25);
+
+    if(!in_array(MOD_VER, $permisos)) {
+		header('Location: '.URL_ROOT.'/403');
+		exit;
+	} 
+?>
+    <link rel="stylesheet" type="text/css" href="<?=URL_ROOT?>/app-assets/plugin/typeahead.js-master/dist/typehead-min.css" >
+
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+    <div class="app-content content ">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body">
+                <section>
+                    <div class="card">
+                        <div class="card-body border-bottom">
+                            <div class="card-body border-bottom alignRight">
+                                <div class="dt-buttons btn-group">
+                                    <?php if(in_array(MOD_ADD, $permisos)) :  ?>
+                                        <button type="button "id="btnAdd" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-entrada" tabindex="0" 
+                                            aria-controls="DataTables_table_0" type="button" data-toggle="modal"
+                                            data-target="#frm-entrada">
+                                            <i class="fas fa-plus"></i>&nbsp;&nbsp;<span>Agregar</span>
+                                        </button>
+                                    <?php endif; ?>
+                                </div>
+                            </div>
+                            <div class="card-datatable table-responsive pt-0">
+                                <table id="tbl-entrada" class="table">
+                                    <thead class="table-light">
+                                        <tr class="text-center">
+                                            <th>Fecha</th>
+                                            <th>Folio</th>
+                                            <th>Usuario</th>
+                                            <th>Sucursal id</th>
+                                            <th>Sucursal</th>
+                                            <th>Importe</th>
+                                            <th>Descuento</th>
+                                            <th>Subtotal</th>
+                                            <th>IVA</th>
+                                            <th>Total</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                </table>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-entrada" >
+                                <div class="modal-dialog modal-xl">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase">agregar entrada de productos</h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">
+                                            <div class="mb-1 form-group row">
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fw-bolder fs-5" for="entrada-sucursal">Sucursal</label>
+                                                    <select class="form-control" id="entrada-sucursal"></select>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fw-bolder fs-5" for="entrada-folio">Folio</label>
+                                                    <input type="text" class="form-control" id="entrada-folio">
+                                                </div>
+                                            </div>
+
+                                            <section class="row">
+                                                <div class="col-sm">
+                                                    <table id="tbl_entrada" class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th class="fw-bolder" width="45%">Producto</th>
+                                                                <th class="fw-bolder" width="10%">Cantidad</th>
+                                                                <th class="fw-bolder" width="10%">Costo</th>
+                                                                <th class="fw-bolder" width="10%">Importe</th>
+                                                                <th class="fw-bolder" width="10%">Descuento</th>
+                                                                <th class="fw-bolder" width="10%">Total</th>
+                                                                <th class="fw-bolder" width="5%"></th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                        <tfoot>
+                                                            <tr>
+                                                                <td><input class="form-control form-control-sm" id="entrada-producto" placeholder="Buscar por nombre, descripción, código, marca"></td>
+                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-cantidad" value="0"></td>
+                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-costo" value="0.00"></td>
+                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-importe" value="0.00" disabled></td>
+                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-descuento" value="0.00"></td>
+                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-total" value="0.00" disabled>
+                                                                <td class="text-center">
+                                                                    <button type="button" class="btn btn-sm btn-success" id="btnAddRow" data-toggle="tooltip" title="Confirmar"><i class="fas fa-check"></i></button>
+                                                                    <button type="button" class="btn btn-sm btn-danger" id="delRow" data-toggle="tooltip" title="Quitar"><i class="fas fa-window-close"></i></button>
+                                                                </td>
+                                                            </tr>
+                                                        </tfoot>
+                                                    </table>
+                                                </div>
+                                            </section>
+                                        </div>
+                                        <br>
+                                        <div class="col-sm-12 text-end mt-5">
+                                            <div class="col-sm-12 p-0">
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">importe </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <small>$</small>
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-importe" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">descuento </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <small>$</small>
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-descuento" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">subtotal </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <small>$</small>
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-subtotal" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">iva </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <input class="form-check-input" type="checkbox" id="iva">
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-iva" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">total </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <small>$</small>
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-total" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-success mb-1 data-submit" id="btnSave">Guardar</button>
+                                                <input type="hidden" id="prod_id" value="0">
+                                                <input type="hidden" id="entrada_id" value="0">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <?php include 'footer.phtml'; ?>
+
+    <script>
+        $(function(){
+            var apiUrl = '<?= URL_ROOT ?>/';
+
+            getItems('tbl-entrada')
+
+            <?php if(in_array(MOD_ADD, $permisos)) : ?>
+                $('#btnAdd').click(function(){
+                    $.get(apiUrl+'sucursal/getAll', function(resp){
+                        $.each(resp, function(index, item){
+                            $('#entrada-sucursal').append('<option value="'+item.id+'">'+item.nombre+'</option>')
+                        })
+                        $('#entrada-sucursal').val(<?= $_SESSION['sucursal_id'] ?>)
+                    })
+                    $('#frm-entrada').modal('show')
+                })
+
+                var findProductos = new Bloodhound({
+                    datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+                    queryTokenizer: Bloodhound.tokenizers.whitespace,
+                    remote: {
+                        url: apiUrl+'producto/getBy/%QUERY',
+                        wildcard: '%QUERY'
+                    }
+                })
+        
+                $('#entrada-producto').typeahead(
+                    {hint: true, highlight: true, minLength: 2}, 
+                    {display: 'nombre', source: findProductos}
+                )
+
+                $('#entrada-producto').bind('typeahead:select', function(ev, suggestion) {
+                    producto = suggestion.producto;
+                    prod_id = suggestion.id;
+
+                    if($.isNumeric(prod_id) && prod_id > 0){
+                        $('#entrada-producto').val(producto);
+                        $('#prod_id').val(prod_id);
+                    }
+                })
+                $('#entrada-producto').focus()
+
+                $('#entrada-costo').change(function(){
+                    costo = $(this).val()
+                    cantidad = $('#entrada-cantidad').val()
+                    importe = parseFloat(cantidad * costo).toFixed(2)
+                    $('#entrada-importe').val(importe)
+                    $('#entrada-total').val(importe)
+                })
+
+                $('#entrada-descuento').change(function(){
+                    descuento = parseFloat($(this).val())
+                    descuento = descuento == '' ? 0 : descuento
+                    importe =  parseFloat($('#entrada-importe').val())
+                    if(descuento > importe){
+                        error('entrada-descuento', 'No puede agregar un descuento mayor al importe')
+                        total = importe
+                    }
+                    else total = parseFloat(importe-descuento).toFixed(2)
+                    $('#entrada-total').val(total)
+                })
+
+                $('#iva').change(function(){
+                    getTotal()
+                })
+
+                data = {}; data['totales'] = {};
+                $('#tbl_entrada tfoot').on('click', '#btnAddRow', function(e){
+                    e.preventDefault()
+                    id = $('#prod_id').val()
+                    cant = $('#entrada-cantidad').val()
+                    importe = parseFloat($('#entrada-importe').val())
+                    desc = $('#entrada-descuento').val() == '' ? parseFloat('0.00') : parseFloat($('#entrada-descuento').val())
+                    if(id == 0){
+                        error('entrada-producto', 'Debe seleccionar un producto')
+                    }else if(cant == 0){
+                        error('entrada-cantidad', 'No puede generar una entrada de cantidad 0')
+                    }else if(desc > importe){
+                        error('entrada-descuento', 'No puede agregar un descuento mayor al importe')
+                        $('#entrada-total').val(importe)
+                    }else{
+                        $.each($('#tbl_entrada input'), function(index, item){
+                            if($(item).hasClass('entrada')){
+                                ide = $(item).attr('id').replace('entrada-','')
+                                data[ide] = $.trim($(item).val())
+                            }
+                        })
+                        data['producto'] = $('#entrada-producto').val()
+                        data['producto_id'] = id
+                        data['descuento'] = desc                       
+                        addRow(data)
+                    }
+                })
+
+                $('#tbl_entrada tbody').on('click', '.btnDelRow', function(e){
+                    e.preventDefault()
+				    $(this).parents('tr').remove()
+                    $('#entrada-producto').focus().val('');
+                })
+
+                $('#tbl_entrada tfoot').on('click', '#delRow', function(e){
+                    if($('#tbl_entrada tbody tr').length != 0){
+                        e.preventDefault()
+                        $(this).parents('tr').remove()
+                    }else{
+                        error('tbl_entrada', 'Debe agregar al menos un producto.')
+                    }
+                })
+       
+                $('#btnSave').click(function(){
+                    id = $('#prod_id').val()
+                    data = { 
+                        sucursal_id: $('#entrada-sucursal').val(),
+                        folio: $('#entrada-folio').val(),
+                        importe: $('#total-importe').val(),
+                        descuento: $('#total-descuento').val(),
+                        subtotal: $('#total-subtotal').val(),
+                        iva: $('#total-iva').val(),
+                        total: $('#total-total').val(),
+                    }
+
+                    data.entradas = []
+                    $.each($('#tbl_entrada tbody tr'), function(index, trInfo) {
+                        if($(trInfo).hasClass('new')){
+                            entradas = { 
+                                'producto_id': $(trInfo).data('id'), 
+                                'cantidad': $(trInfo).find('.ent-cantidad').text(), 
+                                'costo': $(trInfo).find('.ent-costo').text(), 
+                                'importe': $(trInfo).find('.ent-importe').text(), 
+                                'descuento': $(trInfo).find('.ent-descuento').text(), 
+                                'total': $(trInfo).find('.ent-total').text(), 
+                            }
+                            data.entradas.push(entradas);
+                        }
+                    })
+                  
+                    if($('#entrada_id').val() == 0){
+                        console.log(data)
+                        $.post(apiUrl+'entrada/add/', data, function(resp){
+                            if(resp.response){
+                                toastr["success"]("¡Listo!", "Se ha realizado la entrada de productos.")
+                                $('#frm-entrada').modal('hide')
+                                getItems('tbl-entrada')
+                            }else{
+                                toastr["error"]("¡Ocurrió un problema!", "No pudimos agregar la entrada de productos.")
+                            }
+                        }, 'json')
+                    }else{
+                        console.log(data)
+                        $.post(apiUrl+'producto/edit/'+id, data, function(resp){
+                            if(resp.response){
+                                toastr["success"]("¡Listo!", "Se editó la información del producto.")
+                                getItems('tbl-entrada')
+                                $('#frm-entrada').modal('hide')
+                            }else if(resp.code){
+                                toastr["info"]("No hay cambios!", resp.msg); 
+                            }else{
+                                toastr["error"]("¡Ocurrió un problema!", "No pudimos editar la información del producto.")
+                            }
+                        }, 'json')
+                    }
+                })
+
+                function addRow(data){
+                    elem =  $('#tbl_entrada tbody')
+                    tr = $('<tr class="new" data-id="'+data.producto_id+'"></tr>')
+                    tr.append('<td>'+data.producto+'</td>')
+                    tr.append('<td class="text-center ent-cantidad">'+data.cantidad+'</td>')
+                    tr.append('<td class="text-end ent-costo">'+parseFloat(data.costo).toFixed(2)+'</td>')
+                    tr.append('<td class="text-end ent-importe">'+parseFloat(data.importe).toFixed(2)+'</td>')
+                    tr.append('<td class="text-end ent-descuento">'+parseFloat(data.descuento).toFixed(2)+'</td>')
+                    tr.append('<td class="text-end ent-total">'+parseFloat(data.total).toFixed(2)+'</td>')
+                    tr.append('<td class="text-center"><button type="button" class="btn btn-sm btn-danger btnDelRow" data-toggle="tooltip" title="Eliminar"><i class="fas fa-trash"></i></button></td>')
+                    elem.append(tr)
+                    clear()
+                    getTotal()
+                }
+            <?php endif; ?>
+
+            function clear(){
+                $('#entrada-producto').focus().val('')
+                $('#entrada-cantidad').val('0')
+                $('#entrada-costo').val('0.00')
+                $('#entrada-importe').val('0.00')
+                $('#entrada-descuento').val('0.00')
+                $('#entrada-total').val('0.00')
+                $('#prod_id').val(0)
+            }
+
+            function getTotal(){
+                imp = 0.00; desc = 0.00; tot = 0.00;
+                $.each($('#tbl_entrada tbody tr'), function(index, trInfo) {
+                    if($(trInfo).hasClass('new')){
+                        imp += parseFloat($(trInfo).find('.ent-importe').text())
+                        desc += parseFloat($(trInfo).find('.ent-descuento').text())
+                        tot += parseFloat($(trInfo).find('.ent-total').text())
+                    }
+                })
+
+                iva = $('#iva').is(':checked') ? parseFloat(((imp - desc)*0.16)) : parseFloat('0.00')
+                
+                $('#total-importe').val(imp)
+                $('#total-descuento').val(desc)
+                $('#total-subtotal').val(imp-desc)
+                $('#total-iva').val(iva)
+                $('#total-total').val(tot+iva)
+            }
+
+            function getItems(tbl){
+                cleanTable(tbl)
+                $('#'+tbl+' tbody').empty()
+                createTable()
+            }
+
+            function cleanTable(tbl){
+                if($.fn.dataTable.isDataTable('#'+tbl)){
+                    table = $('#'+tbl).DataTable()
+                    table.destroy()
+                }
+            }
+
+            function createTable(tbl){
+                if($('#tbl-entrada').length){
+                    $('#tbl-entrada').DataTable({
+                        ajax:{
+                            url: apiUrl+'entrada/getAllDataTable',
+                            type: 'GET',
+                        },
+                        columns: [
+                            {data: 'fecha'},
+                            {data: 'folio'},
+                            {data: 'usuario'},
+                            {data: 'sucursal_id'},
+                            {data: 'sucursal'},
+                            {data: 'importe'},
+                            {data: 'descuento'},
+                            {data: 'subtotal'},
+                            {data: 'iva'},
+                            {data: 'total'},
+                            {data: ''}
+                        ],
+                        columnDefs: [
+                            {
+                                targets: -1,
+                                title: 'Acciones',
+                                orderable: false,
+                                render: function (data, type, full, meta) {
+                                    id = full['data_id'];
+                                    return (
+                                        '<div class="text-center">' +
+                                            <?php if(in_array(MOD_EDIT, $permisos)) : ?>
+                                                '<button type="button" id="btnEdit" class="btn btn-outline-new-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
+                                                    feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_DEL, $permisos)) : ?>
+                                                '<button type="button" id="btnDel" class="btn btn-outline-danger btn-sm" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
+                                                    feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>' +
+                                            <?php endif; ?>
+                                        '</div>'
+                                    );
+                                }
+                            },
+                            {
+                                targets: 0,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-center">' +
+                                        '<span >' +
+                                            full['fecha'] +
+                                        '</span>' +
+                                        '<small class="emp_post text-muted">' +
+                                        full['hora'] +
+                                        '</small>' +
+                                    '</div>';
+                                return salida;
+                                }
+                            },
+                            {
+                                targets: 5,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-end">' +
+                                        full['importe'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 6,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-end">' +
+                                        full['descuento'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 7,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-end">' +
+                                        full['subtotal'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 8,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-end">' +
+                                        full['iva'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 9,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-end">' +
+                                        full['importe'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                visible: false, targets: [3]
+                            }
+                        ],
+                        order: [[0, 'desc']], 
+                        dom:
+                            '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
+                            '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
+                            '<"col-sm-12 col-lg-10 ps-xl-75 ps-0"<"dt-action-buttons d-flex align-items-center justify-content-center justify-content-lg-end flex-lg-nowrap flex-wrap"<"me-1"l>>>' +
+                            '>t' +
+                            '<"d-flex justify-content-between mx-2 row mb-1"' +
+                            '<"col-sm-12 col-md-6"i>' +
+                            '<"col-sm-12 col-md-6"p>' +
+                            '>',
+                        language: {
+                            url:'../spanish.json'
+                        },
+                        initComplete: function () {
+                            var label = $('<label for="cuantos">Mostrar</label>').appendTo('#tbl-entrada_length');
+                            var selectCount = $('<select id="cuantos" class="form-select"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select>')
+                                .appendTo('#tbl-entrada_length').on('change', function () {
+                                    sucursal = $('#sucursal').val();
+                                   
+                                    $('#tbl-entrada').DataTable().page.len( $(this).val() ).draw();
+                                    $('#sucursal').val(sucursal).trigger('change');
+                                });
+
+                                this.api()
+                                .columns(4)
+                                .every(function () {
+                                var column = this;
+                                
+                                var select = $(
+                                    '<select id="sucursal" class="form-select text-capitalize mb-md-0 mb-2 select-dentro-datatable"><option value=""> Todos </option></select>'
+                                    )
+                                    .prependTo('#tbl-entrada_length')
+                                    .on('change', function () {
+                                        $('#tbl-entrada').DataTable().column(4).search(
+                                            $('#sucursal').val()
+                                        ).draw();
+                                    });
+                                var label = $('<label class="form-label label" for="sucursal">Sucursal</label>').prependTo('#tbl-entrada_length');
+                                            
+                                column
+                                    .data()
+                                    .unique()
+                                    .sort()
+                                    .each(function (d, j) {
+                                        select.append('<option value="' + d + '" class="text-capitalize">' + d + '</option>');
+                                    });
+                                });
+
+                            $('#tbl-entrada_length label:eq(1)').addClass('hidden');
+                        }
+                    });
+                }
+            }
+
+        });
+    </script>
+</html>
