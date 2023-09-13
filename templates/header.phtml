@@ -8,8 +8,11 @@
     switch ($vista) {
         case 'Usuarios': $icono = 'fas fa-user'; break;
         case 'Sucursales': $icono = 'fas fa-store'; break;
-        case 'Productos': $icono = 'fas fa-cubes'; break;
+        case 'Productos': $icono = 'fas fa-boxes'; $vista = 'Inventario / Precios'; break;
+        case 'Kardex': $icono = 'fas fa-list'; break;
+        case 'Prod_entrada': $icono = 'fas fa-upload'; $vista = 'Entrada de Productos'; break;
         case 'Clientes': $icono = 'fas fa-handshake'; break;
+        case 'Ventas': $icono = 'fas fa-hand-holding-usd'; $vista = 'Nueva Venta'; break;
     }
 
 	include 'core/actions.php';
@@ -24,9 +27,6 @@
         <meta name="description" content="">
         <meta name="author" content="">
         <title><?= $vista.' | '. SITE_NAME ?></title>
-        <!-- <link rel="shortcut icon" type="image/x-icon" href="<?= URL_ROOT ?>/app-assets/images/logo/favicon.ico"> -->
-
-        <!-- BEGIN: Vendor CSS-->
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/vendors/css/forms/select/select2.min.css">
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/vendors/css/vendors.min.css">
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/vendors/css/tables/datatable/dataTables.bootstrap5.min.css">
@@ -34,12 +34,6 @@
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/vendors/css/tables/datatable/buttons.bootstrap5.min.css">
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/vendors/css/tables/datatable/rowGroup.bootstrap5.min.css">
 
-        <!-- aquí -->
-        
-
-        <!-- END: Vendor CSS-->
-
-        <!-- BEGIN: Theme CSS-->
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/bootstrap.min.css">
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/bootstrap-extended.css">
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/colors.min.css">
@@ -47,31 +41,24 @@
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/themes/dark-layout.min.css">
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/themes/bordered-layout.min.css">
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/themes/semi-dark-layout.min.css">
-        
-        <!-- BEGIN: Page CSS-->
+     
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/core/menu/menu-types/vertical-menu.min.css">
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/plugins/forms/form-validation.css">
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/fonts/font-awesome/css/font-awesome.css">
         <link rel="stylesheet" type="text/css" href="<?=URL_ROOT?>/app-assets/plugin/typeahead.js-master/dist/typehead-min.css" >
-        <!-- END: Page CSS-->
 
-        <!-- BEGIN: Custom CSS-->
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/assets/css/style.css">
-        <!-- END: Custom CSS-->
 
         <link rel="stylesheet" type="text/css" href="public/app-assets/css/fontawesome-all.min.css">    
 
         <link href="<?= URL_ROOT ?>/app-assets/plugin/toast/toastr.min.css" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/lightbox.min.css">
     </head>
-  <!-- END: Head-->
 
     <?php include 'sidebar.phtml'; ?>
 
-  <!-- BEGIN: Body-->
     <body class="vertical-layout vertical-menu-modern  navbar-floating footer-static   menu-collapsed" data-open="click" data-menu="vertical-menu-modern" data-col="">
 
-    <!-- BEGIN: Header-->
     <nav class="header-navbar navbar navbar-expand-lg align-items-center floating-nav navbar-light navbar-shadow container-fluid">
         <div class="navbar-container d-flex content">
             <div class="bookmark-wrapper d-flex align-items-center">
@@ -102,9 +89,9 @@
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-user">
                         <a class="dropdown-item" id="menuDatos"><i class="me-50" data-feather="user"></i> Mis Datos</a>
                         <a class="dropdown-item" id="menuContrasena" ><i class="me-50" data-feather="key"></i> Contraseña</a>
-                        <?php if(in_array(MOD_BITACORA_ACCIONES, $permisos)): ?>
-                            <hr><a class="dropdown-item" href="<?= URL_ROOT ?>/log"><i class="me-50" data-feather="check-square"></i> Bitácora de Acciones</a>
-                        <?php endif; ?>
+                        <?php //if(in_array(MOD_BITACORA_ACCIONES, $permisos)): ?>
+                            <!-- <hr><a class="dropdown-item" href="<?= URL_ROOT ?>/log"><i class="me-50" data-feather="check-square"></i> Bitácora de Acciones</a> -->
+                        <?php // endif; ?>
                         <div class="dropdown-divider"></div><a class="dropdown-item" href="<?= URL_ROOT ?>/usuario/logout"><i class="me-50" data-feather="power"></i> Logout</a>
                     </div>
                 </li>
@@ -115,162 +102,123 @@
         <li class="auto-suggestion justify-content-between"><a class="d-flex align-items-center justify-content-between w-100 py-50">
         <div class="d-flex justify-content-start"><span class="me-75" data-feather="alert-circle"></span><span>No results found.</span></div></a></li>
     </ul>
-    <!-- END: Header-->
 
-    <!-- Modal to Actualizar datos del Usuario starts-->
-    <div class="modal modal-slide-in new-user-modal fade" data-bs-keyboard="false" id="frm-datos" >
+    <div class="modal modal-slide-in fade" data-bs-keyboard="false" id="frm-datos" >
         <div class="modal-dialog">
-            <form class="add-new-user modal-content pt-0">
+            <form class="modal-content pt-0">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">×</button>
                 <div class="modal-header mb-1">
-                    <h5 class="modal-title" id="exampleModalLabel">Actualizar Datos</h5>
+                    <h4 class="modal-title text-uppercase">actualizar datos</h4>
                 </div>
                 <div class="modal-body flex-grow-1 form-horizontal">
                     <div class="mb-1 alignCenter">
                         <h5>Generales</h5>
                     </div>
-                    <div class="mb-1"> <!-- Nombre -->
-                        <label class="form-label" for="pers-nombre">Nombre</label>
-                        <input
-                        type="text"
-                        class="form-control dt-full-name"
-                        id="pers-nombre"
-                        placeholder="Nombre"
-                        name="user-fullname"
-                        minlength="4"
-                        />
+                    <div class="mb-1">
+                        <label class="form-label fw-bolder fs-5" for="user-nombre">Nombre</label>
+                        <input type="text" class="form-control" id="user-nombre"/>
                     </div>
-                    <div class="mb-1"> <!-- Apellidos -->
-                        <label class="form-label" for="pers-apellidos">Apellidos</label>
-                        <input
-                        type="text"
-                        id="pers-apellidos"
-                        class="form-control dt-uname"
-                        placeholder="Apellidos"
-                        name="user-name"
-                        minlength="4"
-                        />
+                    <div class="mb-1"> 
+                        <label class="form-label fw-bolder fs-5" for="user-apellidos">Apellidos</label>
+                        <input type="text" id="user-apellidos" class="form-control"/>
                     </div>
-
-                    <div class="mb-1"> <!-- Email -->
-                        <label class="form-label" for="pers-email">Email</label>
-                        <input
-                        type="email"
-                        id="pers-email"
-                        class="form-control dt-contact"
-                        placeholder="Correo Electrónico"
-                        name="user-company"
-                        aria-describedby="emailHelp"
-                        />
+                    <div class="mb-1">
+                        <label class="form-label fw-bolder fs-5" for="user-email">Email</label>
+                        <input type="text" id="user-email" class="form-control email-inputmask"/>
                     </div>
-
-                    <div class="mb-1 form-group row" id="UsuCon" > <!-- Usuario - Contraseña-->
-                        <label for="pers-login" class="form-label">Usuario</label>
-                        <div class="mb-1 col-md-12">
-                        <input  id="pers-login" type="text" class="form-control input-sm" minlength="4" disabled placeholder="Nombre del usuario para entrar al sistema">
-                        </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bolder fs-5" for="user-celular">Teléfono</label>
+                        <input type="text" id="user-celular" class="form-control phone-inputmask"/>
                     </div>
-                    <div class="mb-1 form-group row"> <!-- Teléfono - Celular -->
-                        <label for="pers-tel_casa" class="col-sm-2 form-label input-sm">Teléfono</label>
-                                                    
-                        <div class="col-sm-4">
-                        <input type="tel" id="pers-tel_casa" class="form-control input-sm numeric" pattern="[0-9]{10}" placeholder="Telefono">
-                        </div>
-                                                
-                        <label for="pers-tel_cel" class="col-sm-2 form-label input-sm">Celular</label>
-                        <div class="col-sm-4">
-                        <input type="tel" id="pers-tel_cel" class="form-control input-sm numeric" pattern="[0-9]{10}" placeholder="Celular">
-                        </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bolder fs-5" for="user-username">Username</label>
+                        <input type="text" id="user-username" class="form-control" placeholder="Nombre de usuario con el que ingresará al sistema"/>
                     </div>
-
                     <hr>
                     <div class="mb-1 alignCenter">
                         <h5>Dirección</h5>
                     </div>
-
-                    <div class="mb-1"> <!-- Calle -->
-                        <label for="pers-calle" class="col-sm-3 form-label input-sm">Calle</label>
-                        <input type="text" id="pers-calle" class="form-control input-sm" placeholder="Calle">
-                    </div>
-                                            
                     <div class="mb-1">
-                        <label for="pers-colonia" class="col-sm-3 form-label input-sm">Colonia</label>
-                        <input type="text" id="pers-colonia" class="form-control input-sm" placeholder="Colonia">
+                        <label class="form-label fw-bolder fs-5" for="user-calle">Calle</label>
+                        <input type="text" id="user-calle" class="form-control"/>
                     </div>
-
-                    <div class="mb-1 form-group row"> <!-- Número Exterior - Número Interior -->
-                        <label for="pers-numero" class="col-sm-2 form-label input-sm">No. Exterior</label>
-                        <div class="col-sm-4">
-                        <input type="text" id="pers-numero" class="form-control input-sm" placeholder="Numero Exterior">
-                        </div>
-                                    
-                        <label for="pers-numero_int" class="col-sm-2 form-label input-sm">No. Interior</label>
-                        <div class="col-sm-4">
-                        <input type="text" id="pers-numero_int" class="form-control input-sm" placeholder="Numero Interior">
-                        </div>
-                    </div>
-
-                    <div class="mb-1"> <!-- Municipio - Estado -->
-                        <label for="pers-del_muni" class="col-sm-3 form-label input-sm">Municipio</label>
-                        <!-- <div class="col-sm-3"> -->
-                        <input type="text" id="pers-del_muni" class="form-control input-sm" placeholder="Municipio">
-                    </div>
-
                     <div class="mb-1">
-                            <label for="pers-ciudad" class="col-sm-3 form-label input-sm">Estado</label>
-                        <input type="text" id="pers-ciudad" class="form-control input-sm" placeholder="Estado">
+                        <label class="form-label fw-bolder fs-5" for="user-no_ext">No. Exterior</label>
+                        <input type="text" id="user-no_ext" class="form-control"/>
                     </div>
-                    <!-- </div> -->       
-                    <div class="buttonsFrmUser">
+                    <div class="mb-1">
+                        <label class="form-label fw-bolder fs-5" for="user-no_int">No. Interior</label>
+                        <input type="text" id="user-no_int" class="form-control"/>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bolder fs-5" for="user-colonia">Colonia</label>
+                        <input type="text" id="user-colonia" class="form-control"/>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bolder fs-5" for="user-municipio">Municipio</label>
+                        <input type="text" id="user-municipio" class="form-control"/>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bolder fs-5" for="user-estado">Estado</label>
+                        <input type="text" id="user-estado" class="form-control"/>
+                    </div>
+                    <div class="mb-1">
+                        <label class="form-label fw-bolder fs-5" for="user-codigo_postal">Código Postal</label>
+                        <input type="text" id="user-codigo_postal" class="form-control"/>
+                    </div> 
+                </div>
+                <div class="modal-footer">
+                    <div class="buttonsEnd">
                         <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-warning mb-1 data-submit" id="btnActualizar">Actualizar</button>
-                        <input type="hidden" id="pers-id_actualizar" value="<?= $id ?>">
-                        <!-- <input type="hidden" id="contrasena" value="<?= $contrasena?>"> -->
+                        <button type="button" class="btn btn-success mb-1 data-submit" id="btnActualizar">Actualizar</button>
+                        <input type="hidden" id="user-id_actualizar" value="<?= $id ?>">
+                        <input type="hidden" id="user-sucursal_id">
+                        <input type="hidden" id="user-usuario_tipo_id">
+                        <input type="hidden" id="user-contrasena" value="">
                     </div>
                 </div>
             </form>
         </div>
     </div>
-    <!-- Modal to Actualizar datos del Usuario Ends-->
 
-    <!-- Modal to Cambiar Contraseña del usuario starts-->
     <div class="modal modal-slide-in new-user-modal fade" data-bs-keyboard="false" id="frm-contrasena" >
         <div class="modal-dialog">
             <form class="add-new-user modal-content pt-0">
                 <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">×</button>
                 <div class="modal-header mb-1">
-                    <h5 class="modal-title" id="exampleModalLabel">Cambiar Contraseña</h5>
+                    <h4 class="modal-title text-uppercase">cambiar contraseña</h4>
                 </div>
                 <div class="modal-body flex-grow-1 form-horizontal">
                     <div class="mb-1 form-group row" id="UsuCon" > 
-                        <label  for="kypass1" class="form-label"><h5>Contraseña Actual</h5></label>
+                        <label  for="kypass1" class="form-label fw-bold fs-5">Contraseña Actual</label>
                         <div class="mb-1 col-md-12"> 
-                        <input id="kypass1" type="password" class="form-control input-sm" minlength="7" placeholder="Contraseña Actual">
+                            <input id="kypass1" type="password" class="form-control input-sm" placeholder="Ingrese su contraseña actual" >
                         </div>
                     </div>
                     <div class="mb-1 form-group row" id="UsuConNue" > 
-                        <label  for="kypass2" class="form-label"><h5>Nueva Contraseña</h5></label>
+                        <label  for="kypass2" class="form-label fw-bold fs-5">Nueva Contraseña</label>
                         <div class="mb-1 col-md-12"> 
-                        <input id="kypass2" type="password" class="form-control input-sm" minlength="7" placeholder="Nueva Contraseña">
+                            <input id="kypass2" type="password" class="form-control input-sm" minlength="7" placeholder="Ingrese su nueva contraseña">
                         </div>
                     </div>
                     <div class="mb-1 form-group row" id="UsuConNueRep" > 
-                        <label  for="kypass3" class="form-label"><h5>Repetir Contraseña</h5></label>
+                        <label  for="kypass3" class="form-label fw-bold fs-5">Repetir Contraseña</label>
                         <div class="mb-1 col-md-12"> 
-                        <input id="kypass3" type="password" class="form-control input-sm" minlength="7" placeholder="Nueva Contraseña">
+                            <input id="kypass3" type="password" class="form-control input-sm" minlength="7" placeholder="Repetir nueva contraseña">
                         </div>
                     </div>
-                        
-                    <div class="buttonsFrmUser">
-                        <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
-                        <button type="button" class="btn btn-warning mb-1 data-submit" id="btnActCon">Actualizar</button>
-                        <input type="hidden" id="pers-id_actualizarC" value="<?= $id ?>">
+                    
+                    <div class="modal-footer">
+                        <div class="buttonsEnd">
+                            <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-success mb-1 data-submit" id="btnChangePass">Actualizar</button>
+                            <input type="hidden" id="pers-id_actualizarC" value="<?= $id ?>">
+                        </div>
                     </div>
                 </div>
             </form>
         </div>
     </div>
-    <!-- Modal to Cambiar Contraseña del Usuario Ends-->
 
     
   </body>

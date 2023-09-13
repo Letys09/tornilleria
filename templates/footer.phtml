@@ -69,7 +69,7 @@
     toastr.options = {									
         "positionClass": "toast-top-center",
         "progressBar": true,
-        "timeOut": "3000",
+        "timeOut": "5000",
     }
 
     // $.sessionTimeout({
@@ -88,89 +88,59 @@
     //     ignoreUserActivity: false,
     // });
 
-    // función del modal $menuDatos "Mis datos" para pintar los datos en el formulario.
     $('#menuDatos').click(function(e){
         e.preventDefault();
-        id = $.trim($('#pers-id_actualizar').val());
+        id = $.trim($('#user-id_actualizar').val());
         
-        $.ajax({
-            url: apiUrl+'usuario/get/'+id,
-            type:'GET',
-            dataType: "json",
-            success: function(resp){
-
-                $.each(resp.result, function(index, val) { $('#pers-'+index).val(val); });
-
-            }
-        });
+        $.get(apiUrl+'usuario/get/'+id, function(resp){
+            $.each(resp.result, function(index, val) { $('#user-'+index).val(val); });
+        },'json')
 
         $('#frm-datos').modal('show');
     });
 
-    //Funcion en el #btnActualizar del modal "menuDatos" para actualizar los datos del usuario.
     $('#btnActualizar').on('click',function(){
-        $('.alert').remove();
-        err = $('<div class="alert alert-blink-danger"></div>');
-
-        data = {
-            nombre: sinDiacriticos( $.trim($('#pers-nombre').val())),
-            apellidos: sinDiacriticos( $.trim($('#pers-apellidos').val())),
-            email: $.trim($('#pers-email').val()),
-            tel_casa: $.trim($('#pers-tel_casa').val()), 
-            tel_cel: $.trim($('#pers-tel_cel').val()), 
-            calle: sinDiacriticos( $.trim($('#pers-calle').val())),
-            colonia: sinDiacriticos( $.trim($('#pers-colonia').val())),
-            numero: sinDiacriticos( $.trim($('#pers-numero').val())),
-            num_int: $.trim($('#pers-num_int').val()),
-            del_muni: sinDiacriticos( $.trim($('#pers-del_muni').val())),
-            ciudad: sinDiacriticos( $.trim($('#pers-ciudad').val())),
-            login: sinDiacriticos( $.trim($('#pers-login').val())),
-            id: $.trim($('#pers-id_actualizar').val()),
-            // usuario_tipo_id : $.trim($('#usuario_tipo_id').val()),
-            contrasena: $.trim($('#contrasena').val()),
-        };
-
         btn = $(this);
         btn.addClass('disabled');
+        id = $('#user-id_actualizar').val()
+        data = {};
+        $.each($('#frm-datos input, #frm-datos select'), function(index, item){
+            ide = $(item).attr('id').replace('user-','')
+            data[ide] = $.trim($(item).val())
+        })
+        data['celular'] = data['celular'].replace('(','').replace(')','').replace(' ','').replace('-','')
 
-        if(data.nombre.length == 0 || data.nombre.length < 4){
-            $(err).removeClass('alert-blink-warning');
-            $(err).addClass('alert-blink-danger');
-            $(err).append('Debe ingresar un nombre valido.');
-            $('#pers-nombre').parent().append(err);
-            $('#pers-nombre').focus();
+        if(data.nombre.length == 0 || data.nombre.length < 3){
+            error('user-nombre', 'El nombre debe contener al menos 3 caracteres')
             btn.removeClass('disabled');
-        }else if(data.apellidos.length == 0 || data.apellidos.length < 4){
-            $(err).removeClass('alert-blink-warning');
-            $(err).addClass('alert-blink-danger');
-            $(err).append('Debe ingresar un apellido valido.');
-            $('#pers-apellidos').parent().append(err);
-            $('#pers-ape').focus();
+        }else if(data.apellidos.length == 0 || data.apellidos.length < 3){
+            error('user-apellidos', 'Este campo debe contener al menos 3 caracteres')
             btn.removeClass('disabled');
-        }else if(id == 0 && (data.tel_casa.length == 0 || data.tel_casa.length < 10)){
-            $(err).removeClass('alert-blink-warning');
-            $(err).addClass('alert-blink-danger');
-            $(err).append('Debe ingresar un número de teléfono valido.');
-            $('#pers-tel_casa').parent().append(err);
-            $('#pers-tel_casa').focus();
+        }else if(data.email.length == 0 || data.email.length < 4){
+            error('user-email', 'Debe ingresar un correo electrónico válido.')
             btn.removeClass('disabled');
-        }else if(id == 0 && (data.tel_cel.length == 0 || data.tel_cel.length < 10)){
-            $(err).removeClass('alert-blink-warning');
-            $(err).addClass('alert-blink-danger');
-            $(err).append('Debe ingresar un número de celular.');
-            $('#pers-tel_cel').parent().append(err);
-            $('#pers-tel_cel').focus();
+        }else if(id == 0 && (data.celular.length == 0 || data.celular.length < 10)){
+            error('user-celular', 'Debe ingresar un número de celular.')
             btn.removeClass('disabled');
-        }else {
-            $.post(apiUrl+'usuario/editPersona/'+data.id,data, function(resp){
+        }else if(data.username.length == 0 || data.username.length < 3){
+            error('user-username', 'Este campo debe contener al menos 3 caracteres, es el username con el que ingresará al sistema.')
+            btn.removeClass('disabled');
+        }else if(id == 0 && (data.contrasena.length == 0 || data.contrasena.length < 7)){
+            error('user-contraseña', 'Debe ingresar una contraseña con más de 7 carácteres.')
+            btn.removeClass('disabled');
+        }else{
+            $.post(apiUrl+'usuario/edit/1/'+id, data, function(resp){
                 if(resp.response){
-                    toastr["success"]("Listo!", 'Datos de usuario actualizados.');
-                    btn.removeClass('disabled');
-                    $('#frm-datos').modal('hide');                   
-                }else{  
-                    toastr["warning"]("Verifique la información!", 'No hay datos que actualizar');
-                    btn.removeClass('disabled');
+                    toastr["success"]("Listo!", 'Datos actualizados.<br>Su sesión se cerrará en 5 segundos, inicie sesión nuevamente.');
+                    setTimeout(() => {
+                        window.location.href = "<?= URL_ROOT ?>/usuario/logout"
+                    }, 5000);
+                    $('#frm-datos').modal('hide');
+                }else{
+                    if(resp == 'Debe seleccionar un tipo de usuario'){ toastr["warning"]("Verifique el tipo de usuario!", resp); }
+                    else{ toastr["warning"]("No hay cambios!", resp); }
                 }
+            btn.removeClass('disabled');
             },'json');
         }
     });
@@ -179,9 +149,9 @@
         $('#frm-contrasena').modal('show');
     });
 
-    $('#btnActCon').on('click',function(){
-        $('.alert').remove();
-        err = $('<div class="alert alert-blink-danger"></div>');
+    $('#btnChangePass').on('click',function(){
+        btn = $(this);
+        btn.addClass('disabled');
         id = $('#pers-id_actualizarC').val();
 
         data = {
@@ -190,35 +160,22 @@
             contrasenaRep: $.trim($('#kypass3').val()),
         };
 
-        btn = $(this);
-        btn.addClass('disabled');
-
         if(data.contrasena.length == 0 || data.contrasena.length < 7){
-            $(err).removeClass('alert-blink-warning');
-            $(err).addClass('alert-blink-danger');
-            $(err).append('Debe ingresar una contraseña con más de 7 carácteres.');
-            $('#kypass1').parent().append(err);
-            $('#kypass1').focus();
+            error('kypass1', 'Debe ingresar su contraseña actual, al menos 7 caracteres.')
             btn.removeClass('disabled');
         }else if(data.contrasenaNue.length == 0 || data.contrasenaNue.length < 7){
-            $(err).removeClass('alert-blink-warning');
-            $(err).addClass('alert-blink-danger');
-            $(err).append('Debe ingresar una contraseña con más de 7 carácteres.');
-            $('#kypass2').parent().append(err);
-            $('#kypass2').focus();
+            error('kypass2', 'Debe ingresar una contraseña con al menos 7 carácteres.')
             btn.removeClass('disabled');
-        }else if(data.contrasenaRep.length == 0 || data.contrasenaRep.length < 7){
-            $(err).removeClass('alert-blink-warning');
-            $(err).addClass('alert-blink-danger');
-            $(err).append('Debe ingresar una contraseña con más de 7 carácteres.');
-            $('#kypass3').parent().append(err);
-            $('#kypass3').focus();
+        }else if(data.contrasenaNue != data.contrasenaRep){
+            error('kypass3', 'Debe ingresar la misma nueva contraseña.')
             btn.removeClass('disabled');
         }else{
             $.post(apiUrl+'password/cambiarContrasena/'+id, data, function(resp){
                 if(resp.response){
-                    toastr["success"]("Listo!", 'Contraseña actualizada.');
-                    btn.removeClass('disabled');
+                    toastr["success"]("Listo!", 'Contraseña actualizada.<br>Su sesión se cerrará en 5 segundos, inicie sesión nuevamente.');
+                    setTimeout(() => {
+                        window.location.href = "<?= URL_ROOT ?>/usuario/logout"
+                    }, 5000);
                     $('#frm-contrasena').modal('hide');                   
                 }else{  
                     toastr["error"]("Verifique la contraseña actual ingresada!", resp.message);
@@ -227,90 +184,6 @@
             },'json');
         }
     });
-
-    $('#costos').click(function(e){
-        cleanModalCostos();
-        costos();
-        $('#frm-costos').modal('show');
-
-    });
-
-    
-    // FUNCIONES.
-
-    function editCostos(data, id){
-        // id = data.id;
-        // window.alert(id);
-        $.ajax({
-            url: apiUrl+'costos/updateCostos/'+id,
-            type: 'PUT',
-            data: data,
-            dataType: 'json',
-            success: function(resp){
-                if(resp.response){
-                    toastr["success"]('Se guardó correctamete los costos.', "Listo!");
-
-                }else{
-                    toastr["warning"]("No se realizó correctamente!", 'Intentar más tarde.');
-
-                }
-            }
-        });
-    }
-    function costos(){
-        $.get(apiUrl+'costos/getCostos/', function(data){
-            // console.log(data.result);
-            $('#distancia').val(data.result.distancia);
-            $('#km_addon').val(data.result.km_adicional);
-            $('#tiempo_espera').val(data.result.tiempo_espera);
-            $('#envio_falla').val(data.result.envio_falla);
-
-            $('#peso_extra').val(data.result.peso_extra);
-            $('#dim_extra').val(data.result.dimension_extra);
-
-            $('#minimo').val(data.result.guias1);
-            $('#g5_10').val(data.result.guias2);
-            $('#g10_20').val(data.result.guias3);
-            $('#g20_30').val(data.result.guias4);
-            $('#g30_40').val(data.result.guias5);
-            $('#mas_de_40').val(data.result.guias6);
-
-            $('#costos_id').val(data.result.id);
-
-            $.each(data.result, function(index, val){
-                $('#costo-'+index).val(val);
-            });
-
-
-            
-        }, 'json');
-
-    }
-
-    function cleanModalCostos(){
-
-        $('#distancia').val('');
-        $('#km_addon').val('');
-        $('#tiempo_espera').val('');
-        $('#envio_falla').val('');
-
-        $('#peso_extra').val('');
-        $('#dim_extra').val('');
-
-        $('#minimo').val('');
-        $('#g5_10').val('');
-        $('#g10_20').val('');
-        $('#g20_30').val('');
-        $('#g30_40').val('');
-        $('#mas_de_40').val('');
-
-        $('#costos_id').val('');
-
-        $.each($('[id^="costo-"'), function(index, elem) {
-            // console.log(elem);
-            $(elem).val('');
-        });
-    }
 
     function error(elem, msg){
         $error = $('<div class="invalid-feedback"></div>');
