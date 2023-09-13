@@ -73,9 +73,9 @@
 
 				if(!isset($_SESSION)) { session_start(); }
 				$claims = json_decode($JWE->getPayload(), true);
-				// if($verificadorDatos->check($claims, ['nbf', 'exp', 'aud', 'id_usuario'])) {
-				if($verificadorDatos->check($claims, ['nbf', 'aud', 'id_usuario'])) {
-					if($claims['id_usuario'] == $_SESSION['usuario']->id_usuario) {
+				// if($verificadorDatos->check($claims, ['nbf', 'exp', 'aud', 'id'])) {
+				if($verificadorDatos->check($claims, ['nbf', 'aud', 'id'])) {
+					if($claims['id'] == $_SESSION['usuario']->id) {
 						$settings = require __DIR__ . '/../../src/settings.php';
 						$app = new \Slim\App($settings);
 						require __DIR__ . '/../../src/dependencies.php';
