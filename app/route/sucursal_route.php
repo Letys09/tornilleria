@@ -32,8 +32,11 @@ use App\Lib\Auth,
 				'data' => $data
 			));
 			exit(0);
-            // return $res->withJson($sucursales);
 		});
+
+        $this->get('getAll', function($req, $res, $args){
+            return $res->withJson($this->model->sucursal->getAll()->result);
+        });
 
 		$this->post('add/',function($req,$res,$args){
 			$this->model->transaction->iniciaTransaccion();

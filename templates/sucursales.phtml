@@ -46,50 +46,50 @@
                             </table>
                         </div>
 
-                        <div class="modal modal-slide-in fade" data-bs-keyboard="false" id="frm-sucursal" >
+                        <div class="modal modal-slide-in fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-sucursal" >
                             <div class="modal-dialog">
-                                <form class="add-new-user modal-content pt-0">
+                                <form class="modal-content pt-0">
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">×</button>
                                     <div class="modal-header mb-1">
                                         <h4 class="modal-title text-uppercase"></h4>
                                     </div>
                                     <div class="modal-body flex-grow-1 form-horizontal">
                                         <div class="mb-1">
-                                            <label class="form-label text-uppercase" for="suc-nombre">nombre de sucursal</label>
+                                            <label class="form-label fw-bolder fs-5" for="suc-nombre">Nombre de Sucursal</label>
                                             <input type="text" class="form-control" id="suc-nombre" minlength="4" />
                                         </div>
                                         <div class="mb-1">
-                                            <label class="form-label text-uppercase" for="suc-telefono">teléfono</label>
+                                            <label class="form-label fw-bolder fs-5" for="suc-telefono">Teléfono</label>
                                             <input type="text" id="suc-telefono" class="form-control" minlength="4" />
                                         </div>
                                         <div class="mb-1">
-                                            <label class="form-label text-uppercase" for="suc-calle">calle</label>
+                                            <label class="form-label fw-bolder fs-5" for="suc-calle">Calle</label>
                                             <input type="text" id="suc-calle" class="form-control" minlength="4" />
                                         </div>
                                         <div class="mb-1 form-group row">
-                                            <label class="col-sm-3 form-label input-sm text-uppercase" for="suc-no_ext">no. exterior</label>
+                                            <label class="col-sm-3 form-label input-sm fw-bolder fs-5" for="suc-no_ext">No. Exterior</label>
                                             <div class="col-sm-3">
                                                 <input type="text" id="suc-no_ext" class="form-control" minlength="4" />
                                             </div>
-                                            <label class="col-sm-3 form-label input-sm text-uppercase" for="suc-no_int">no. interior</label>
+                                            <label class="col-sm-3 form-label input-sm fw-bolder fs-5" for="suc-no_int">No. Interior</label>
                                             <div class="col-sm-3">
                                                 <input type="text" id="suc-no_int" class="form-control" minlength="4" />
                                             </div>
                                         </div>
                                         <div class="mb-1">
-                                            <label class="form-label text-uppercase" for="suc-colonia">colonia</label>
+                                            <label class="form-label fw-bolder fs-5" for="suc-colonia">Colonia</label>
                                             <input type="text" id="suc-colonia" class="form-control" minlength="4" />
                                         </div>
                                         <div class="mb-1">
-                                            <label class="form-label text-uppercase" for="suc-municipio">municipio</label>
+                                            <label class="form-label fw-bolder fs-5" for="suc-municipio">Municipio</label>
                                             <input type="text" id="suc-municipio" class="form-control" minlength="4" />
                                         </div>
                                         <div class="mb-1">
-                                            <label class="form-label text-uppercase" for="suc-estado">estado</label>
+                                            <label class="form-label fw-bolder fs-5" for="suc-estado">Estado</label>
                                             <input type="text" id="suc-estado" class="form-control" minlength="4" />
                                         </div>
                                         <div class="mb-1">
-                                            <label class="form-label text-uppercase" for="suc-codigo_postal">codigo postal</label>
+                                            <label class="form-label fw-bolder fs-5" for="suc-codigo_postal">Código Postal</label>
                                             <input type="text" id="suc-codigo_postal" class="form-control" minlength="4" />
                                         </div>
                                         <hr>
@@ -106,7 +106,7 @@
                         </div>
 
                         <!--Modal para eliminar a un usuario, solicita motivo de la baja y observaciones -->
-                        <div class="modal modal-slide-in modal-danger fade" id="frm-del">
+                        <div class="modal modal-slide-in modal-danger fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-del">
                             <div class="modal-dialog">
                                 <form class="modal-content pt-0">
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
@@ -167,8 +167,8 @@
             <?php if(in_array(MOD_ADD, $permisos)) :  ?>
                 $('#btnAdd').click(function(){
                     clear()
-                    $('#frm-sucursal').removeClass('modal-info')
-                    $('#frm-sucursal').addClass('modal-success')
+                    // $('#frm-sucursal').removeClass('modal-info')
+                    // $('#frm-sucursal').addClass('modal-success')
                     $('#frm-sucursal h4').html('agregar sucursal')
                     $('#frm-sucursal').modal('show')
                 })
@@ -205,8 +205,8 @@
 
             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
                 $('#tbl-sucursal').on('click', '#btnEdit', function(){
-                    $('#frm-sucursal').removeClass('modal-success')
-                    $('#frm-sucursal').addClass('modal-info')
+                    // $('#frm-sucursal').removeClass('modal-success')
+                    // $('#frm-sucursal').addClass('modal-info')
                     $('#frm-sucursal h4').html('editar sucursal')
                     id = $(this).data('id')
                     $('#suc-id').val(id)
@@ -286,28 +286,23 @@
                                 render: function (data, type, full, meta) {
                                     id = full['id'];
                                     return (
-                                        '<div class="btn-group">' +
-                                            '<a class="btn btn-sm dropdown-toggle hide-arrow" data-bs-toggle="dropdown">' +
-                                                feather.icons['more-vertical'].toSvg({ class: 'font-small-4' }) +
-                                            '</a>' +
-                                            '<div class="dropdown-menu dropdown-menu-end" style="min-width: 7rem; text-align:center; ">' +
-                                                <?php if(in_array(MOD_EDIT, $permisos)) : ?>
-                                                    '<button type="button" id="btnEdit" class="btn btn-outline-blink-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
-                                                        feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
-                                                    '</button>'+
-                                                <?php endif; ?>
-                                                <?php if(in_array(MOD_DEL, $permisos)) : ?>
-                                                    '<button type="button" id="btnDel" class="btn btn-outline-danger btn-sm" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
-                                                        feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
-                                                    '</button>'+
-                                                <?php endif; ?>
-                                            '</div>' +
+                                        '<div class="text-center">' +
+                                            <?php if(in_array(MOD_EDIT, $permisos)) : ?>
+                                                '<button type="button" id="btnEdit" class="btn btn-outline-new-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
+                                                    feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_DEL, $permisos)) : ?>
+                                                '<button type="button" id="btnDel" class="btn btn-outline-danger btn-sm" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
+                                                    feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
                                         '</div>'
                                     );
                                 }
                             },
                         ],
-                        order: [[1, 'asc']], 
+                        order: [[0, 'asc']], 
                         dom:
                             '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
                             '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
@@ -320,72 +315,6 @@
                         language: {
                             url:'../spanish.json'
                         },
-                        // initComplete: function () {
-                        //     var label = $('<label for="cuantos">Mostrar</label>').appendTo('#tbl-sucursal_length');
-                        //     var selectCount = $('<select id="cuantos" class="form-select"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select>')
-                        //         .appendTo('#tbl-sucursal_length').on('change', function () {
-                        //             documentacion = $('#documentacion').val();
-                        //             tipo = $('#tipoV').val();
-                        //             status = $('#statusV').val();
-                        //             dtVehiculoTable.DataTable().page.len( $(this).val() ).draw();
-                        //             $('#documentacion').val(documentacion).trigger('change');
-                        //             $('#tipoV').val(tipo).trigger('change');
-                        //             $('#statusV').val(status).trigger('change');
-                        //         });
-
-                        //     this.api().columns(3).every(function () {
-                        //         var column = this;
-                        //         var select = $('<select id="statusV" class="form-select text-capitalize mb-md-0 mb-2 select-dentro-datatable"><option value=""> TODOS </option></select>')
-                        //             .prependTo('#tbl-vehiculos_length').on('change', function () {
-                        //                 var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                        //                 column.search(val ? '^' + val + '$' : '', true, false).draw();
-                        //             });
-                        //         var label = $('<label class="labelTypeU" class="form-label" for="statusV">Status</label>').prependTo('#tbl-vehiculos_length');
-                                            
-                        //         column.data().unique().sort().each(function (d, j) {
-                        //             j = d == 1 ? 'HUB' : (d == 2 ? 'En uso' : (d == 4 ? 'Perdida total' : (d == 5 ? 'Robada' : (d == 6 ? 'Vendida' : (d == 7 ? 'Devolución' : (d == 8 ? 'Renovación' : (d == 9 ? 'Taller' : (d == 10 ? 'Taller externo' : 'Corralón'))))))));
-                        //             select.append('<option value="' + d + '" class="text-capitalize">' + j + '</option>');
-                        //         });
-                        //     });
-
-                        //     this.api().columns(1).every(function () {
-                        //         var column = this;
-                        //         var select = $('<select id="tipoV" class="form-select text-capitalize mb-md-0 mb-2 select-dentro-datatable"><option value=""> TODOS </option></select>')
-                        //             .prependTo('#tbl-vehiculos_length')
-                        //             .on('change', function () {
-                        //                 dtVehiculoTable.DataTable().column( 1 ).search($('#tipoV').val()).draw(); 
-                        //             });
-                        //         var label = $('<label class="labelTypeU" class="form-label" for="tipoV">Tipo</label>').prependTo('#tbl-vehiculos_length');
-                                            
-                        //         column.data().unique().sort().each(function (d, j) {
-                        //             select.append('<option value="' + d + '" class="text-capitalize">' + d + '</option>');
-                        //         });
-                        //     });
-
-                        //     this.api().columns(10,12,16).every(function () {
-                        //         var column = this;
-                        //         var select = $('<select id="documentacion" class="form-select text-capitalize mb-md-0 mb-2 select-dentro-datatable"><option value=""> TODOS </option></select>')
-                        //             .prependTo('#tbl-vehiculos_length')
-                        //             .on('change', function () {
-                        //                 dtVehiculoTable.DataTable().search($('#documentacion').val()).draw(); 
-                        //             });
-                        //         var label = $('<label class="labelTypeU" class="form-label" for="documentacion">Documentación </label>').prependTo('#tbl-vehiculos_length');
-                                            
-                        //         column.data().unique().sort().each(function (d, j) {
-                        //             if(d != 'EN ORDEN' && d != 'N/A'){
-                        //                 select.append('<option value="' + d + '" class="text-capitalize">' + d + '</option>');
-                        //             }
-                        //         });
-                        //     });
-
-                        //     var busqueda = $('<div style="position: absolute; left: 20px; top: 110px;"><label class="inputDoc" class="form-label" for="txt-search"> Buscar  </label> <input type="text" id="txt-search" ></div>').prependTo('#tbl-vehiculos_length')
-                        //     .on('keyup', function () {
-                        //         dtVehiculoTable.DataTable().search($('#txt-search').val()).draw(); 
-                        //     });
-
-                        //     $('#tbl-vehiculos_length label:eq(4)').addClass('hidden');
-                        //     $('#tbl-vehiculos_filter').addClass('hidden');
-                        // }
                     });
                 }
             }

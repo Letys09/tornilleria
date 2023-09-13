@@ -42,6 +42,16 @@ class SucursalModel {
 		return $this->response->SetResponse(true);
 	}
 
+	public function getAll(){
+		$this->response->result = $this->db
+			->from("$this->table")
+			->select(null)
+			->select("id, nombre")
+			->where("status", 1)
+			->fetchAll();
+		return $this->response->setResponse(true);
+	}
+
 	public function add($data){
 
 		$SQL = $this->db
