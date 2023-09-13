@@ -1,10 +1,13 @@
 <?php 
 	include 'header.phtml';
     
-    $lblUsu = $_SESSION['usuario']->nombre;
-    $lockdown = $_SESSION['lockdown'];
+    define('MOD_VER',	  1);
+    define('MOD_ADD',	  2);
+    define('MOD_AD',	  3);
+    define('MOD_EDIT',	  4);
+    define('MOD_ASIGP',	  5);
 
-    if(!in_array(MOD_USUARIOS, $permisos)) {
+    if(!in_array(MOD_VER, $permisos)) {
 		header('Location: '.URL_ROOT.'/403');
 		exit;
 	} 
@@ -20,319 +23,260 @@
                 <section>
                     <div class="card">
                         <div class="card-body border-bottom">
-                            <div class="card-body border-bottom alignRight">
-                                <div class="dt-buttons btn-group">
-                                        <button type="button "id="btnAdd" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-pers" tabindex="0" 
+                            <?php if(in_array(MOD_ADD, $permisos)) : ?>
+                                <div class="card-body border-bottom alignRight">
+                                    <div class="dt-buttons btn-group">
+                                        <button type="button "id="btnAdd" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-usuario" tabindex="0" 
                                         aria-controls="DataTables_table_0" type="button" data-toggle="modal"
-                                        data-target="#frm-pers">
-                                        <i data-feather="user-plus"></i>&nbsp;&nbsp;<span>Agregar Usuario</span></button>
+                                        data-target="#frm-usuario">
+                                        <i data-feather="user-plus"></i>&nbsp;&nbsp;<span>Agregar</span></button>
 
                                         &nbsp;&nbsp;<button type="button "id="btnTypeUser" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-type-user" tabindex="0" 
                                         aria-controls="DataTables_table_0" type="button" data-toggle="modal"
                                         data-target="#frm-tipos_usuarios">
                                         <i data-feather="user"></i>&nbsp;&nbsp;<span>Tipos de Usuario</span></button>
-                                    <!-- <?php if($_SESSION['usuario_id'] == 1 || $_SESSION['usuario_id'] == 2 || $_SESSION['usuario_id'] == 51) : ?>
-                                        <?php if($lockdown == 0) : ?>
-                                            &nbsp;&nbsp;<button id="btnLockdown" type="button" class="btn waves-effect waves-foat waves-light btn-success buttonModal"><i data-feather="check"></i> Desbloquear Sistema</button>
-                                        <?php else: ?>
-                                            &nbsp;&nbsp;<button id="btnLockdown" type="button" class="btn waves-effect waves-foat waves-light btn-danger buttonModal"><i data-feather="slash"></i> Bloquear Sistema</button>
-                                        <?php endif; ?>
-                                    <?php endif; ?> -->
+                                    </div>
                                 </div>
+                            <?php endif; ?>
+                            <div class="card-datatable table-responsive pt-0">
+                                <table id="tbl-usuarios" class="table">
+                                    <thead class="table-light">
+                                        <tr>
+                                            <th>No. Empleado</th>
+                                            <th>Nombre</th>
+                                            <th>Apellidos</th>
+                                            <th>Tipo Usuario</th>
+                                            <th>Tipo</th>
+                                            <th>Celular</th>
+                                            <th>Estatus</th>
+                                            <th>Acciones</th>
+                                        </tr>
+                                    </thead>
+                                </table>
                             </div>
-                        <div class="card-datatable table-responsive pt-0">
-                            <table id="tbl-usuarios" class="table">
-                                <thead class="table-light">
-                                    <tr>
-                                    <th>No. Empleado</th>
-                                    <th>Nombre</th>
-                                    <th>Apellidos</th>
-                                    <th>Tipo Usuario</th>
-                                    <th>Tipo</th>
-                                    <th>Estatus</th>
-                                    <th style="text-align: center;">Acciones</th>
-                                    </tr>
-                                </thead>
-                            </table>
-                        </div>
-                        <!-- Modal to add new user starts-->
-                        <div class="modal modal-slide-in new-user-modal fade" data-bs-keyboard="false" id="frm-pers" >
-                            <div class="modal-dialog modalMediano">
-                                <form class="add-new-user modal-content pt-0">
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">×</button>
-                                    <div class="modal-header mb-1">
-                                        <h5 class="modal-title"></h5>
+
+                            <div class="modal modal-slide-in fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-usuario" >
+                                <div class="modal-dialog ">
+                                    <form class="modal-content pt-0">
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close">×</button>
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase"></h4>
                                         </div>
                                         <div class="modal-body flex-grow-1 form-horizontal">
-                                        <div class="mb-1"> <!-- Tipo Usuario -->
-                                            <label class="form-label" for="cboTUsr">Tipo Usuario</label>
-                                            <select id="cboTUsr" class="form-select" data-bs-toggle="tooltip" title="Tipo Usuario" ></select>
-                                        </div>
-                                        <div class="mb-1"> <!-- Nombre -->
-                                            <label class="form-label" for="pers-nom">Nombre:</label>
-                                            <input type="text" class="form-control dt-full-name" id="pers-nom" placeholder="Nombre" name="user-fullname"minlength="4" data-bs-toggle="tooltip" title="Nombre del Usuario" />
-                                        </div>
-                                        <div class="mb-1"> <!-- Apellidos -->
-                                            <label class="form-label" for="pers-ape">Apellidos:</label>
-                                            <input type="text" id="pers-ape" class="form-control dt-uname" placeholder="Apellidos" name="user-name" minlength="4" data-bs-toggle="tooltip" title="Apellidos del Usuario"/>
-                                        </div>
-                                        <div class="mb-1"> <!-- Email -->
-                                            <label class="form-label" for="email">Email:</label>
-                                            <input type="email" id="email" class="form-control dt-contact" placeholder="Correo Electrónico" name="user-company" aria-describedby="emailHelp" data-bs-toggle="tooltip" title="Correo del Usuario"/>
-                                        </div>
-
-                                        <div class="mb-1 form-group row" id="UsuarioPass" > <!-- Usuario - Contraseña-->
-                                            <label for="user" class="form-label" id="labLogBlink">Usuario:</label>
-                                            <div class="mb-1 col-md-12">
-                                                <input  id="user" type="text" class="form-control input-sm" minlength="4" placeholder="Nombre del usuario para entrar al sistema" data-bs-toggle="tooltip" title="Usuario">
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-sucursal_id">Sucursal</label>
+                                                <select id="user-sucursal_id" class="form-select"></select>
                                             </div>
-                                            <label  for="kypass" class="form-label">Contraseña:</label>
-                                            <div class="input-group">
-                                                <div class="input-group input-group-merge form-password-toggle">
-                                                    <input type="password" class="form-control form-control-merge" id="kypass" name="login-password" tabindex="2" placeholder="Contraseña" aria-describedby="login-password"/>
-                                                    <span class="input-group-text cursor-pointer" ><i data-feather="eye"></i></span>
-                                                </div>
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-usuario_tipo_id">Tipo de Usuario</label>
+                                                <select id="user-usuario_tipo_id" class="form-select"></select>
                                             </div>
-                                            <hr>
-                                            <label  for="kypassConf" class="form-label mb-1">Confirmar Contraseña:</label>
-                                            <div class="mb-1 col-md-12"> 
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-nombre">Nombre</label>
+                                                <input type="text" class="form-control" id="user-nombre"/>
+                                            </div>
+                                            <div class="mb-1"> 
+                                                <label class="form-label fw-bolder fs-5" for="user-apellidos">Apellidos</label>
+                                                <input type="text" id="user-apellidos" class="form-control"/>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-email">Email</label>
+                                                <input type="text" id="user-email" class="form-control email-inputmask"/>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-celular">Teléfono</label>
+                                                <input type="text" id="user-celular" class="form-control phone-inputmask"/>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-username">Username</label>
+                                                <input type="text" id="user-username" class="form-control" placeholder="Nombre de usuario con el que ingresará al sistema"/>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-contrasena">Contraseña</label>
                                                 <div class="input-group">
                                                     <div class="input-group input-group-merge form-password-toggle">
-                                                        <input type="password" class="form-control form-control-merge" id="kypassConf"  tabindex="2" placeholder="Confirmar Contraseña" aria-describedby="login-password"/>
+                                                        <input type="password" class="form-control form-control-merge" id="user-contrasena"/>
                                                         <span class="input-group-text cursor-pointer" ><i data-feather="eye"></i></span>
                                                     </div>
                                                 </div>
                                             </div>
-                                        </div>
-
-                                        <hr>
-                                        <div class="mb-1"> <!-- Calle -->
-                                            <label for="calle" class="col-sm-3 form-label input-sm">Calle:</label>
-                                            <input type="text" id="calle" class="form-control input-sm" placeholder="Calle" data-bs-toggle="tooltip" title="Calle">
-                                        </div>
-                                        
-                                        <div class="mb-1">
-                                            <label for="colon" class="col-sm-3 form-label input-sm">Colonia:</label>
-                                            <input type="text" id="colon" class="form-control input-sm" placeholder="Colonia" data-bs-toggle="tooltip" title="Colonia">
-                                        </div>
-
-                                        <div class="mb-1 form-group row"> <!-- Número Exterior - Número Interior -->
-                                            <label for="dr-num" class="col-sm-2 form-label input-sm">No. Exterior:</label>
-                                            <div class="col-sm-4">
-                                            <input type="text" id="dr-num" class="form-control input-sm" placeholder="Numero Exterior" data-bs-toggle="tooltip" title="Número Exterior">
+                                            <hr>
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-calle">Calle</label>
+                                                <input type="text" id="user-calle" class="form-control"/>
                                             </div>
-                            
-                                            <label for="dr-num-int" class="col-sm-2 form-label input-sm">No. Interior:</label>
-                                            <div class="col-sm-4">
-                                            <input type="text" id="dr-num-int" class="form-control input-sm" placeholder="Numero Interior" data-bs-toggle="tooltip" title="Número Interior">
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-no_ext">No. Exterior</label>
+                                                <input type="text" id="user-no_ext" class="form-control"/>
                                             </div>
-                                        </div>
-
-                                        <div class="mb-1"> <!-- Municipio - Estado -->
-                                            <label for="municipio" class="col-sm-3 form-label input-sm">Municipio:</label>
-                                            <!-- <div class="col-sm-3"> -->
-                                            <input type="text" id="municipio" class="form-control input-sm" placeholder="Municipio" data-bs-toggle="tooltip" title="Municipio">
-                                        </div>
-
-                                        <div class="mb-1">
-                                            <label for="estado" class="col-sm-3 form-label input-sm">Estado:</label>
-                                            <input type="text" id="estado" class="form-control input-sm" placeholder="Estado" data-bs-toggle="tooltip" title="Estado">
-                                        </div>
-                                        <!-- </div> -->
-
-                                        <div class="mb-1 form-group row"> <!-- Teléfono - Celular -->
-                                            <label for="pers-tel" class="col-sm-2 form-label input-sm">Teléfono:</label>
-                                            
-                                            <div class="col-sm-4">
-                                            <!-- <div class="input-group-prepend">
-                                                <span class="input-group-text"> MX (+52)</span>
-                                            </div> -->
-                                            <input type="tel" id="pers-tel" class="form-control input-sm numeric" pattern="[0-9]{10}" placeholder="Telefono" data-bs-toggle="tooltip" title="Teléfono">
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-no_int">No. Interior</label>
+                                                <input type="text" id="user-no_int" class="form-control"/>
                                             </div>
-                                        
-                                            <label for="pers-cel" class="col-sm-2 form-label input-sm">Celular:</label>
-                                            <div class="col-sm-4">
-                                            <input type="tel" id="pers-cel" class="form-control input-sm numeric" pattern="[0-9]{10}" placeholder="Celular" data-bs-toggle="tooltip" title="Celular">
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-colonia">Colonia</label>
+                                                <input type="text" id="user-colonia" class="form-control"/>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-municipio">Municipio</label>
+                                                <input type="text" id="user-municipio" class="form-control"/>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-estado">Estado</label>
+                                                <input type="text" id="user-estado" class="form-control"/>
+                                            </div>
+                                            <div class="mb-1">
+                                                <label class="form-label fw-bolder fs-5" for="user-codigo_postal">Código Postal</label>
+                                                <input type="text" id="user-codigo_postal" class="form-control"/>
+                                            </div> 
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-success mb-1 data-submit" id="btnSave">Guardar</button>
+                                                <input type="hidden" id="user_id" value="0">
                                             </div>
                                         </div>
-                                        
-                                        <div class="mb-1 form-group row"> <!-- Teléfono Adicional - Número de empleado. -->
-                                            <label for="pers-tel-add" class="col-sm-2 form-label input-sm">Teléfono Adicional:</label>
-                                            <div class="col-sm-4">
-                                            <input type="tel" id="pers-tel-add" class="form-control input-sm numeric" pattern="[0-9]{10}" placeholder="Telefono Adicional" data-bs-toggle="tooltip" title="Télefono adicional">
-                                            </div>
-
-                                            <label for="pers-emple" class="col-sm-3 form-label input-sm">No. Empleado:</label>
-                                            <div class="col-sm-3">
-                                            <input type="text" id="pers-emple" class="form-control input-sm numeric" maxlength="10" placeholder="Número Empleado" data-bs-toggle="tooltip" title="Número Empleado">
-                                            </div>
-                                        </div>
-
-                                        <div class="mb-1 form-group"> <!-- Observaciones -->
-                                            <label for="observ" class="col-sm-4 form-label input-sm">Observaciones:</label>
-                                            <div class="col-sm-15">
-                                                <textarea id="observ" class="form-control" rows="3" placeholder="Observaciones" data-bs-toggle="tooltip" title="Observaciones"></textarea>
-                                            </div>
-                                        </div>        
-
-                                        <div class="buttonsFrmUser">
-                                            <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
-                                            <button type="button" class="btn btn-warning mb-1 data-submit" id="btnSave">Guardar</button>
-                                            <input type="hidden" id="pers-id" value="0">
-                                        </div>
-                                    </div>
-                                </form>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
-                        <!-- Modal to add new user Ends-->
 
-                        <!-- Modal para tipos de usuario -->
-                        <div class="modal fade" id="frm-type-user">
-                            <div class="modal-dialog modalMediano">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h4>Tipos de usuarios registrados</h4>
-                                    </div>
-                                    <!-- <div class="modal-body"> -->
-                                    <div class="form-horizontal">
+                            <!-- Modal para tipos de usuario -->
+                            <div class="modal fade" id="frm-type-user">
+                                <div class="modal-dialog modalMediano">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="modal-title text-uppercase">tipos de usuarios</h4>
+                                        </div>
                                         <div class="modal-body">
-                                            <div class="alignRight">
-                                                <button id="btnNewTypeUser" type="button" class="btn btn-outline-secondary waves-effect waves-foat waves-light open-modal "><i data-feather="plus"></i>&nbsp;&nbsp;Agregar tipo de usuario</button>
+                                            <div class="form-horizontal">
+                                                <div class="modal-body">
+                                                    <div class="alignRight">
+                                                        <button id="btnNewTypeUser" type="button" class="btn btn-outline-secondary waves-effect waves-foat waves-light open-modal "><i class="fas fa-plus"></i>&nbsp;&nbsp;Agregar</button>
+                                                    </div>
+                                                    <table id="tbl-TypeUser" class="table table-condensed table-hover table-striped table-bordered">
+                                                        <thead>
+                                                            <tr>
+                                                                <th>Tipo de usuario</th>
+                                                                <th style="text-align: center;">Acciones</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                    </table>
+                                                </div>
                                             </div>
-                                            <table id="tbl-TypeUser" class="table table-condensed table-hover table-striped table-bordered">
-                                                <thead>
-                                                    <tr>
-                                                        <th>Tipo de usuario</th>
-                                                        <th style="text-align: center;">Acciones</th>
-                                                    </tr>
-                                                </thead>
-                                                <tbody></tbody>
-                                            </table>
                                         </div>
-                                    </div>
-                                        <!-- </div> -->
-                                    <div class="modal-footer">
-                                        <div class="buttonsFrmUser">
-                                            <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
-                                            <button id="btnClose" type="button" class="btn btn-danger mb-1">Salir</button>
-                                            <input type="hidden" id="pers-id" value="0">
+                                        <div class="modal-footer">
+                                            <div class="buttonsFrmUser">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button id="btnClose" type="button" class="btn btn-danger mb-1">Salir</button>
+                                                <input type="hidden" id="user-id" value="0">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- Termina modal tipos de usuario -->
+                            <!-- Termina modal tipos de usuario -->
 
-                        <!--Modal para agregar/editar tipo de usuario -->
-                        <div class="modal fade" id="frm-type-user-acciones">
-                            <div class="modal-dialog modalMediano">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h4></h4>
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="form-group">
-                                            <div class="col-sm-12">
-                                                <label for="descripcion-nuevo-perfil" class="col-sm-3 control-label input-sm"><h5>Tipo de usuario</h5></label>
-                                                <input type="text" id="descripcion-nuevo-perfil" class="form-control input-sm" placeholder="Agregue el nombre del nuevo tipo de usuario">
+                            <!--Modal para agregar/editar tipo de usuario -->
+                            <div class="modal fade" id="frm-type-user-acciones">
+                                <div class="modal-dialog modalMediano">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4 class="text-uppercase"></h4>
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="form-group">
+                                                <div class="col-sm-12">
+                                                    <label for="descripcion-nuevo-perfil" class="col-sm-3 control-label input-sm"><h5>Tipo de usuario</h5></label>
+                                                    <input type="text" id="descripcion-nuevo-perfil" class="form-control input-sm" placeholder="Agregue el nombre del nuevo tipo de usuario">
+                                                </div>
                                             </div>
                                         </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <div class="buttonsFrmUser">
-                                            <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
-                                            <button id="btnSaveNewPerfil" type="button" class="btn btn-warning mb-1">Registrar</button>
-                                            <button id="btnUpdatePerfil" type="button" class="btn btn-warning mb-1">Actualizar</button>
-                                            <button id="btnDelPerfil" type="button" class="btn btn-danger mb-1">Inactivar</button>
-                                            <input type="hidden" id="id_type_user" value="0">
+                                        <div class="modal-footer">
+                                            <div class="buttonsFrmUser">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button id="btnSaveNewPerfil" type="button" class="btn btn-success mb-1">Registrar</button>
+                                                <button id="btnUpdatePerfil" type="button" class="btn btn-success mb-1">Actualizar</button>
+                                                <button id="btnDelPerfil" type="button" class="btn btn-danger mb-1">Inactivar</button>
+                                                <input type="hidden" id="id_type_user" value="0">
+                                            </div>
                                         </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <!--Termina modal para agregar/editar tipo de usuario -->
+                            <!--Termina modal para agregar/editar tipo de usuario -->
 
-                        <!--Modal para eliminar a un usuario, solicita motivo de la baja y observaciones -->
-                        <div class="modal modal-slide-in modal-danger fade" id="frm-del-user">
-                            <div class="modal-dialog">
-                                <form class="modal-content pt-0">
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    <div class="modal-header mb-1">
-                                        <h4 class="modal-title" id="exampleModalLabel">Inactivar Usuario</h4>
-                                    </div>
-                                    <div class="modal-body flex-grow-1">
-                                        <div class="mb-1">
-                                            ¿Estas seguro de inactivar a <strong></strong>?
-                                        </div><br>
-                                        <div class="mb-2">
-                                            <label for="motivo_baja" class="form-label"><h5>Motivo Separación</h5></label>
-                                            <select name="motivo_baja" id="motivo_baja" class="select2 form-select">
-                                            <option value="0" selected disabled>Seleccione</option>
-                                            <option value="1">Renuncia Voluntaria</option>
-                                            <option value="2">Rescisión Laboral</option>
-                                            <option value="3">Término de Contrato</option>
-                                            <option value="4">Defunción</option>
-                                            <option value="5">Jubilación</option>
-                                            <option value="6">Pensión</option>
-                                            </select>
+                            <!--Modal para eliminar a un usuario, solicita motivo de la baja y observaciones -->
+                            <div class="modal modal-slide-in modal-danger fade" id="frm-del-user">
+                                <div class="modal-dialog">
+                                    <form class="modal-content pt-0">
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title" id="exampleModalLabel">Inactivar Usuario</h4>
                                         </div>
-                                        <div>
-                                            <label for="observaciones_baja" class="form-label"><h5>Observaciones</h5></label>
-                                            <textarea id="observaciones_baja" name="observaciones_baja" rows="5" cols="50" placeholder="Observaciones de la baja del usuario"></textarea>
-                                        </div><br><br>
-                                        <div class="buttonsFrmUser">
-                                            <input  type="hidden" id="id_user_del" value="0">
-                                            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                            <button type="button" class="btn btn-danger me-1" id="btnInactivar">Inactivar</button>
+                                        <div class="modal-body flex-grow-1">
+                                            <div class="mb-1">
+                                                ¿Estas seguro de inactivar a <strong></strong>?
+                                            </div><br>
+                                            <div>
+                                                <label for="observaciones_baja" class="form-label"><h5>Observaciones</h5></label>
+                                                <textarea id="observaciones_baja" name="observaciones_baja" rows="5" cols="40" placeholder="Observaciones de la baja del usuario"></textarea>
+                                            </div><br><br>
+                                            <div class="buttonsEnd">
+                                                <input  type="hidden" id="id_user_del" value="0">
+                                                <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-danger me-1" id="btnInactivar">Inactivar</button>
+                                            </div>
                                         </div>
-                                    </div>
-                                </form>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
-                        <!--Termina modal para eliminar a un usuario -->
+                            <!--Termina modal para eliminar a un usuario -->
 
-                        <!--Modal para activar a un usuario, solicita confirmación para activar al usuario -->
-                        <div class="modal modal-slide-in modal-success fade" id="frm-activar-user">
-                            <div class="modal-dialog">
-                                <form class="modal-content pt-0">
-                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                                    <div class="modal-header mb-1">
-                                        <h4 class="modal-title" id="exampleModalLabel">Activar Usuario</h4>
-                                    </div>
-                                    <div class="modal-body flex-grow-1">
-                                        <div class="mb-1">
-                                            ¿Estas seguro de cambiar el estatus de <strong></strong> a activo?
-                                        </div><hr><br><br>
-                                        <div class="buttonsFrmUser">
-                                            <input  type="hidden" id="id_user_activar" value="0">
-                                            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
-                                            <button type="button" class="btn btn-success me-1" id="btnActivar">Activar</button>
+                            <!--Modal para activar a un usuario, solicita confirmación para activar al usuario -->
+                            <div class="modal modal-slide-in modal-success fade" id="frm-activar-user">
+                                <div class="modal-dialog">
+                                    <form class="modal-content pt-0">
+                                        <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title" id="exampleModalLabel">Activar Usuario</h4>
                                         </div>
-                                    </div>
-                                </form>
+                                        <div class="modal-body flex-grow-1">
+                                            <div class="mb-1">
+                                                ¿Estas seguro de cambiar el estatus de <strong></strong> a activo?
+                                            </div><hr><br><br>
+                                            <div class="buttonsFrmUser">
+                                                <input  type="hidden" id="id_user_activar" value="0">
+                                                <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-success me-1" id="btnActivar">Activar</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
                             </div>
-                        </div>
-                        <!--Termina modal para activar a un usuario -->
+                            <!--Termina modal para activar a un usuario -->
 
-                        <!-- Modal permisos -->
-                        <div id="frm-permisos" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h3 class="modal-title"><i class="feather-16" style="color: black;" data-feather="lock"></i><span>Permisos de Usuario</span></h3>
-                                        <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button> -->
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="card-columns" style="column-count:2">
-                                        <?php 
-                                            $modulos = $todo->model->seg_modulo->getAll()->result; 
-                                            foreach ($modulos as $modulo) :  ?>
-                                                <?php if($modulo->nombre != 'Recibos Nomina') :?>
+                            <!-- Modal permisos -->
+                            <div id="frm-permisos" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h3 class="modal-title"><i class="fas fa-lock"></i><span> Permisos de Usuario</span></h3>
+                                            <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button> -->
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="card-columns" style="column-count:2">
+                                            <?php 
+                                                $modulos = $todo->model->seg_modulo->getAll()->result; 
+                                                foreach ($modulos as $modulo) :  ?>
                                                     <div>
                                                         <div class="card">
                                                             <div class="card-header nombreModulo">
-                                                                <h5 class="card-title"><?= $modulo->nombre ?></h5>
-                                                                <div class="heading-elements">
+                                                                <div class="card-title">
+                                                                    <h4 class="tituloP"><?= $modulo->nombre ?></h4>
+                                                                </div>
+                                                                <div class="heading-elements me-1   ">
                                                                     <ul class="list-inline mb-0">
                                                                         <li><a data-action="collapse"><i data-feather="chevron-down"></i></a></li>
                                                                     </ul>
@@ -350,239 +294,119 @@
                                                             </div>
                                                         </div>
                                                     </div>
-                                                <?php endif; ?>
-                                            <?php endforeach;
-                                        ?>
+                                                <?php endforeach;
+                                            ?>
+                                            </div>
                                         </div>
-                                    </div>
-                                    <div class="modal-footer">
-                                        <input type="hidden" id="perm_user_id" value="0">
-                                        <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                        <div class="modal-footer">
+                                            <input type="hidden" id="perm_user_id" value="0">
+                                            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                        </div>
                                     </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- Termina modal permisos -->
+                            <!-- Termina modal permisos -->
 
-                        <!-- Modal permisos para tipo de usuario-->
-                        <div id="frm-permisos-type-user" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1">
-                            <div class="modal-dialog modal-lg">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h3 class="modal-title"><i class="feather-16" style="color: black;" data-feather="lock"></i><span></span></h3>
-                                        <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button> -->
-                                    </div>
-                                    <div class="modal-body">
-                                        <div class="card-columns" style="column-count:2">
-                                        <?php 
-                                            $modulos = $todo->model->seg_modulo->getAll()->result; 
-                                            foreach ($modulos as $modulo) :  ?>
-                                                <?php if($modulo->nombre != 'Recibos Nomina') :?>
-                                                    <div>
-                                                        <div class="card">
-                                                            <div class="card-header nombreModulo">
-                                                                <h5 class="card-title"><?= $modulo->nombre ?></h5>
-                                                                <div class="heading-elements">
-                                                                    <ul class="list-inline mb-0">
-                                                                        <li><a data-action="collapse"><i data-feather="chevron-down"></i></a></li>
-                                                                    </ul>
+                            <!-- Modal permisos para tipo de usuario-->
+                            <div id="frm-permisos-type-user" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1">
+                                <div class="modal-dialog modal-lg">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h3 class="modal-title"><i class="feather-16" style="color: black;" data-feather="lock"></i><span></span></h3>
+                                            <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button> -->
+                                        </div>
+                                        <div class="modal-body">
+                                            <div class="card-columns" style="column-count:2">
+                                            <?php 
+                                                $modulos = $todo->model->seg_modulo->getAll()->result; 
+                                                foreach ($modulos as $modulo) :  ?>
+                                                    <?php if($modulo->nombre != 'Recibos Nomina') :?>
+                                                        <div>
+                                                            <div class="card">
+                                                                <div class="card-header nombreModulo">
+                                                                    <h5 class="card-title"><?= $modulo->nombre ?></h5>
+                                                                    <div class="heading-elements">
+                                                                        <ul class="list-inline mb-0">
+                                                                            <li><a data-action="collapse"><i data-feather="chevron-down"></i></a></li>
+                                                                        </ul>
+                                                                    </div>
                                                                 </div>
-                                                            </div>
-                                                            <div class="card-content collapse show">
-                                                                <div class="card-body cardBody">
-                                                                    <?php 
-                                                                        $acciones = $todo->model->seg_accion->getByModulo($modulo->id)->result; 
-                                                                        foreach ($acciones as $accion) : ?>
-                                                                            <input type="checkbox" id="chkpermTypeUser-<?= $accion->id ?>" value="<?= $accion->id ?>" class="filled-in checkPermTypeUser">	
-                                                                            <label for="chkpermTypeUser-<?= $accion->id ?>"><?= $accion->nombre ?></label><br>
-                                                                    <?php endforeach; ?>
+                                                                <div class="card-content collapse show">
+                                                                    <div class="card-body cardBody">
+                                                                        <?php 
+                                                                            $acciones = $todo->model->seg_accion->getByModulo($modulo->id)->result; 
+                                                                            foreach ($acciones as $accion) : ?>
+                                                                                <input type="checkbox" id="chkpermTypeUser-<?= $accion->id ?>" value="<?= $accion->id ?>" class="filled-in checkPermTypeUser">	
+                                                                                <label for="chkpermTypeUser-<?= $accion->id ?>"><?= $accion->nombre ?></label><br>
+                                                                        <?php endforeach; ?>
+                                                                    </div>
                                                                 </div>
                                                             </div>
                                                         </div>
-                                                    </div>
-                                                <?php endif; ?>
+                                                    <?php endif; ?>
 
-                                            <?php endforeach;?>
+                                                <?php endforeach;?>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <input type="hidden" id="perm_user_id" value="0">
+                                            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
                                         </div>
                                     </div>
-                                    <div class="modal-footer">
-                                        <input type="hidden" id="perm_user_id" value="0">
-                                        <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                    </div>
                                 </div>
                             </div>
-                        </div>
-                        <!-- Termina modal permisos -->
+                            <!-- Termina modal permisos -->
 
-                        <!-- Modal foto usuario -->
-                        <div class="modal fade" id="frm-user-foto">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <div class="modal-header">
-                                        <h4></h4>
-                                    </div>
-                                    <div class="modal-body text-center">
-                                        <input type="file" id="imagen" name="imagen" accept="image/jpeg" class="classHide">
-                                        <img id="emp-foto" src="<?= URL_DATA ?>empleado/profile.png" alt="" class="thumbnail">
-                                    </div>
-                                    <div class="modal-footer">
-                                        <?php if(in_array(MOD_USUARIOS_ADD, $permisos) || in_array(MOD_USUARIOS_EDIT, $permisos) ) :  ?>
-                                            <button id="btnFoto" type="button" class="btn btn-blink-info"><i data-feather='camera'></i> Cambiar Foto</button>
-                                        <?php endif; ?>
-                                        <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
-                                        <input type="hidden" id="user-id-img" value="0">
+                            <!-- Modal foto usuario -->
+                            <div class="modal fade" id="frm-user-foto">
+                                <div class="modal-dialog">
+                                    <div class="modal-content">
+                                        <div class="modal-header">
+                                            <h4></h4>
+                                        </div>
+                                        <div class="modal-body text-center">
+                                            <input type="file" id="imagen" name="imagen" accept="image/jpeg" class="classHide">
+                                            <img id="emp-foto" src="<?= URL_DATA ?>empleado/profile.png" alt="" class="thumbnail">
+                                        </div>
+                                        <div class="modal-footer">
+                                            <?php if(in_array(MOD_ADD, $permisos) || in_array(MOD_EDIT, $permisos) ) :  ?>
+                                                <button id="btnFoto" type="button" class="btn btn-new-info"><i data-feather='camera'></i> Cambiar Foto</button>
+                                            <?php endif; ?>
+                                            <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cerrar</button>
+                                            <input type="hidden" id="user-id-img" value="0">
+                                        </div>
                                     </div>
                                 </div>
                             </div>
+                            <!-- Termina modal foto usuario -->
                         </div>
-                        <!-- Termina modal foto usuario -->
                     </div>
                 </section>
             </div>
         </div>
     </div>
     <?php include 'footer.phtml';?>
+    <script src="<?= URL_ROOT ?>/app-assets/plugin/inputmask/dist/min/jquery.inputmask.bundle.min.js"></script>
+    <script src="<?= URL_ROOT ?>/app-assets/js/mask.init.js"></script>
     <script>
         $(function(){
             var apiUrl = '<?= URL_ROOT ?>/',
-                apiUrlRh = '<?= URL_ROOT ?>/rh/',
                 dtUserTable = $('#tbl-usuarios'),
                 newUserSidebar = $('.new-user-modal'),
                 newUserForm = $('.add-new-user'),
                 select = $('.select2'),
                 dtContact = $('.dt-contact');
 
-            getItems('tbl-usuarios');
+            getItems('tbl-usuarios')
 
             // Abre modal para agregar un nuevo usuario
-            <?php if(in_array(MOD_USUARIOS_ADD, $permisos)) :  ?>
+            <?php if(in_array(MOD_ADD, $permisos)) : ?>
                 $('#btnAdd').click(function(){
-                    getTypeUser();
-                    clearFields();
-                    $('#frm-pers h5').html('Agregar Usuario');
-                    $('#kypass').attr("placeholder", "Contraseña");
-                    $("#fgKm").hide();
-                    str = $(this).parents('tr').text();
-                    $('#frm-pers').modal('show');
-                });
-
-                // Muestra dos campos unicamente para tipo de usuario mensajero y comisionista
-                $('#cboTUsr').change(function (e){
-                    id_u = $('#cboTUsr').val();
-                    if(id_u == '1' || id_u == '2' || id_u == '5' || id_u == '8' || id_u == '9' || id_u == '11'){
-                        $('#fgKm').show();
-                    } else{
-                        $('#fgKm').hide();
-                    }
-                });
-
-                // Agrega un usuario nuevo a la base de datos
-                $('#btnSave').on('click', function(){
-                    $('.alert').remove();
-                    err = $('<div class="alert alert-blink-danger"></div>');
-                    data = {
-                        usuario_tipo_id: $.trim($('#cboTUsr').val()),
-                        nombre: sinDiacriticos( $.trim($('#pers-nom').val())),
-                        apellidos: sinDiacriticos( $.trim($('#pers-ape').val())), 
-                        email: $.trim($('#email').val()),
-                        calle: sinDiacriticos( $.trim($('#calle').val())),
-                        numero: sinDiacriticos( $.trim($('#dr-num').val())),
-                        colonia: sinDiacriticos( $.trim($('#colon').val())),
-                        ciudad: sinDiacriticos( $.trim($('#estado').val())),
-                        tel_casa: $.trim($('#pers-tel').val()), 
-                        tel_cel: $.trim($('#pers-cel').val()),
-                        login: sinDiacriticos( $.trim($('#user').val())),
-                        contrasena: $.trim($('#kypass').val()),
-                        com_ent: '',
-                        del_muni: sinDiacriticos( $.trim($('#municipio').val())),
-                        num_int: $.trim($('#dr-num-int').val()),
-                        tel_adi: sinDiacriticos( $.trim($('#pers-tel-add').val())),
-                        observaciones: sinDiacriticos( $.trim($('#observ').val())),
-                        id_fact: $.trim($('#pers-emple').val()),
-                    };  
-                    confContrasena = $.trim($('#kypassConf').val());
-                    id = parseInt($('#pers-id').val(),10);
-                    btn = $(this);
-                    btn.addClass('disabled');
-                    
-                    if(data.usuario_tipo_id == 0){
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('Debe seleccionar un Tipo de Usuario.');
-                        $('#cboTUsr').parent().append(err);
-                        $('#cboTUsr').focus();
-                        btn.removeClass('disabled');
-                    }else if(data.nombre.length == 0 || data.nombre.length < 4){
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('Debe ingresar un nombre valido.');
-                        $('#pers-nom').parent().append(err);
-                        $('#pers-nom').focus();
-                        btn.removeClass('disabled');
-                    }else if(data.apellidos.length == 0 || data.apellidos.length < 4){
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('Debe ingresar un apellido valido.');
-                        $('#pers-ape').parent().append(err);
-                        $('#pers-ape').focus();
-                        btn.removeClass('disabled');
-                    }else if(data.email.length == 0 || data.email.length < 4){
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('Debe ingresar un correo electrónico valido.');
-                        $('#email').parent().append(err);
-                        $('#email').focus();
-                        btn.removeClass('disabled');
-                    }else if(data.login.length == 0 || data.login.length < 3){
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('Debe ingresar un usuario valido.');
-                        $('#user').parent().append(err);
-                        $('#user').focus();
-                        btn.removeClass('disabled');
-                    }else if(id == 0 && (data.contrasena.length == 0 || data.contrasena.length < 7)){
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('Debe ingresar una contraseña con más de 7 carácteres.');
-                        $('#kypass').parent().append(err);
-                        $('#kypass').focus();
-                        btn.removeClass('disabled');
-                    }else if(id == 0 && (data.tel_casa.length == 0 || data.tel_casa.length < 10)){
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('Debe ingresar un número de teléfono valido.');
-                        $('#pers-tel').parent().append(err);
-                        $('#pers-tel').focus();
-                        btn.removeClass('disabled');
-                    }else if(id == 0 && (data.tel_cel.length == 0 || data.tel_cel.length < 10)){
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('Debe ingresar un número de celular.');
-                        $('#pers-cel').parent().append(err);
-                        $('#pers-cel').focus();
-                        btn.removeClass('disabled');
-                    }else if(id == 0 && (data.tel_adi.length > 0 && data.tel_adi.length < 10)) {
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('Debe ingresar un número de adicional valido.');
-                        $('#pers-tel-add').parent().append(err);
-                        $('#pers-tel-add').focus();
-                        btn.removeClass('disabled');
-                    }else if(confContrasena != data.contrasena){
-                        $(err).removeClass('alert-blink-warning');
-                        $(err).addClass('alert-blink-danger');
-                        $(err).append('La contraseña no corresponde.');
-                        $('#kypassConf').parent().append(err);
-                        $('#kypassConf').focus();
-                        btn.removeClass('disabled');
-                    }
-                    else{
-                        btn.addClass('disabled');
-                        AddEditUser(data,id);
-                        btn.removeClass('disabled');
-                        $('.alert').remove();
-                    }
-                    $('#fgKm').hide();
+                    getTypeUser()
+                    clear()
+                    getSucursales(<?= $_SESSION['sucursal_id'] ?>)
+                    $('#frm-usuario h4').html('agregar usuario')
+                    $('#frm-usuario').modal('show');
                 });
 
                 // Muestra los tipos de usuario existentes en la base de datos y agrega acciones a algunos
@@ -625,7 +449,7 @@
 
                 // Abre modal para agregar un nuevo tipo de usuario
                 $('#btnNewTypeUser').on('click', function() {
-                    $('#frm-type-user-acciones h4').html('Agregar Tipo de Usuario')
+                    $('#frm-type-user-acciones h4').html('agregar tipo de usuario')
                     $('#descripcion-nuevo-perfil').val('');
                     $('#id_type_user').val(0);
                     $('#frm-type-user-acciones').modal('show');
@@ -668,7 +492,7 @@
                             },
                         });
                         $('#descripcion-nuevo-perfil').val('');
-                        $("#frm-pers-new-type-user").modal('show');
+                        $("#frm-usuario-new-type-user").modal('show');
                     }
                 });
 
@@ -677,7 +501,7 @@
                     tr = $(this).parents("tr");
                     id = $(this).parents("td").data('id');
                     $('#id_type_user').val(id);
-                    $('#frm-type-user-acciones h4').html('Editar Tipo de Usuario');
+                    $('#frm-type-user-acciones h4').html('editar tipo de usuario');
                     nom = tr.find('td:eq(0)').text();
                     $('#frm-type-user-acciones').modal('show');
                     $("#btnUpdatePerfil").show();   
@@ -688,15 +512,12 @@
 
                 // Actualiza el nombre del tipo de usuario
                 $('#btnUpdatePerfil').click(function() {
-                    $('.alert').remove();
-                    err = $('<div class="alert alert-blink-danger"></div>');
-                    id = $('#id_type_user').val();
-                    data = { descripcion: sinDiacriticos($('#descripcion-nuevo-perfil').val()) };
                     btn = $(this);
                     btn.addClass('disabled');
-                    data = { descripcion: sinDiacriticos($.trim($('#descripcion-nuevo-perfil').val())) };
-                    if(data.descripcion.length < 3){
-                        setError('descripcion-nuevo-perfil','Debe ingresar un nombre de mas de tres caracteres');
+                    id = $('#id_type_user').val();
+                    data = { nombre: sinDiacriticos($('#descripcion-nuevo-perfil').val()) };
+                    if(data.nombre.length < 3){
+                        error('descripcion-nuevo-perfil', 'Debe ingresar un nombre de mas de tres caracteres')
                         btn.removeClass('disabled');
                     }else{
                         $.ajax({
@@ -815,118 +636,93 @@
                 });
             <?php endif; ?>
             
+            <?php if(in_array(MOD_EDIT, $permisos)) :  ?>
+                $('#tbl-usuarios').on('click', '.btnEdit', function(e){
+                    e.preventDefault()
+                    clear('edit')
+                    id = $(this).data('id');
+                    $.get(apiUrl+'usuario/get/'+id, function(resp){
+                        $.each(resp.result, function(index, item){
+                            $('#user-'+index).val(item)
+                        })
+                        $('#user-contrasena').attr("placeholder", "Dejar en blanco para no modificar")
+                        $('#user_id').val(resp.result.id)
+                        getSucursales(resp.result.sucursal_id)                  
+                        getTypeUser(resp.result.usuario_tipo_id)
+                    },'json')
+                    $('#frm-usuario h4').html('editar usuario');
+                    $('#user-id').val(id);
+                    $('#frm-usuario').modal('show');
+                });
+            <?php endif; ?>
+
             $('#btnClose').click(function() {
                 $('#frm-type-user').modal('hide');
             });
 
-            // <?php if($_SESSION['usuario_id'] == 1 || $_SESSION['usuario_id'] == 2 ||$_SESSION['usuario_id'] == 51) : ?>
-            //     // Bloquea/desbloquea el sistema general
-            //     $('#btnLockdown').click(function(e){
-            //     e.preventDefault();
-            //         <?php if($lockdown == 0) : ?>
-            //             data = {lockdown: 1};
-            //         <?php else: ?>
-            //             data = {lockdown: 0};
-            //         <?php endif; ?>
-            //         $.ajax({
-            //             url: apiUrl+'usuario/lockdown',
-            //             type: 'PUT',
-            //             dataType: "json",
-            //             data: data,    
-            //             success: function( resp ) {
-            //                 if(resp.response){
-            //                     window.location.reload();
-            //                 }
-            //             }
-            //         });
-            //     });
-            // <?php endif; ?>
-            
-            <?php if(in_array(MOD_USUARIOS_EDIT, $permisos)) :  ?>
-                $('#tbl-usuarios').on('click', '.btnEdit', function(e){
-                    getTypeUser();                       
+            $('#btnSave').on('click', function(){
+                btn = $(this);
+                btn.addClass('disabled');
+                id = $('#user_id').val()
+                data = {};
+                $.each($('#frm-usuario input, #frm-usuario select'), function(index, item){
+                    ide = $(item).attr('id').replace('user-','')
+                    data[ide] = $.trim($(item).val())
+                })
+                data['celular'] = data['celular'].replace('(','').replace(')','').replace(' ','').replace('-','')
 
-                    e.preventDefault();
-                    id = $(this).data('id');
-                    $.ajax({
-                        url: apiUrl+'usuario/get/'+id,
-                        type: 'GET',
-                        dataType: "json",
-                        success: function(resp) {
-                            infoUser = resp.result;
-                            $('#kypass').attr("placeholder", "Dejar en blanco para no modificar");
-                            
-                            if(infoUser['usuario_tipo_id'] == 1 || infoUser['usuario_tipo_id'] == 2 || infoUser['usuario_tipo_id'] == 5 || infoUser['usuario_tipo_id'] == 8 || infoUser['usuario_tipo_id'] == 9 || infoUser['usuario_tipo_id'] == 11){
-                                $("#fgKm").show();
+                if(data.usuario_tipo_id == 0 || data.usuario_tipo_id == null){
+                    error('user-usuario_tipo_id', 'Seleccione el tipo de usuario')
+                    btn.removeClass('disabled');
+                }else if(data.nombre.length == 0 || data.nombre.length < 3){
+                    error('user-nombre', 'El nombre debe contener al menos 3 caracteres')
+                    btn.removeClass('disabled');
+                }else if(data.apellidos.length == 0 || data.apellidos.length < 3){
+                    error('user-apellidos', 'Este campo debe contener al menos 3 caracteres')
+                    btn.removeClass('disabled');
+                }else if(data.email.length == 0 || data.email.length < 4){
+                    error('user-email', 'Debe ingresar un correo electrónico válido.')
+                    btn.removeClass('disabled');
+                }else if(id == 0 && (data.celular.length == 0 || data.celular.length < 10)){
+                    error('user-celular', 'Debe ingresar un número de celular.')
+                    btn.removeClass('disabled');
+                }else if(data.username.length == 0 || data.username.length < 3){
+                    error('user-username', 'Este campo debe contener al menos 3 caracteres, es el username con el que ingresará al sistema.')
+                    btn.removeClass('disabled');
+                }else if(id == 0 && (data.contrasena.length == 0 || data.contrasena.length < 7)){
+                    error('user-contraseña', 'Debe ingresar una contraseña con más de al menos 7 carácteres.')
+                    btn.removeClass('disabled');
+                }else{
+                    btn.addClass('disabled');
+                    if(id == 0){
+                        $.post(apiUrl+'usuario/add/1', data, function(resp){
+                            if(resp.response){
+                                toastr["success"]("¡Listo!", "Se agregó al usuario.")
+                                $('#frm-usuario').modal('hide')
+                                getItems('tbl-usuarios')
+                            }else if(resp.error == 23000){
+                                toastr["warning"]("¡Verifique la información!", resp.message)
                             }else{
-                                $("#fgKm").hide();
+                                toastr["error"]("¡Ocurrió un problema!", "No pudimos agregar al usuario.")
                             }
-
-                            <?php if(in_array(MOD_EDIT_USER_PASS, $permisos)) : ?>
-                                $("#UsuarioPass").show();
-                            <?php else : ?>
-                                $("#UsuarioPass").hide();
-                            <?php endif; ?>
-
-                            $('#cboTUsr option[value="'+infoUser['usuario_tipo_id']+'"]').attr("selected", true)
-                            $('#pers-nom').val(infoUser['nombre']);
-                            $('#pers-ape').val(infoUser['apellidos']);
-                            $('#calle').val(infoUser['calle']);
-                            $('#dr-num').val(infoUser['numero']);
-                            $('#colon').val(infoUser['colonia']);
-                            $('#pers-tel').val(infoUser['tel_casa']);
-                            $('#pers-cel').val(infoUser['tel_cel']);
-                            $('#dr-num-int').val(infoUser['num_int']);
-                            $('#pers-tel-add').val(infoUser['tel_adi']);
-                            $('#municipio').val(infoUser['del_muni']);
-                            $('#estado').val(infoUser['ciudad']);
-                            $('#observ').val(infoUser['observaciones']);
-                            $('#email').val(infoUser['email']);
-                            $('#user').val(infoUser['login']);
-                            $('#pers-emple').val(infoUser['id_fact']);
-                        }  
-                    });
-                    $('#frm-pers h5').html('Editar Usuario');
-                    $('#pers-id').val(id);
-                    $('#frm-pers').modal('show');
-                });
-            <?php endif; ?>
-
-            // <?php if($_SESSION['usuario_id'] == 1 || $_SESSION['usuario_id'] == 2 ||$_SESSION['usuario_id'] == 51) : ?>
-            //     $('#tbl-usuarios').on('click', '.btnBloquear', function(e) {
-            //         e.preventDefault();
-            //         id = $(this).data('id');
-            //         data = { iniciar: 0 }
-            //         trp = $(this).parents('tr');
-            //         $.ajax({
-            //             url: apiUrl+'usuario/lockdownIndividual/'+id,
-            //             type: 'PUT',
-            //             dataType: "json",
-            //             data: data,    
-            //             success: function( resp ) {
-            //                 getItems('tbl-usuarios');
-            //             }
-            //         });
-            //     });
-
-            //     $('#tbl-usuarios').on('click', '.btnDesbloquear', function(e) {
-            //         e.preventDefault();
-            //         id = $(this).data('id');
-            //         data = { iniciar: 1 }
-            //         $.ajax({
-            //             url: apiUrl+'usuario/lockdownIndividual/'+id,
-            //             type: 'PUT',
-            //             dataType: "json",
-            //             data: data,    
-            //             success: function( resp ) {
-            //                 getItems('tbl-usuarios');
-            //             }
-            //         });
-            //     });
-            // <?php endif; ?>
+                        },'json');
+                    }else{
+                        $.post(apiUrl+'usuario/edit/1/'+id, data, function(resp){
+                            if(resp.response){
+                                toastr["success"]("Listo!", 'Datos de usuario actualizados.');
+                                $('#frm-usuario').modal('hide');
+                                getItems('tbl-usuarios');
+                            }else{
+                                if(resp == 'Debe seleccionar un tipo de usuario'){ toastr["warning"]("Verifique el tipo de usuario!", resp); }
+                                else{ toastr["warning"]("No hay cambios!", resp); }
+                            }
+                        },'json');
+                    }
+                    btn.removeClass('disabled');
+                }
+            });
             
-            <?php if(in_array(MOD_USUARIOS_BAJA, $permisos)) :  ?>
-                // Abre el modal que solicita los datos de la baja del usuario
+            <?php if(in_array(MOD_AD, $permisos)) :  ?>
                 $('#tbl-usuarios').on('click', '.btnDesactivar', function(e){
                     e.preventDefault();
                     id = $(this).data('id');
@@ -1025,7 +821,7 @@
                 });
             <?php endif; ?>
 
-            <?php if(in_array(MOD_USUARIOS_PERM, $permisos)) :  ?>
+            <?php if(in_array(MOD_VER, $permisos)) :  ?>
                 $('#tbl-usuarios').on('click', '.btnPermisos', function(){
                     id = $(this).data('id');
                     $('#perm_user_id').val(id);
@@ -1068,7 +864,7 @@
                 });
             <?php endif; ?>
             
-            <?php if(in_array(MOD_USUARIOS_ADD, $permisos) || in_array(MOD_USUARIOS_EDIT, $permisos) ) :  ?>
+            <?php if(in_array(MOD_ADD, $permisos) || in_array(MOD_EDIT, $permisos) ) :  ?>
                 // $('#tbl-usuarios').on('click', '.btnFoto', function(){
                 //     id = $(this).data('id');
                 //     name = $(this).data('name');
@@ -1124,7 +920,6 @@
                 cleanTable(tbl);
                 $('#'+tbl+' tbody').empty();
                 createTable(tbl);
-                info();
             }
             
             function cleanTable(tbl) {
@@ -1133,110 +928,52 @@
                     table.destroy();
                 }
             }
-        
-            function AddEditUser(data, id){
-                if(id == 0){
-                    $.post(apiUrl+'usuario/addPersona',data, function(resp){
-                        if(resp.response){
-                            clearFields();
-                            getItems('tbl-usuarios');
-                            toastr["success"]('Usuario agregado.', "Listo!");
-                            $('#frm-pers').modal('hide');                            
-                        }else{  
-                            toastr["error"]("Ocurrió un error!", resp.message);
-                        }
-                    },'json');
-                }else{
-                    data['id'] = id;
-                    $.post(apiUrl+'usuario/editPersona/'+id, data, function(resp){
-                        if(resp.response){
-                            toastr["success"]("Listo!", 'Datos de usuario actualizados.');
-                            $('#frm-pers').modal('hide');
-                            getItems('tbl-usuarios');
-                        }else{
-                            if(resp == 'Debe seleccionar un tipo de usuario'){ toastr["warning"]("Verifique el tipo de usuario!", resp); }
-                            else{ toastr["warning"]("No hay cambios!", resp); }
-                        }
-                    },'json');
-                }
-            }
 
-            function info(){
-                $.ajax({
-                    url: apiUrl+'usuario/tiposUsuarios',
-                    type: 'get',
-                    dataType: "json",
-                    success: 
-                    function (resp) {
-                        $('#totalAdmin').html('<center><b><h3>'+resp.admin+'</h3></b></center>Administrador');
-                        $('#totalMen').html('<center><b><h3>'+resp.mensajeros+'</h3></b></center> Mensajero');
-                        $('#totalClientes').html('<center><b><h3>'+resp.clientes+'</h3></b></center> Cliente');
-                        $('#totalDirectivos').html('<center><b><h3>'+resp.directivos+'</h3></b></center> Directivo');
-                        $('#totalComisionista').html('<center><b><h3>'+resp.comisionistas+'</h3></b></center> Comisionista');
-                        $('#totalMecanico').html('<center><b><h3>'+resp.mecanicos+'</h3></b></center> Mecánico');
-                        $('#totalRescatista').html('<center><b><h3>'+resp.rescatistas+'</h3></b></center> Rescatista');
-                        $('#totalOperadores').html('<center><b><h3>'+resp.operadores+'</h3></b></center> Operador');
-                        $('#totalCoordinadores').html('<center><b><h3>'+resp.coordinadores+'</h3></b></center> Coordinador');
-                        $('#totalBicicletas').html('<center><b><h3>'+resp.bicicleta+'</h3></b></center> Bicicleta');
-                    },
-                }); 
-            }
-
-            function clearFields(){
-                $('#cboTUsr').val(0);
-                $('#pers-id').val(0);
-                $('#frm-pers .tooltip-error').remove();
-                $('#pers-nom').val('');
-                $('#pers-ape').val('');
-                $('#pers-tel').val('');
-                $('#calle').val('');
-                $('#dr-num').val('');
-                $('#colon').val('');
-                $('#pers-tel').val('');
-                $('#pers-cel').val('');
-
-                $('#dr-num-int').val('');
-                $('#pers-tel-add').val('');
-                $('#municipio').val('');
-                $('#estado').val('');
-                $('#observ').val('');
-
-                $('#email').val('');
-                $('#user').val('');
-                $('#kypass').val('');
-                $('#pers-emple').val('');
+            function clear(accion='add'){
+                $.each($('#frm-usuario input, #frm-usuario select'), function(index, item){
+                    ide = $(item).attr('id')
+                    if(ide != 'user-sucursal_id') $('#'+ide).val('')
+                })
+                if(accion != 'add') $('#user-contrasena').attr("placeholder", "Dejar en blanco para no modificar")
+                else $('#user-contrasena').attr("placeholder", "")
+                $('#user-id').val(0);
             }
 
             function addTypeUserRow(info) {
                 tr = $('<tr></tr>');
-                tda = $('<td data-id="'+info.id_tipo_usuario+'" data-fe="' + info.descripcion + '"></td>');
-                if(info.id_tipo_usuario > 5) {
-                    tda.append('<button type="button" class="btn btn-outline-blink-info btn-sm btnEditTypeUser" data-toggle="tooltip" title="Editar">'+feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+'</button> ');
-                    tda.append('<button type="button" class="btn btn-outline-dark btn-sm btnPermTypeUser" data-toggle="tooltip" title="Permisos">'+feather.icons['lock'].toSvg({ class: 'font-small-4 me-20' })+'</button> ');
-                    tda.append('<button type="button" class="btn btn-outline-danger btn-sm btnDelTypeUser" data-toggle="tooltip" title="Desactivar">'+feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+'</button>');
-                }
-                tr.append('<td>' + info.descripcion + '</td>');
+                tda = $('<td data-id="'+info.id+'" data-fe="' + info.nombre + '"></td>');
+                tda.append('<button type="button" class="btn btn-outline-new-info btn-sm btnEditTypeUser" data-toggle="tooltip" title="Editar">'+feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+'</button> ');
+                tda.append('<button type="button" class="btn btn-outline-dark btn-sm btnPermTypeUser" data-toggle="tooltip" title="Permisos">'+feather.icons['lock'].toSvg({ class: 'font-small-4 me-20' })+'</button> ');
+                tda.append('<button type="button" class="btn btn-outline-danger btn-sm btnDelTypeUser" data-toggle="tooltip" title="Desactivar">'+feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+'</button>');
+                tr.append('<td>' + info.nombre + '</td>');
                 tr.append(tda); 
                 $('#tbl-TypeUser').append(tr);
             }
 
-            function getTypeUser(){
-                // INICIO OBTENER EL TIPO DE USUARIO DE LA BASE DE DATOS
-                $('#cboTUsr').attr('disabled','disabled').empty();
-                $.ajax({
-                    url: apiUrl+'usuario/getTypeUser',
-                    type: 'get',
-                    dataType: "json",
-                    async: false,
-                    success: function (resp) {
-                        $('#cboTUsr').append('<option value="0" selected disabled>Seleccione una opción</option>');
+            function getTypeUser(val=0){
+                $('#user-usuario_tipo_id').attr('disabled','disabled').empty();
+                $.get(apiUrl+'usuario/getTypeUser', function(resp){
+                    if(resp.result.length > 0){
+                        $('#user-usuario_tipo_id').append('<option value="0" selected disabled>Seleccione una opción</option>');
                         $.each(resp.result, function(index, item) {
-                            $('#cboTUsr').append('<option value="'+item.id_tipo_usuario+'">'+item.descripcion+'</option>');
-                        });
-                        $('#cboTUsr').removeAttr('disabled'); 
-                        },
-                    });
-                // FIN OBTENER EL TIPO DE USUARIO DE LA BASE DE DATOS  
+                            $('#user-usuario_tipo_id').append('<option value="'+item.id+'">'+item.nombre+'</option>');
+                        })
+                    }else{
+                        error('user-usuario_tipo_id', 'Agregue al menos un tipo de usuario desde "Tipos de Usuarios".')
+                        $('#user-usuario_tipo_id').append('<option value="" selected disabled>No hay registros</option>');
+                    }
+                    $('#user-usuario_tipo_id').val(val).removeAttr('disabled')
+                },'json')
+            }
+
+            function getSucursales(val=0){
+                $('#user-sucursal_id').attr('disabled','disabled').empty();
+                $.get(apiUrl+'sucursal/getAll', function(resp){
+                    $.each(resp, function(index, item){
+                        $('#user-sucursal_id').append('<option value="'+item.id+'">'+item.nombre+'</option>')
+                    })
+                    $('#user-sucursal_id').val(val).removeAttr('disabled')
+                })
             }
             
             function createTable(){
@@ -1252,6 +989,7 @@
                         { data: 'apellidos' },
                         { data: 'type_user' },
                         { data: 'type_user' },
+                        { data: 'celular' },
                         { data: 'status' },
                         { data: '' }
                         ],
@@ -1282,7 +1020,6 @@
                                     }
                                     var colorClass = image === '' ? ' bg-light-' + state + ' ' : '';
                                     var salida =
-                                        // '<div class="d-flex justify-content-left align-items-center '+colorIniciar+'">' +
                                         '<div class="d-flex justify-content-left align-items-center">' +
                                             '<div class="avatar-wrapper">' +
                                                 '<button class="avatar btnFoto' +
@@ -1323,33 +1060,29 @@
                                     name = full['nombre']+' '+full['apellidos'];
                                     type_user = full['id_type_user'];
                                     status = full['status'];
+                                    logeado = id != <?= $_SESSION['usuario_id']?> ? '' : 'hidden';
                                     colorStatus = status == 'Activo' ? 'danger' : 'success';
                                     claseStatus = status == 'Activo' ? 'btnDesactivar' : 'btnActivar';
                                     classHide = status == 'Inactivo' ? ' classHide' : '';
                                     textStatus = status == 'Activo' ? 'Desactivar' : 'Activar';
                                     return (
-                                        '<div class="btn-group">' +
-                                            '<a class="btn btn-sm dropdown-toggle hide-arrow" data-bs-toggle="dropdown">' +
-                                                feather.icons['more-vertical'].toSvg({ class: 'font-small-4' }) +
-                                            '</a>' +
-                                            '<div class="dropdown-menu dropdown-menu-end" style="width:max-content;">' +
-                                                <?php if(in_array(MOD_USUARIOS_EDIT, $permisos)) : ?>
-                                                    '<button type="button" class="btn btn-outline-blink-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
-                                                        feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
-                                                    '</button>'+
-                                                <?php endif; ?>
-                                                <?php if(in_array(MOD_USUARIOS_PERM, $permisos)) : ?>
-                                                    '<button type="button" class="btn btn-outline-dark btn-sm btnPermisos" data-id="'+id+'" data-toggle="tooltip" title="Permisos" style="margin-right:4px;">'+
-                                                        feather.icons['lock'].toSvg({ class: 'font-small-4 me-20' })+
-                                                    '</button>'+
-                                                <?php endif; ?>
-                                                <?php if(in_array(MOD_USUARIOS_BAJA, $permisos)) : ?>
-                                                    '<button type="button" class="btn btn-outline-'+colorStatus+' btn-sm '+claseStatus+'" data-id="'+id+'" data-name="'+name+'" data-type="'+type_user+'" data-toggle="tooltip" title="'+textStatus+'" style="margin-right:4px;">'+
-                                                        feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
-                                                    '</button>'+
-                                                <?php endif; ?>
-                                            '</div>' +
-                                        '</div>'
+                                        '<div class="text-center">' +
+                                            <?php if(in_array(MOD_EDIT, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
+                                                    feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_VER, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-dark btn-sm btnPermisos" data-id="'+id+'" data-toggle="tooltip" title="Permisos" style="margin-right:4px;">'+
+                                                    feather.icons['lock'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_AD, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-'+colorStatus+' btn-sm '+claseStatus+' '+logeado+'" data-id="'+id+'" data-name="'+name+'" data-type="'+type_user+'" data-toggle="tooltip" title="'+textStatus+'" style="margin-right:4px;">'+
+                                                    feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                        '</div>' 
                                     );
                                 }
                             },
@@ -1398,12 +1131,8 @@
                                     .on('change', function () {
                                         dtUserTable.DataTable().column(4).search(
                                             $('#tipoU').val()
-                                            ).draw();
-                                            /** por si se quiere hacer una busqueda en toda la tabla */
-                                            // $("#tbl-usuarios").DataTable().search(
-                                                //     $('#tipoU').val(),
-                                                // ).draw();
-                                            });
+                                        ).draw();
+                                    });
                                 var label = $('<label class="labelTypeU" class="form-label" for="tipoU">Tipo Usuario</label>').prependTo('#tbl-usuarios_length');
                                             
                                 column
@@ -1416,7 +1145,7 @@
                                 });
 
                             this.api()
-                                .columns(5)
+                                .columns(6)
                                 .every(function () {
                                     var column = this;
                                     if($('#statusU').length == 0){

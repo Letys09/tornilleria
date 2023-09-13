@@ -1,6 +1,8 @@
 <?php
 	namespace App\Model;
 	use App\Lib\Response;
+	use PHPMailer\PHPMailer\PHPMailer;
+	use PHPMailer\PHPMailer\Exception;
 
 class UsuarioModel {
 	private $db;
@@ -26,7 +28,7 @@ class UsuarioModel {
 		$usuario = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.id, $this->table.nombre, $this->table.usuario_tipo_id as typeUser, sucursal.nombre as sucursal")
+			->select("$this->table.id, $this->table.nombre, $this->table.usuario_tipo_id as typeUser, sucursal.id as id_sucursal, sucursal.nombre as sucursal")
 			->where('username', $user)
 			->where('contrasena', $contrasena)
 			->where("$this->table.status", 1)
@@ -92,28 +94,51 @@ class UsuarioModel {
 		return $this->response;		
 	}
 
-	public function addPersona($data){
-	
-		$data['contrasena'] = strrev(md5(sha1(trim($data['contrasena']))));
-		
-		$SQL = $this->db
-			->insertInto($this->table, $data)
-			->execute();
-		
-		$this->response->result = $SQL;
-		if($this->response->result){
-			$this->response->SetResponse(true, 'Usuario agregado.'); 
-		} else {
-			$this->response->SetResponse(false, 'No se ingresó correctamente el usuario.'); 
-		}
-			
+	public function getByPasscode($passcode){
+		$this->response->result = $this->db
+			->from($this->table)
+			->where('passcode', $passcode)
+			->where('status', 1)
+			->fetch();
 		return $this->response;
 	}
 
-	public function editPersona($data, $id){
+	public function getCodigoAleatorio($longitud, $numerico = false) {
+		$universo = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz1234567890";
+		if($numerico) $universo = "1234567890";
+		$longUniverso = strlen($universo);
+		$codigo = "";
+		while(strlen($codigo) < $longitud) {
+			$codigo .= substr($universo, rand(0, $longUniverso-1), 1);
+		}
+		
+		return $codigo;
+	}
+
+	public function add($data, $table){
+		if($table == 'usuario') $data['contrasena'] = strrev(md5(sha1(trim($data['contrasena']))));
+		try {
+			$SQL = $this->db
+			->insertInto($table, $data)
+			->execute();
+
+			$this->response->result = $SQL;
+			if($this->response->result){
+				$this->response->SetResponse(true, 'Registro agregado '.$table); 
+			} else {
+				$this->response->SetResponse(false, 'No se pudo agregar el registro '.$table); 
+			}
+		}catch(\PDOException $ex){
+			$this->response->errors = $ex;
+			$this->response->setResponse(false, 'catch: agregar registro');
+		}		
+		return $this->response;
+	}
+
+	public function edit($data, $id, $table){
 		try {
 			$this->response->result = $this->db
-				->update($this->table, $data)
+				->update($table, $data)
 				->where('id', $id)
 				->execute();
 
@@ -149,11 +174,28 @@ class UsuarioModel {
 	public function get($id) {
 		$this->response->result = $this->db
 			->from($this->table)
-			->where('id', $id)
+			->select(null)
+			->select("$this->table.id, sucursal_id, usuario_tipo_id, direccion_id, nombre, apellidos, email, celular, username, calle, no_ext, no_int, colonia, municipio, estado, codigo_postal")
+			->innerJoin("direccion ON direccion.id = $this->table.direccion_id")
+			->where("$this->table.id", $id)
 			->fetch();
 
 		if($this->response->result) { $this->response->SetResponse(true); }
 		else { $this->response->SetResponse(false, 'no existe el registro'); }
+
+		return $this->response;
+	}
+
+	public function getDir($id) {
+		$this->response->result = $this->db
+			->from("direccion")
+			->select(null)
+			->select("calle, no_ext, no_int, colonia, municipio, estado, codigo_postal")
+			->where("id", $id)
+			->fetch();
+
+		if($this->response->result) { $this->response->SetResponse(true); }
+		else { $this->response->SetResponse(false, 'No existe el registro'); }
 
 		return $this->response;
 	}
@@ -175,97 +217,12 @@ class UsuarioModel {
 		return $this->response->SetResponse(true);
 	}
 
-	public function tiposUsuarios(){
-		$this->response->admin = $this->db
-		->from($this->table)
-		->select('COUNT(*) admin')
-		->where('usuario_tipo_id', 1)
-		->where('status', 1)
-		->fetch()
-		->admin;
-
-	$this->response->mensajeros = $this->db
-		->from($this->table)
-		->select('COUNT(*) mensajeros')
-		->where('usuario_tipo_id', 2)
-		->where('status', 1)
-		->fetch()
-		->mensajeros;
-
-	$this->response->clientes = $this->db
-		->from($this->table)
-		->select('COUNT(*) clientes')
-		->where('usuario_tipo_id', 3)
-		->where('status', 1)
-		->fetch()
-		->clientes;
-
-	$this->response->directivos = $this->db
-		->from($this->table)
-		->select('COUNT(*) directivos')
-		->where('usuario_tipo_id', 4)
-		->where('status', 1)
-		->fetch()
-		->directivos;
-
-	$this->response->comisionistas = $this->db
-		->from($this->table)
-		->select('COUNT(*) comisionistas')
-		->where('usuario_tipo_id', 5)
-		->where('status', 1)
-		->fetch()
-		->comisionistas;
-
-	$this->response->mecanicos = $this->db
-		->from($this->table)
-		->select('COUNT(*) mecanicos')
-		->where('usuario_tipo_id', 7)
-		->where('status', 1)
-		->fetch()
-		->mecanicos;
-
-	$this->response->rescatistas = $this->db
-		->from($this->table)
-		->select('COUNT(*) rescatistas')
-		->where('usuario_tipo_id', 8)
-		->where('status', 1)
-		->fetch()
-		->rescatistas;
-
-	$this->response->operadores = $this->db
-		->from($this->table)
-		->select('COUNT(*) operadores')
-		->where('usuario_tipo_id', 9)
-		->where('status', 1)
-		->fetch()
-		->operadores;
-
-	$this->response->coordinadores = $this->db
-		->from($this->table)
-		->select('COUNT(*) coordinadores')
-		->where('usuario_tipo_id', 10)
-		->where('status', 1)
-		->fetch()
-		->coordinadores;
-		
-	$this->response->bicicleta = $this->db
-		->from($this->table)
-		->select('COUNT(*) bicicleta')
-		->where('usuario_tipo_id', 11)
-		->where('status', 1)
-		->fetch()
-		->bicicleta;
-
-		return $this->response->SetResponse(true);
-	}
-
 	public function getAllDataTable() {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("usuario.id, usuario_tipo_id, usuario.nombre, apellidos, email, usuario.status, $this->tableTU.nombre as tipo_usuario")
-			// ->innerJoin("$this->tableTU ON id_tipo_usuario = $this->table.usuario_tipo_id")
-			// ->where('usuario_tipo_id != 3')
+			->select("usuario.id, usuario_tipo_id, usuario.nombre, apellidos, email, usuario.status, $this->tableTU.nombre as tipo_usuario, celular")
+			->where("sucursal_id", $_SESSION['sucursal_id'])
 			->fetchAll(); 
 					
 		return $this->response->SetResponse(true);
@@ -295,6 +252,8 @@ class UsuarioModel {
 	public function getModulos(){
 		return $this->db
 			->from($this->tableModulo)
+			->where("status", 1)
+			->orderBy("orden ASC")
 			->fetchAll();
 	}
 
@@ -310,28 +269,6 @@ class UsuarioModel {
 			->orderBy('id asc')
 			->fetchAll();
 	}
-
-	// public function lockdownIndividual($data, $id) {
-	// 	$accion = $data['iniciar'] == 1 ? 'desbloqueo' : 'bloqueo';
-	// 	try {
-	// 		$this->response->result = $this->db
-	// 			->update($this->table, $data)
-	// 			->where('id', $id)
-	// 			->execute();
-
-	// 			if($this->response->result) { 
-	// 				$this->response->SetResponse(true); 
-	// 			}else { 
-	// 				$this->response->SetResponse(false, 'No se '.$accion.' sistema para '.$id); 
-	// 			}
-
-	// 	} catch(\PDOException $ex) {
-	// 		$this->response->errors = $ex;
-	// 		$this->response->SetResponse(false, 'catch: edit model usuario');
-	// 	}
-
-	// 	return $this->response;
-	// }
 
 	public function estatusUser($data, $id){
 		$accion = $data['status'] == 1 ? 'activo' : 'desactivo';
@@ -376,12 +313,14 @@ class UsuarioModel {
 	public function getTypeUser() {
 		$this->response->result = $this->db
 			->from($this->tableTU)
+			->select(null)
+			->select("id, nombre")
 			->where('status', 1)
 			->fetchAll();
 		if($this->response->result) { 
 			$this->response->SetResponse(true); 
 		}else { 
-			$this->response->SetResponse(false, 'no existe el registro'); 
+			$this->response->SetResponse(false, 'No hay registros'); 
 		}
 		return $this->response;
 	}
@@ -389,7 +328,7 @@ class UsuarioModel {
 	public function findPerfil($data){
 		$this->response->result = $this->db
 			->from($this->tableTU)
-			->where('descripcion', $data)
+			->where('nombre', $data)
 			->where('status', 1)
 			->fetch();
 		if($this->response->result) { 
@@ -404,14 +343,14 @@ class UsuarioModel {
 		try {
 			$this->response->result = $this->db
 				->update($this->tableTU, $data)
-				->where('id_tipo_usuario', $id)
+				->where('id', $id)
 				->execute();
 				if($this->response->result) { $this->response->SetResponse(true); }
 				else { $this->response->SetResponse(false, 'no se actualizo el registro'); }
 		} catch(\PDOException $ex) {
 			$this->response->result = $data;
 			$this->response->errors = $ex;
-			$this->response->SetResponse(false, 'catch: edit model cliente');
+			$this->response->SetResponse(false, 'catch: edit tipo usuario');
 		}
 		return $this->response;
 	}
@@ -456,6 +395,52 @@ class UsuarioModel {
 			$this->response->errors = $ex;
 			$this->response->SetResponse(false, "catch: add model $this->tableSPP");
 		}
+		return $this->response;
+	}
+
+	public function sendEmail($emailAddress, $subject, $body, $files=[]) {
+		require_once './core/defines.php';
+		if(!isset($_SESSION)) { session_start(); }
+		$mail = new PHPMailer(true);
+		try {$mail->SMTPDebug = 0;
+			$mail->isSMTP();
+			$mail->SMTPOptions = array(
+				'ssl'=> array(
+					'verify_peer' => false,
+					'verify_peer_name'=> false,
+					'allow_self_signed' => true
+				)
+			);
+			$mail->SMTPAuth = true;
+			$mail->SMTPSecure = 'tls';
+			$mail->Host = 'smtp.gmail.com';
+			$mail->Username = $_SESSION['mail_username'];
+			$mail->Password = $_SESSION['mail_pwd'];
+			$mail->Port = 587;
+			
+			$mail->setFrom($_SESSION['mail_username'], SITE_NAME);
+			$mail->addAddress($emailAddress);
+			
+			$mail->isHTML(true);
+			$mail->CharSet = 'UTF-8';
+			$mail->Subject = $subject;
+			$mail->Body    = $body;
+
+			for($x=0;$x<count($files);$x++) {
+				$filename = explode('/', $files[$x]);
+				$filename = $filename[count($filename)-1];
+				$mail->AddAttachment($files[$x], $filename);
+			}
+
+			$mail->send();
+
+			unset($mail->Username, $mail->Password);
+			$this->response->SetResponse($mail);
+		}
+		catch (Exception $e) {
+			$this->response->SetResponse(false, $e);
+		}
+
 		return $this->response;
 	}
 	

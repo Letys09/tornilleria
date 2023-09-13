@@ -14,6 +14,7 @@ use App\Lib\Auth,
 		$this->post('login', function($req, $res, $args){
 			if(!isset($_SESSION)) { session_start(); }
 			$parsedBody = $req->getParsedBody();
+			$sucursal_id = $parsedBody['sucursal'];
 			$user = $parsedBody['user'];
 			$contrasena = $parsedBody['contrasena'];
 			$date = date("Y-m-d H:i:s");
@@ -25,7 +26,10 @@ use App\Lib\Auth,
 				$_SESSION['usuario'] = $infoUser;
 				$_SESSION['usuario_id'] = $infoUser->id;
 				$_SESSION['permisos'] = $acciones;
-				$_SESSION['sucursal'] = $infoUser->sucursal;
+
+				$infoSuc = $this->model->sucursal->get($sucursal_id)->result;
+				$_SESSION['sucursal_nombre'] = $infoSuc->nombre;
+				$_SESSION['sucursal_id'] = $sucursal_id;
 				
 				$browser = $_SERVER['HTTP_USER_AGENT'];
 				$ipAddr = $_SERVER['REMOTE_ADDR'];
@@ -40,6 +44,8 @@ use App\Lib\Auth,
 					'iniciada'    => $date,
 				];
 				$sesion = $this->model->seg_sesion->add($data);
+				$acceso = [ 'acceso' => date('Y-m-d H:i:s') ];
+				$edit = $this->model->usuario->edit($acceso, $infoUser->id, 'usuario');
 				if($sesion){
 					$_SESSION['logID'] = $sesion->result;
 					$_SESSION['token'] = $token;
@@ -96,79 +102,162 @@ use App\Lib\Auth,
 			return $res->withJson($usuario);
 		}); 
 
-		$this->post('addPersona',function($req,$res,$args){
+		$this->post('add/{tipo}',function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
 			$parsedBody = $req->getParsedBody();
-			$login = $parsedBody['login'];
-			$tipo_usuario = $parsedBody['usuario_tipo_id'];
-			$parsedBody['registro'] = date('Y-m-d H:i:s');
-			$ingreso = date('Y-m-d');
-			
-			$UserName = $this->model->usuario->getUserByUsername($login);
+			if($args['tipo'] == 1){
+				$direccion = [
+					'calle' => $parsedBody['calle'],
+					'no_ext' => $parsedBody['no_ext'],
+					'no_int' => $parsedBody['no_int'],
+					'colonia' => $parsedBody['colonia'],
+					'municipio' => $parsedBody['municipio'],
+					'estado' => $parsedBody['estado'],
+				];
+				$addDir = $this->model->usuario->add($direccion, 'direccion');
+				if($addDir->response){
+					$dir_id = $addDir->result; $existe = false;
+					$passcode = $this->model->usuario->getCodigoAleatorio(4, true);
+					$existe = $this->model->usuario->getByPasscode(strrev(md5(sha1($passcode))))->result;
+					if(is_object($existe)){
+						$passcode = $this->model->usuario->getCodigoAleatorio(4, true);
+						$existe = $this->model->usuario->getByPasscode(strrev(md5(sha1($passcode))));
+						if(is_object($existe)){
+							$passcode = $this->model->usuario->getCodigoAleatorio(4, true);
+							$existe = $this->model->usuario->getByPasscode(strrev(md5(sha1($passcode))));
+						}else{
+							$existe = false;
+						}
+					}else{
+						$existe = false;
+					}
 
-			// if($UserName->response && $parsedBody['usuario_tipo_id'] != '2' ){
-			if($UserName->response){
-				$UserName->setResponse(false,'El nombre de usuario ya existe');
-				$UserName->state= $this->model->transaction->regresaTransaccion();
-				return $res->withJson($UserName);
-			}else{
-				$UserName = $this->model->usuario->addPersona($parsedBody);
-				if($UserName->response){
-					$id_usuario_agregado = $UserName->result;
-						$UserName->state = $this->model->transaction->confirmaTransaccion();
-						$Userid = $UserName->setResponse(true, $id_usuario_agregado);		
+					if(!$existe){
+						$general = [
+							'sucursal_id' => $parsedBody['usuario_tipo_id'],
+							'usuario_tipo_id' => $parsedBody['usuario_tipo_id'],
+							'direccion_id' => $dir_id,
+							'nombre' => $parsedBody['nombre'],
+							'apellidos' => $parsedBody['apellidos'],
+							'email' => $parsedBody['email'],
+							'celular' => $parsedBody['celular'],
+							'username' => $parsedBody['username'],
+							'contrasena' => $parsedBody['contrasena'],
+							'passcode' => strrev(md5(sha1($passcode))),
+							'registro' => date('Y-m-d H:i:s'),
+						];
+						$add = $this->model->usuario->add($general, 'usuario');
+						if($add->response){
+							$contenido = '<h3><strong>Bienvenido a '.SITE_NAME.'</strong></h3>';
+							$contenido .= 'Se te ha agregado en el sistema <strong>'.SITE_NAME.'</strong>, con tu correo '.$parsedBody['email'].' y la contraseña que proporcionaste.<br>';
+							$contenido .= 'Para cambiar de usuario rápidamente, puedes usar el siguiente <strong>Switch Code</strong> dentro del sistema: <strong>'.$passcode.'</strong> ';
+							$contenido .= 'Recuerda que tu <strong>Switch Code</strong> es único e irrepetible y de uso exclusivamente personal. No debes compartirlo con nadie.';
+							$this->model->usuario->sendEmail($parsedBody['email'], 'Bienvenido a '.SITE_NAME, $contenido);
+
+							$seg_log = $this->model->seg_log->add('Agrega usuario', 'usuario', $add->result, 1);
+							if($seg_log->response){
+								$add->state = $this->model->transaction->confirmaTransaccion();	
+								return $res->withJson($add);
+							}else{
+								$seg_log->state = $this->model->transaction->regresaTransaccion();	
+								return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
+							}
+						}else{
+							$add->state = $this->model->transaction->regresaTransaccion();
+							if($add->errors->errorInfo[0] == 23000) {
+								$add->error = 23000;
+								return $res->withJson($add->SetResponse(false, 'El username ya está registrado, ingrese otro.'));
+							}
+							else return $res->withJson($add->SetResponse(false, 'No se pudo agregar el producto'));
+						}
+					}else{
+						$existe->state = $this->model->transaction->regresaTransaccion();
+						return $res->withJson($existe);
+					}
 				}else{
-					$UserName->state = $this->model->transaction->regresaTransaccion();
+					$addDir->state = $this->model->transaction->regresaTransaccion();
+					return $res->withJson($addDir);
 				}
-			} 
-			return $res->withJson($Userid);
+			}
 		});
 
-		$this->post('editPersona/{id}', function($req, $res, $args){
+		$this->post('edit/{tipo}/{id}', function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
 			$parsedBody = $req->getParsedBody();
 
-			$igual = true;
-			$infoUser = $this->model->usuario->get($args['id'])->result;
-			if($parsedBody['contrasena'] != ''){
-				$parsedBody['contrasena'] = strrev(md5(sha1(trim($parsedBody['contrasena']))));
-			}else{
-				$parsedBody['contrasena'] = $infoUser->contrasena;
-			}
-			
-			foreach($parsedBody as $field => $value) { 
-				if($infoUser->$field != $value) { 
-					$igual = false; break; 
-				} 
-			}
+			if($args['tipo'] == 1){
+				$igual = true; $dirIgual = true;
+				$infoUser = $this->model->usuario->get($args['id'])->result;
+				
+				$general = [
+					'sucursal_id' => $parsedBody['sucursal_id'],
+					'usuario_tipo_id' => $parsedBody['usuario_tipo_id'],
+					'nombre' => $parsedBody['nombre'],
+					'apellidos' => $parsedBody['apellidos'],
+					'email' => $parsedBody['email'],
+					'celular' => $parsedBody['celular'],
+					'username' => $parsedBody['username'],
+				];
 
-			
-			$dataDom = [
-				'calle' => $parsedBody['calle'],
-				'colonia' => $parsedBody['colonia'],
-				'exterior' => $parsedBody['numero'],
-				'interior' => $parsedBody['num_int'],
-				'municipio' => $parsedBody['del_muni'],
-				'estado' => $parsedBody['ciudad'],
-			];
+				foreach($general as $field => $value) { 
+					if($infoUser->$field != $value) { 
+						$igual = false; break; 
+					} 
+				}
 
-			if(!$igual){
-					$editUsuario = $this->model->usuario->editPersona($parsedBody, $args['id']);
-					if($editUsuario->response){
-							$seg_log = $this->model->seg_log->add('Modifica usuario', $args['id'], '1');
-							if($seg_log->response){
-								$seg_log->state = $this->model->transaction->confirmaTransaccion();
-							}else{
-								$seg_log->state = $this->model->transaction->regresaTransaccion();
-							}
+				if($parsedBody['contrasena'] != ''){
+					$contrasena = strrev(md5(sha1(trim($parsedBody['contrasena']))));
+					$igual = false;
+					$general['contrasena'] = $contrasena;
+				}
+
+				$dir = $this->model->usuario->getDir($infoUser->direccion_id)->result;
+				$dataDir = [
+					'calle' => $parsedBody['calle'],
+					'no_ext' => $parsedBody['no_ext'],
+					'no_int' => $parsedBody['no_int'],
+					'colonia' => $parsedBody['colonia'],
+					'municipio' => $parsedBody['municipio'],
+					'estado' => $parsedBody['estado'],
+					'codigo_postal' => $parsedBody['codigo_postal'],
+				];
+
+				foreach($dataDir as $field => $value) { 
+					if($dir->$field != $value) { 
+						$dirIgual = false; break; 
+					} 
+				}
+
+				if(!$igual){
+					$edit = $this->model->usuario->edit($general, $args['id'], 'usuario');
+					if($edit->response){
+						$seg_log = $this->model->seg_log->add('Modifica usuario', $args['id'], '1');
+						if(!$seg_log->response){
+							$seg_log->state = $this->model->transaction->regresaTransaccion();
+						}
 					}else{
-						$editUsuario->state = $this->model->transaction->regresaTransaccion();
+						$edit->state = $this->model->transaction->regresaTransaccion();
 					}
-			}else{
-				$editUsuario = 'No existen datos diferentes a los antes registrados';
-			}
+				}
+				if(!$dirIgual){
+					$edit = $this->model->usuario->edit($dataDir, $infoUser->direccion_id, 'direccion');
+					if($edit->response){
+						$seg_log = $this->model->seg_log->add('Modifica dirección', $infoUser->direccion_id, '1');
+						if(!$seg_log->response){
+							$seg_log->state = $this->model->transaction->regresaTransaccion();
+						}
+					}else{
+						$edit->state = $this->model->transaction->regresaTransaccion();
+					}
+				}
+				
+				if($igual && $dirIgual){
+					$edit = 'No existen datos diferentes a los antes registrados';
+				}
 
-			return $res->withJson($editUsuario);
+				$this->model->transaction->confirmaTransaccion();
+				return $res->withJson($edit);
+			}
 		});
 
 		$this->get('tiposUsuarios', function($req, $res, $args){
@@ -193,7 +282,9 @@ use App\Lib\Auth,
 					"id_type_user" => $usuario->usuario_tipo_id,
 					"type_user" => $usuario->tipo_usuario,
 					"email" => $usuario->email,
+					"celular" => $usuario->celular,
 					"status" => $usuario->status == '1' ? 'Activo' : 'Inactivo',
+					"data_id" => $usuario->id,
 					"foto" => "",
 				);
 			}
@@ -283,9 +374,9 @@ use App\Lib\Auth,
 		$this->put('updateTypeUser/{id}', function ($req, $response, $args) {
 			$this->model->transaction->iniciaTransaccion();
 			$parsedBody = $req->getParsedBody();
-			$desc = $parsedBody['descripcion'];
+			$nombre = $parsedBody['nombre'];
 
-			$existe = $this->model->usuario->findPerfil($desc);
+			$existe = $this->model->usuario->findPerfil($nombre);
 			if(!$existe->response){
 				$existe->state = $this->model->transaction->regresaTransaccion();
 				return $response->withJson($existe);
@@ -350,7 +441,6 @@ use App\Lib\Auth,
 		})->add( new MiddlewareToken() );
 		
 	});
-
 
 	function randomString($tam=8){
 		$source = 'abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ1234567890';
