@@ -1,0 +1,1 @@
+INSERT INTO `prod_unidad_medida` (`id`, `descripcion`, `status`) VALUES (NULL, 'Pieza', '1'), (NULL, 'Kilo', '1'), (NULL, 'Metro', '1');

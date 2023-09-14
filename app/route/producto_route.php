@@ -78,6 +78,10 @@ use App\Lib\Auth,
 			exit(0);
 		});
 
+        $this->get('getUnidades', function($req, $res, $args){
+            return $res->withJson($this->model->producto->getUnidades()->result);
+        });
+
         $this->get('getRangos/{id}', function($req, $res, $args){
             $rangos = $this->model->producto->get($args['id'])->result;
             $precios = $this->model->producto->getPrecios($args['id'])->result;
@@ -97,6 +101,7 @@ use App\Lib\Auth,
 			$this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();
             $data = [
+                'prod_unidad_medida_id' => $parsedBody['prod_unidad_medida_id'],
                 'prod_categoria_id' => $parsedBody['prod_categoria_id'],
                 'prod_area_id' => $parsedBody['prod_area_id'],
                 'nombre' => $parsedBody['nombre'],
@@ -104,11 +109,11 @@ use App\Lib\Auth,
                 'codigo' => $parsedBody['codigo'],
                 'marca' => $parsedBody['marca'],
                 'minimo' => $parsedBody['minimo'],
-                'maximo' => $parsedBody['maximo'],
                 'venta_kilo' => $parsedBody['venta_kilo'],
                 'menudeo' => $parsedBody['menudeo'],
                 'medio' => $parsedBody['medio'],
                 'mayoreo' => $parsedBody['mayoreo'],
+                'clave_sat' => $parsedBody['clave_sat'],
             ];                
             
             $producto = $this->model->producto->add($data, 'producto'); //Producto original
@@ -125,6 +130,7 @@ use App\Lib\Auth,
                 if($addPrecio->response){
                     if($data['venta_kilo'] == 1){
                         $dataKilo = [
+                            'prod_unidad_medida_id' => 2,
                             'prod_categoria_id' => $data['prod_categoria_id'],
                             'prod_area_id' => $data['prod_area_id'],
                             'nombre' => 'Kilo de '.$data['nombre'],
@@ -132,6 +138,7 @@ use App\Lib\Auth,
                             'codigo' => 'PK'.$data['codigo'],
                             'marca' => $data['marca'],
                             'es_kilo' => 1,
+                            'clave_sat' => $parsedBody['clave_sat'],
                         ];
                         $prod_kilo = $this->model->producto->add($dataKilo, 'producto');
                         if($prod_kilo->response){
@@ -193,6 +200,7 @@ use App\Lib\Auth,
             $prodIgual = true; $precioIgual = true; $prodKiloI = true; $kiloDatos = true;
             $infoP = $this->model->producto->get($args['id'])->result;
             $prod = [
+                'prod_unidad_medida_id' => $parsedBody['prod_unidad_medida_id'],
                 'prod_categoria_id' => $parsedBody['prod_categoria_id'],
                 'prod_area_id' => $parsedBody['prod_area_id'],
                 'nombre' => $parsedBody['nombre'],
@@ -205,6 +213,7 @@ use App\Lib\Auth,
                 'menudeo' => $parsedBody['menudeo'],
                 'medio' => $parsedBody['medio'],
                 'mayoreo' => $parsedBody['mayoreo'],
+                'clave_sat' => $parsedBody['clave_sat'],
             ];
 
             foreach($prod as $field => $value) { 
@@ -266,6 +275,7 @@ use App\Lib\Auth,
                     }else{
                         // agregar producto y prod_kilo
                         $dataKilo = [
+                            'prod_unidad_medida_id' => 2,
                             'prod_categoria_id' => $parsedBody['prod_categoria_id'],
                             'prod_area_id' => $parsedBody['prod_area_id'],
                             'nombre' => 'Kilo de '.$parsedBody['nombre'],
@@ -273,6 +283,7 @@ use App\Lib\Auth,
                             'codigo' => 'PK'.$parsedBody['codigo'],
                             'marca' => $parsedBody['marca'],
                             'es_kilo' => 1,
+                            'clave_sat' => $parsedBody['clave_sat'],
                         ];
                         $prod_kilo = $this->model->producto->add($dataKilo, 'producto');
                         if($prod_kilo->response){
@@ -304,6 +315,7 @@ use App\Lib\Auth,
                         'prod_categoria_id' => $parsedBody['prod_categoria_id'],
                         'prod_area_id' => $parsedBody['prod_area_id'],
                         'marca' => $parsedBody['marca'],
+                        'clave_sat' => $parsedBody['clave_sat'],
                     ];
 
                     foreach($dataCompartida as $field => $value){

@@ -22,7 +22,7 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
             ->select(null)
-            ->select("$this->table.id, $this->table.prod_categoria_id, prod_categoria.prod_categoria_id as categoria, prod_area_id, $this->table.nombre, descripcion, codigo, marca, costo, minimo, venta_kilo, es_kilo, menudeo, medio, mayoreo")
+            ->select("$this->table.id, prod_unidad_medida_id, $this->table.prod_categoria_id, prod_categoria.prod_categoria_id as categoria, prod_area_id, $this->table.nombre, descripcion, codigo, marca, costo, minimo, venta_kilo, es_kilo, menudeo, medio, mayoreo, clave_sat")
             ->innerJoin("prod_categoria ON prod_categoria.id = $this->table.prod_categoria_id ")
 			->where("$this->table.id", $id)
 			->fetch();
@@ -117,6 +117,14 @@ class ProductoModel {
 			->where("$this->table.status", 1)
 			->fetchAll(); 
 					
+		return $this->response->SetResponse(true);
+	}
+
+	public function getUnidades(){
+		$this->response->result = $this->db
+			->from("prod_unidad_medida")
+			->where("status", 1)
+			->fetchAll();
 		return $this->response->SetResponse(true);
 	}
 

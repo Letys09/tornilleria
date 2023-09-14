@@ -138,6 +138,17 @@
                                                     <input type="text" class="form-control text-end" id="prod-minimo" placeholder="0">
                                                 </div>                            
                                             </div>
+
+                                            <div class="mb-1 mt-1 form-group row">
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-prod_unidad_medida_id">Unidad de Medida</label>
+                                                    <select class="form-control" id="prod-prod_unidad_medida_id"></select>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-clave_sat">Clave SAT</label>
+                                                    <input type="text" class="form-control" id="prod-clave_sat">
+                                                </div>                            
+                                            </div>
                                             <div class="mb-1 mt-1 rangos">
                                                 <label class="form-label fw-bolder fs-5" for="prod-stock">Rangos de Precios</label>
                                                 <table id="tbl-rangos" class="table">
@@ -712,7 +723,8 @@
                        $('#prod-codigo').val(parseInt(data.id)+1)
                     }, 'json')
 
-                    categorias('categoria'); areas('prod-prod_area_id');
+                    categorias('categoria'); areas('prod-prod_area_id'); unidades();
+                    $('.subcategoria').addClass('hidden')
                     $('#frm-producto h4').html('agregar producto')
                     $('#frm-producto').modal('show')
                 })
@@ -720,7 +732,7 @@
 
             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
                 $('#tbl-producto').on('click', '.btnEdit', function(){
-                    categorias('categoria'); areas('prod-prod_area_id'); clear();
+                    categorias('categoria'); areas('prod-prod_area_id'); clear(); 
                     $('#frm-producto h4').html('editar producto')
                     id = $(this).data('id')
                     $('#prod_id').val(id)
@@ -737,6 +749,7 @@
                             $('#prod-cant_kilo').val(data.kilo.cantidad).attr('disabled', false).prop('disabled', false)
                             $('#prod-precio_kilo').val(data.kilo.precio).attr('disabled', false).prop('disabled', false)
                         }
+                        unidades(data.prod_unidad_medida_id);
                         $('#categoria').val(data.categoria).trigger('change')
                         $('#prod-prod_categoria_id').val(data.prod_categoria_id)
                         $('#distribuidor').val(parseInt(data.mayoreo)+1)
@@ -750,15 +763,12 @@
                 id = $('#prod_id').val()
                 data = {}
                 $.each($('#frm-producto input, #frm-producto select'), function(index, elem) {
-                    if($(elem).attr('type') != 'radio'){
-                        if($(elem).attr('id').includes('prod')){
-                            ide = $(elem).attr('id').replace('prod-','')
-                            data[ide] = $.trim($(elem).val())
-                        }
+                    if($(elem).attr('id').includes('prod')){
+                        ide = $(elem).attr('id').replace('prod-','')
+                        data[ide] = $.trim($(elem).val())
                     }
                 });
                 data['venta_kilo'] = $('#kilo').is(':checked') ? 1 : 0
-                data['prod_area_id'] = $('input[name=areaProd]:checked', '#frm-producto').val()
 
                 if($('#categoria').val() == 0 || $('#categoria').val() == null){
                     error('categoria', 'Este campo es obligatorio')
@@ -1023,6 +1033,17 @@
                 $('#prod-menudeo_d').val(1)
                 $('#prod-prod_categoria_id').empty();
                 $('#categoria').empty();
+            }
+
+            function unidades(value=0){
+                $('#prod-prod_unidad_medida_id').empty()
+                $.get(apiUrl+'producto/getUnidades', function(resp){
+                    $('#prod-prod_unidad_medida_id').append('<option value="0" selected disabled>Seleccione una opción</option>')
+                    $.each(resp, function(index, item){
+                        $('#prod-prod_unidad_medida_id').append('<option value="'+item.id+'">'+item.descripcion+'</option>')
+                    })
+                    $('#prod-prod_unidad_medida_id').val(value)
+                },'json')
             }
 
             function getItems(tbl){
