@@ -110,7 +110,7 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.id, codigo, sub.nombre as sub, cat.nombre as cat, $this->table.nombre, marca")
+			->select("$this->table.id, codigo, sub.nombre as sub, cat.nombre as cat, $this->table.nombre, marca, minimo")
 			->innerJoin("prod_categoria sub ON sub.id = $this->table.prod_categoria_id")
 			->innerJoin("prod_categoria cat ON cat.id = sub.prod_categoria_id")
 			->where("$this->table.es_kilo != 1")

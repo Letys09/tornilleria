@@ -56,11 +56,13 @@
                                 <table id="tbl-producto" class="table">
                                     <thead class="table-light">
                                         <tr class="text-center">
+                                            <th>Nombre</th>
                                             <th>Código</th>
                                             <th>Categoría</th>
                                             <th>Subcategoría</th>
+                                            <th>Stock Mínimo</th>
                                             <th>Existencia</th>
-                                            <th>Nombre</th>
+                                            <th>En minimo</th>
                                             <th>Marca</th>
                                             <th>Acciones</th>
                                         </tr>
@@ -1044,11 +1046,13 @@
                             type: 'GET',
                         },
                         columns: [
+                            {data: 'nombre'},
                             {data: 'codigo'},
                             {data: 'categoria'},
                             {data: 'subcategoria'},
+                            {data: 'minimo'},
                             {data: 'stock'},
-                            {data: 'nombre'},
+                            {data: 'enMinimo'},
                             {data: 'marca'},
                             {data: ''}
                         ],
@@ -1094,7 +1098,17 @@
                                 }
                             },
                             {
-                                targets: 3,
+                                targets: 4,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-center">' +
+                                        full['minimo'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 5,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-center">' +
@@ -1103,8 +1117,16 @@
                                     return salida;
                                 }
                             },
+                            {
+                                visible: false, targets: [6]
+                            }
                         ],
-                        order: [[1, 'asc']], 
+                        createdRow: function(row, data, dataIndex) {
+                            if(parseInt(data.stock) <= parseInt(data.minimo)){                        
+                                $(row).addClass('stockMinimo');                                
+                            }
+                        },
+                        order: [[0, 'asc']], 
                         dom:
                             '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
                             '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
@@ -1117,6 +1139,45 @@
                         language: {
                             url:'../spanish.json'
                         },
+                        initComplete: function () {
+                            var label = $('<label for="cuantos">Mostrar</label>').appendTo('#tbl-producto_length');
+                            var selectCount = $('<select id="cuantos" class="form-select"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select>')
+                                .appendTo('#tbl-producto_length').on('change', function () {
+                                    stock = $('#enStock').val();
+                                    $('#tbl-producto').DataTable().page.len( $(this).val() ).draw();
+                                    $('#enStock').val(tipo).trigger('change');
+                                });
+
+                            this.api()
+                                .columns(6)
+                                .every(function () {
+                                var column = this;
+                                
+                                var select = $(
+                                    '<select id="enStock" class="form-select text-capitalize mb-md-0 mb-2 select-dentro-datatable"><option value=""> Todos </option></select>'
+                                    )
+                                    .prependTo('#tbl-producto_length')
+                                    .on('change', function () {
+                                        $('#tbl-producto').DataTable().column(6).search(
+                                            $('#enStock').val()
+                                        ).draw();
+                                    });
+                                var label = $('<label class="labelTypeU" class="form-label" for="enStock">Stock</label>').prependTo('#tbl-producto_length');
+                                            
+                                column
+                                    .data()
+                                    .unique()
+                                    .sort()
+                                    .each(function (d, j) {
+                                        select.append('<option value="' + d + '" class="text-capitalize">' + d + '</option>');
+                                    });
+                                });
+
+                            $("#statusU option[value='Mínimo']").attr("selected", true);
+                            $("#statusU").change();
+
+                            $('#tbl-producto_length label:eq(1)').addClass('hidden');
+                        }
                     });
                 }
             }

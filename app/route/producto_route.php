@@ -58,11 +58,14 @@ use App\Lib\Auth,
 			foreach($productos->result as $producto) {
                 $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto->id)->result;
                 $stock = is_object($stock) ? $stock->final : 0;
+                $minimo = floatval($stock) <= $producto->minimo ? 'Mínimo' : 'Suficiente';
                 $data[] = array(
 					"codigo" => $producto->codigo,
 					"categoria" => $producto->cat,
 					"subcategoria" => $producto->sub,
+					"minimo" => $producto->minimo,
 					"stock" => $stock,
+					"enMinimo" => $minimo,
 					"nombre" => $producto->nombre,
 					"marca" => $producto->marca,
 					"data_id" => $producto->id,
