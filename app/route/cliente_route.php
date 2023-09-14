@@ -34,61 +34,116 @@ use App\Lib\Auth,
 			exit(0);
 		});
 
+        $this->get('regimen', function($req, $res, $args){
+            return $res->withJson($this->model->cliente->regimen()->result);
+        });
+
 		$this->post('add/',function($req,$res,$args){
 			$this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody(); 
-            unset($parsedBody['cliente_id'], $parsedBody['saldo']);           
+            unset($parsedBody['cliente_id'], $parsedBody['saldo']);
+            $fiscales = [
+                'rfc' => $parsedBody['rfc'],
+                'razon_social' => $parsedBody['razon_social'],
+                'codigo_postal' => $parsedBody['codigo_postal'],
+                'regimen_fiscal' => $parsedBody['regimen_fiscal']
+            ];         
             
-            $cliente = $this->model->cliente->add($parsedBody); 
-            if($cliente->response){
-                $client = $cliente->result;
-                $seg_log = $this->model->seg_log->add('Agrega cliente', 'cliente', $client, 1);
-                if($seg_log->response){
-                    $cliente->state = $this->model->transaction->confirmaTransaccion();	
-                    return $res->withJson($cliente);
+            $addFiscales = $this->model->cliente->add($fiscales, 'cli_datos_fiscales');
+            // print_r($addFiscales->result);exit();
+            if($addFiscales->response){
+                $data = [
+                    'cli_datos_fiscales_id' => $addFiscales->result,
+                    'nombre' => $parsedBody['nombre'],
+                    'apellidos' => $parsedBody['apellidos'],
+                    'correo' => $parsedBody['correo'],
+                    'telefono' => $parsedBody['telefono'],
+                    'registro' => date('Y-m-d H:i:s')
+                ];
+                $cliente = $this->model->cliente->add($data, 'cliente'); 
+                if($cliente->response){
+                    $client = $cliente->result;
+                    $seg_log = $this->model->seg_log->add('Agrega cliente', 'cliente', $client, 1);
+                    if($seg_log->response){
+                        $cliente->state = $this->model->transaction->confirmaTransaccion();	
+                        return $res->withJson($cliente);
+                    }else{
+                        $seg_log->state = $this->model->transaction->regresaTransaccion();	
+                        return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
+                    }    
                 }else{
-                    $seg_log->state = $this->model->transaction->regresaTransaccion();	
-                    return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
-                }    
+                    $cliente->state = $this->model->transaction->regresaTransaccion();
+                    return $res->withJson($cliente->SetResponse(false, 'No se pudo agregar al cliente'));
+                }
             }else{
-                $cliente->state = $this->model->transaction->regresaTransaccion();
-                return $res->withJson($cliente->SetResponse(false, 'No se pudo agregar al cliente'));
+                $addFiscales->state = $this->model->transaction->regresaTransaccion();
+                return $res->withJson($addFiscales->setResponse(false, 'No se pudieron agregar los datos fiscales del cliente'));
             }
+            
 		});
 
 		$this->post('edit/{id}', function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
 			$parsedBody = $req->getParsedBody();
-            unset($parsedBody['cliente_id'], $parsedBody['saldo']);
 
-			$igual = true;
+			$igual = true; $fiscalesI = true;
 			$info = $this->model->cliente->get($args['id'])->result;
-			
-			foreach($parsedBody as $field => $value) { 
+            $data = [
+                'nombre' => $parsedBody['nombre'],
+                'apellidos' => $parsedBody['apellidos'],
+                'correo' => $parsedBody['correo'],
+                'telefono' => $parsedBody['telefono'],
+            ];
+
+            foreach($data as $field => $value) { 
                 if($info->$field != $value) { 
                     $igual = false; break; 
 				} 
 			}
 
+            $infoF = $this->model->cliente->getFiscales($info->cli_datos_fiscales_id)->result;
+            $fiscales = [
+                'rfc' => $parsedBody['rfc'],
+                'razon_social' => $parsedBody['razon_social'],
+                'codigo_postal' => $parsedBody['codigo_postal'],
+                'regimen_fiscal' => $parsedBody['regimen_fiscal']
+            ];  
+            foreach($fiscales as $field => $value) { 
+                if($infoF->$field != $value) { 
+                    $fiscalesI = false; break; 
+				} 
+			}
+
 			if(!$igual){
-                $editCli = $this->model->cliente->edit($parsedBody, $args['id']);
-                if($editCli->response){
-                    $seg_log = $this->model->seg_log->add('Modifica cliente', 'cliente', $args['id'], 1);
-                    if($seg_log->response){
-                        $this->model->transaction->confirmaTransaccion();
-			            return $res->withJson($editCli);
-                    }else{
+                $edit = $this->model->cliente->edit($data, $args['id'], 'cliente');
+                if($edit->response){
+                    $seg_log = $this->model->seg_log->add('Modifica cliente', $args['id'], '1');
+                    if(!$seg_log->response){
                         $seg_log->state = $this->model->transaction->regresaTransaccion();
-			            return $res->withJson($seg_log);
                     }
                 }else{
-                    $editCli->state = $this->model->transaction->regresaTransaccion();
-			        return $res->withJson($editCli);
+                    $edit->state = $this->model->transaction->regresaTransaccion();
                 }
-			}else{
-                $editCli = ['code' => 1, 'msg' => 'No existen datos diferentes a los antes registrados'];
-                return $res->withJson($editCli);
+			}
+
+            if(!$fiscalesI){
+                $edit = $this->model->cliente->edit($fiscales, $info->cli_datos_fiscales_id, 'cli_datos_fiscales');
+                if($edit->response){
+                    $seg_log = $this->model->seg_log->add('Modifica datos fiscales', $info->cli_datos_fiscales_id, '1');
+                    if(!$seg_log->response){
+                        $seg_log->state = $this->model->transaction->regresaTransaccion();
+                    }
+                }else{
+                    $edit->state = $this->model->transaction->regresaTransaccion();
+                }
+			}
+
+            if($igual && $fiscalesI){
+                $edit = 'No existen datos diferentes a los antes registrados';
             }
+
+            $this->model->transaction->confirmaTransaccion();
+            return $res->withJson($edit);
 		});
 
         $this->post('del/{id}', function($req, $res, $args){

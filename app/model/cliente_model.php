@@ -5,6 +5,8 @@
 class ClienteModel {
 	private $db;
 	private $table = 'cliente';
+	private $regimen = 'regimen_fiscal';
+	private $fiscales = 'cli_datos_fiscales';
 	private $response;
 	
 	public function __CONSTRUCT($db) {
@@ -18,7 +20,8 @@ class ClienteModel {
 		$this->response->result = $this->db
 			->from($this->table)
             ->select(null)
-            ->select("id, nombre, apellidos, correo, telefono")
+            ->select("$this->table.id, $this->table.cli_datos_fiscales_id, nombre, apellidos, correo, telefono, cli_datos_fiscales.regimen_fiscal, rfc, razon_social, codigo_postal")
+			->innerJoin("cli_datos_fiscales ON cli_datos_fiscales.id = $this->table.cli_datos_fiscales_id")
 			->where("$this->table.id", $id)
 			->fetch();
 
@@ -39,18 +42,42 @@ class ClienteModel {
 		return $this->response->SetResponse(true);
 	}
 
-	public function add($data){
+	public function regimen() {
+		$this->response->result = $this->db
+			->from($this->regimen)
+			->fetchAll();
+
+		if($this->response->result) { $this->response->SetResponse(true); }
+		else { $this->response->SetResponse(false, 'No hay registros'); }
+
+		return $this->response;
+	}
+
+	public function getFiscales($id) {
+		$this->response->result = $this->db
+			->from($this->fiscales)
+            ->select(null)
+            ->select("rfc, razon_social, codigo_postal, regimen_fiscal")
+			->where("$this->fiscales.id", $id)
+			->fetch();
+
+		if($this->response->result) { $this->response->SetResponse(true); }
+		else { $this->response->SetResponse(false, 'No existe el registro '.$id); }
+
+		return $this->response;
+	}
+
+	public function add($data, $table){
 		try {
-            $data['registro'] = date('Y-m-d H:i:s');
 			$SQL = $this->db
-			->insertInto($this->table, $data)
+			->insertInto($table, $data)
 			->execute();
 		
 			$this->response->result = $SQL;
 			if($this->response->result){
-				$this->response->SetResponse(true, 'Cliente agregado.'); 
+				$this->response->SetResponse(true, 'Registro agregado '.$table); 
 			} else {
-				$this->response->SetResponse(false, 'No se pudo agregar al cliente.'); 
+				$this->response->SetResponse(false, 'No se pudo agregar el registro '.$table); 
 			}
 		}catch(\PDOException $ex) {
 			$this->response->errors = $ex;
@@ -60,15 +87,15 @@ class ClienteModel {
 		return $this->response;
 	}
 
-	public function edit($data, $id){
+	public function edit($data, $id, $table){
 		try {
 			$this->response->result = $this->db
-				->update($this->table, $data)
+				->update($table, $data)
 				->where('id', $id)
 				->execute();
 
 				if($this->response->result) { $this->response->SetResponse(true); }
-				else { $this->response->SetResponse(false, 'No se actualizo el registro del producto '); }
+				else { $this->response->SetResponse(false, 'No se actualizo el registro '.$table.' '.$id); }
 
 		} catch(\PDOException $ex) {
 			$this->response->errors = $ex;

@@ -72,9 +72,25 @@
                                             <label class="form-label fw-bolder fs-5" for="cli-telefono">Teléfono</label>
                                             <input type="text" id="cli-telefono" class="form-control phone-inputmask"/>
                                         </div>
-                                        <div class="mb-1 hidden" id="saldoDisp">
-                                            <label class="form-label fw-bolder fs-5" for="saldo">Saldo Disponible</label>
-                                            <input type="text" id="saldo" class="form-control" disabled/>
+                                        <hr>
+                                        <div class="mt-1 text-center">
+                                            <h5>Datos Fiscales</h5>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label fw-bolder fs-5" for="cli-rfc">RFC</label>
+                                            <input type="text" id="cli-rfc" class="form-control"/>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label fw-bolder fs-5" for="cli-regimen_fiscal">Régimen Fiscal</label>
+                                            <select class="form-control" id="cli-regimen_fiscal"></select>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label fw-bolder fs-5" for="cli-razon_social">Razón Social</label>
+                                            <input type="text" id="cli-razon_social" class="form-control"/>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label fw-bolder fs-5" for="cli-codigo_postal">Código Postal Fiscal</label>
+                                            <input type="text" id="cli-codigo_postal" class="form-control"/>
                                         </div>
                                         <hr>
                                     </div>
@@ -154,6 +170,7 @@
             <?php if(in_array(MOD_ADD, $permisos)) :  ?>
                 $('#btnAdd').click(function(){
                     clear()
+                    regimen()
                     $('#frm-cliente h4').html('agregar cliente')
                     $('#frm-cliente').modal('show')
                 })
@@ -166,10 +183,14 @@
                         data[ide] = $.trim($(elem).val())
                     });
                     data['telefono'] = data['telefono'].replace('(','').replace(')','').replace(' ','').replace('-','')
+                    data['regimen_fiscal'] = $('#cli-regimen_fiscal').val()
+                    console.log(data)
                     if(data['nombre'] == ''){
                         error('cli-nombre', 'Este campo es obligatorio')
                     }else if(data['nombre'].length < 4){
                         error('cli-nombre', 'El nombre debe contener al menos 4 caracteres')
+                    }else if(data['rfc'] != '' && data['rfc'].length < 12){
+                        error('cli-rfc', 'El RFC debe contener al menos 12 caracteres')
                     }else{
                         if(id == 0){
                             $.post(apiUrl+'cliente/add/', data, function(resp){
@@ -203,11 +224,11 @@
                     $('#frm-cliente h4').html('editar cliente')
                     id = $(this).data('id')
                     $('#cliente_id').val(id)
-                    console.log(id)
                     $.get(apiUrl+'cliente/get/'+id, function(data){
                         $.each(data.result, function(index, elem){
                             $('#cli-'+index).val(elem)
                         })
+                    regimen(data.result.regimen_fiscal)
                     },'json')
                     $('#frm-cliente').modal('show')
                 })
@@ -242,6 +263,17 @@
                     $('#'+ide).val('')
                 })
                 $('#cliente_id').val(0)
+            }
+
+            function regimen(val=0){
+                $('#cli-regimen_fiscal').empty()
+                $.get(apiUrl+'cliente/regimen', function(resp){
+                    $('#cli-regimen_fiscal').append('<option value="0" selected disabled>Seleccione una opción</option>')
+                    $.each(resp, function(index, item){
+                        $('#cli-regimen_fiscal').append('<option value="'+item.id+'">'+item.clave+' '+item.descripcion+'</option>')
+                    })
+                    $('#cli-regimen_fiscal').val(val)
+                },'json')
             }
 
             function getItems(tbl){
