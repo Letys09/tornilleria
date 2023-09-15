@@ -9,6 +9,7 @@ class ProductoModel {
 	private $tableArea = 'prod_area';
 	private $tableKilo = 'prod_kilo';
 	private $tablePrecio = 'prod_precio';
+	private $tableRango = 'prod_rango';
 	private $response;
 	
 	public function __CONSTRUCT($db) {
@@ -22,7 +23,7 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
             ->select(null)
-            ->select("$this->table.id, prod_unidad_medida_id, $this->table.prod_categoria_id, prod_categoria.prod_categoria_id as categoria, prod_area_id, $this->table.nombre, descripcion, codigo, marca, costo, minimo, venta_kilo, es_kilo, menudeo, medio, mayoreo, clave_sat")
+            ->select("$this->table.id, prod_unidad_medida_id, $this->table.prod_categoria_id, prod_categoria.prod_categoria_id as categoria, prod_area_id, $this->table.nombre, descripcion, codigo, marca, costo, minimo, venta_kilo, es_kilo, clave_sat")
             ->innerJoin("prod_categoria ON prod_categoria.id = $this->table.prod_categoria_id ")
 			->where("$this->table.id", $id)
 			->fetch();
@@ -82,7 +83,7 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->tableKilo)
             ->select(null)
-            ->select("id, producto_id, producto_origen, cantidad, precio")
+            ->select("$this->tableKilo.id, producto_id, producto_origen, cantidad")
 			->where("$this->tableKilo.$column", $prod_id)
 			->fetch();
 
@@ -92,12 +93,28 @@ class ProductoModel {
 		return $this->response;
 	}
 
-    public function getPrecios($prod_id) {
+	public function getPrecios($id){
 		$this->response->result = $this->db
 			->from($this->tablePrecio)
             ->select(null)
-            ->select("id, prod_precio.menudeo, prod_precio.medio, prod_precio.mayoreo, prod_precio.distribuidor")
-			->where("$this->tablePrecio.producto_id", $prod_id)
+            ->select("menudeo, medio, mayoreo, distribuidor")
+			->where("id", $id)
+			->fetch();
+
+		if($this->response->result) { $this->response->SetResponse(true); }
+		else { $this->response->SetResponse(false, 'No existe el registro '.$id); }
+
+		return $this->response;
+	}
+
+	public function getRangos($suc_id, $prod_id){
+		$this->response->result = $this->db
+			->from($this->tableRango)
+            ->select(null)
+            ->select("$this->tableRango.id, $this->tableRango.prod_precio_id, $this->tableRango.menudeo, $this->tableRango.medio, $this->tableRango.mayoreo, prod_precio.menudeo as precio_menudeo, prod_precio.medio as precio_medio, prod_precio.mayoreo as precio_mayoreo, prod_precio.distribuidor as precio_distribuidor")
+			->innerJoin("$this->tablePrecio ON $this->tablePrecio.id = $this->tableRango.prod_precio_id")
+			->where("$this->tableRango.sucursal_id", $suc_id)
+			->where("$this->tableRango.producto_id", $prod_id)
 			->fetch();
 
 		if($this->response->result) { $this->response->SetResponse(true); }
@@ -110,10 +127,10 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.id, codigo, sub.nombre as sub, cat.nombre as cat, $this->table.nombre, marca, minimo")
+			->select("$this->table.id, codigo, sub.nombre as sub, cat.nombre as cat, $this->table.nombre, marca, minimo, es_kilo")
 			->innerJoin("prod_categoria sub ON sub.id = $this->table.prod_categoria_id")
 			->innerJoin("prod_categoria cat ON cat.id = sub.prod_categoria_id")
-			->where("$this->table.es_kilo != 1")
+			// ->where("$this->table.es_kilo != 1")
 			->where("$this->table.status", 1)
 			->fetchAll(); 
 					
@@ -126,60 +143,6 @@ class ProductoModel {
 			->where("status", 1)
 			->fetchAll();
 		return $this->response->SetResponse(true);
-	}
-
-	public function add($data, $table){
-		try {
-			$SQL = $this->db
-			->insertInto($table, $data)
-			->execute();
-		
-			$this->response->result = $SQL;
-			if($this->response->result){
-				$this->response->SetResponse(true, 'Registro agregado.'); 
-			} else {
-				$this->response->SetResponse(false, 'No se pudo agregar el registro.'); 
-			}
-		}catch(\PDOException $ex) {
-			$this->response->errors = $ex;
-			$this->response->SetResponse(false, 'catch: agregar registro');
-		}
-			
-		return $this->response;
-	}
-
-	public function edit($table, $campo, $data, $id){
-		try {
-			$this->response->result = $this->db
-				->update($table, $data)
-				->where($campo, $id)
-				->execute();
-
-				if($this->response->result) { $this->response->SetResponse(true); }
-				else { $this->response->SetResponse(false, 'No se actualizó el registro del producto '); }
-
-		} catch(\PDOException $ex) {
-			$this->response->errors = $ex;
-			$this->response->SetResponse(false, 'catch: editar Producto');
-		}
-
-		return $this->response;
-	}
-
-	public function del($table, $id) {
-		try {
-            $data['status'] = 0;
-			$this->response->result = $this->db
-				->update($table, $data)
-				->where('id', $id)
-				->execute();
-			if($this->response->result) { $this->response->SetResponse(true); }
-			else { $this->response->SetResponse(false, 'No se eliminó el Producto'); }
-		} catch(\PDOException $ex) {
-			$this->response->errors = $ex;
-			$this->response->SetResponse(false, "catch: del Producto");
-		}
-		return $this->response;
 	}
 
     public function getCodigo(){
@@ -244,5 +207,59 @@ class ProductoModel {
             ->fetchAll();
         return $this->response;
     }
+
+	public function add($data, $table){
+		try {
+			$SQL = $this->db
+			->insertInto($table, $data)
+			->execute();
+		
+			$this->response->result = $SQL;
+			if($this->response->result){
+				$this->response->SetResponse(true, 'Registro agregado.'); 
+			} else {
+				$this->response->SetResponse(false, 'No se pudo agregar el registro.'); 
+			}
+		}catch(\PDOException $ex) {
+			$this->response->errors = $ex;
+			$this->response->SetResponse(false, 'catch: agregar registro');
+		}
+			
+		return $this->response;
+	}
+
+	public function edit($table, $campo, $data, $id){
+		try {
+			$this->response->result = $this->db
+				->update($table, $data)
+				->where($campo, $id)
+				->execute();
+
+				if($this->response->result) { $this->response->SetResponse(true); }
+				else { $this->response->SetResponse(false, 'No se actualizó el registro del producto '); }
+
+		} catch(\PDOException $ex) {
+			$this->response->errors = $ex;
+			$this->response->SetResponse(false, 'catch: editar Producto');
+		}
+
+		return $this->response;
+	}
+
+	public function del($table, $id) {
+		try {
+            $data['status'] = 0;
+			$this->response->result = $this->db
+				->update($table, $data)
+				->where('id', $id)
+				->execute();
+			if($this->response->result) { $this->response->SetResponse(true); }
+			else { $this->response->SetResponse(false, 'No se eliminó el Producto'); }
+		} catch(\PDOException $ex) {
+			$this->response->errors = $ex;
+			$this->response->SetResponse(false, "catch: del Producto");
+		}
+		return $this->response;
+	}
 }
 ?>

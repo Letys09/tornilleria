@@ -149,7 +149,7 @@
                                                     <input type="text" class="form-control" id="prod-clave_sat">
                                                 </div>                            
                                             </div>
-                                            <div class="mb-1 mt-1 rangos">
+                                            <!-- <div class="mb-1 mt-1 rangos">
                                                 <label class="form-label fw-bolder fs-5" for="prod-stock">Rangos de Precios</label>
                                                 <table id="tbl-rangos" class="table">
                                                     <thead class="table-light">
@@ -210,7 +210,7 @@
                                                         </tr>
                                                     </tbody>
                                                 </table>
-                                            </div>
+                                            </div> -->
                                             <div class="mb-1 mt-1 form-group row">
                                                 <div class="col-sm-4">
                                                     <label class="form-label fw-bolder fs-5" for="prod-cant_kilo">Venta por kilo <small>(Cantidad)</small></label> 
@@ -222,13 +222,8 @@
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-4">
-                                                    <label class="form-label fw-bolder fs-5" for="prod-precio_kilo">Venta por kilo <small>(Precio)</small></label> 
-                                                    <div class="input-group mb-3">
-                                                        <div class="input-group-text">
-                                                            <span>$</span>
-                                                        </div>
-                                                        <input type="number" class="form-control" id="prod-precio_kilo" placeholder="Precio" disabled>
-                                                    </div>
+                                                    <label class="form-label fw-bolder fs-5" for="prod-codigo_kilo">Venta por kilo <small>(Código)</small></label> 
+                                                    <input type="number" class="form-control" id="prod-codigo_kilo" placeholder="Código" disabled>
                                                 </div>
                                             </div>
                                         </div>
@@ -329,7 +324,7 @@
                                                         </tr>
                                                         <tr>
                                                             <td>Distribuidor</td>
-                                                            <td><input type="text" class="form-control text-end" id="r-distribuidor" placeholder="0"></td>
+                                                            <td><input type="text" class="form-control text-end" id="rango-distribuidor" placeholder="0"></td>
                                                             <td>
                                                                 <div class="input-group">
                                                                     <div class="input-group-text">
@@ -345,7 +340,9 @@
                                         </div>
                                         <div class="modal-footer">
                                             <div class="buttonsEnd">
+                                                <input class="hidden" id="prod_rangos_id" value="0"></input>
                                                 <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Salir</button>
+                                                <button type="button" class="btn btn-success mb-1" data-bs-dismiss="modal" id="btnSaveRangos">Guardar</button>
                                             </div>
                                         </div>
                                     </form>
@@ -599,10 +596,10 @@
             $('#kilo').change(function(){
                 if($(this).is(':checked')){
                     $('#prod-cant_kilo').attr('disabled', false).prop('disabled', false).focus()
-                    $('#prod-precio_kilo').attr('disabled', false).prop('disabled', false)
+                    $('#prod-codigo_kilo').attr('disabled', false).prop('disabled', false)
                 }else{
                     $('#prod-cant_kilo').attr('disabled', true).prop('disabled', true).val('')
-                    $('#prod-precio_kilo').attr('disabled', true).prop('disabled', true).val('')
+                    $('#prod-codigo_kilo').attr('disabled', true).prop('disabled', true).val('')
                 }
             })
 
@@ -640,14 +637,38 @@
                 prod_id = $(this).data('id')
                 producto = $(this).data('producto')
                 $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
-                    console.log(resp)
                     $.each(resp, function(index, item){
                         $('#rango-'+index).val(item)
                     })
-                    $('#r-distribuidor').val(parseInt(resp.mayoreo)+1)
+                    $('#rango-distribuidor').val(parseInt(resp.mayoreo)+1)
                 })
+                $('#prod_rangos_id').val(prod_id)
                 $('#frm-listadoP h4').html('rangos de precios "'+producto+'"')
+                $('#btnSaveRangos').removeClass('disabled').attr('disabled', false)
                 $('#frm-listadoP').modal('show')
+            })
+
+            $('#btnSaveRangos').click(function(){
+                $(this).addClass('disabled').attr('disabled', true)
+                rangos = {}
+                $.each($('#frm-listadoP input'), function(index, item){
+                    ide = $(item).attr('id').replace('rango-', '')
+                    rangos[ide] = $(item).val()
+                })
+
+                $.post(apiUrl+'producto/rangos', rangos, function(resp){
+                    if(resp.response){
+                        toastr["success"]("¡Listo!", "Se actualizaron los precios por rango del producto.")
+                        $('#frm-listadoP').modal('hide')
+                        getItems('tbl-producto')
+                    }else{
+                        if(resp.code){
+                            toastr["warning"]("¡Verifique la información!", resp.msg)
+                        }else
+                        toastr["error"]("¡Ocurrió un problema!", "No pudimos actualizar los precios por rango del producto.")
+                    }
+                    $(this).removeClass('disabled').attr('disabled', false)
+                },'json')
             })
 
             <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
@@ -697,7 +718,6 @@
                             data[ide] = $.trim($(elem).val())
                         }
                     })
-                    console.log(data)
                     if(data.fecha == ''){
                         error('baja-fecha', 'Este campo es requerido')
                     }else if(data.comentarios == ''){
@@ -747,7 +767,7 @@
                         if(data.venta_kilo == 1){
                             $('#kilo').prop('checked', true)
                             $('#prod-cant_kilo').val(data.kilo.cantidad).attr('disabled', false).prop('disabled', false)
-                            $('#prod-precio_kilo').val(data.kilo.precio).attr('disabled', false).prop('disabled', false)
+                            $('#prod-codigo_kilo').val(data.kilo.codigo).attr('disabled', false).prop('disabled', false)
                         }
                         unidades(data.prod_unidad_medida_id);
                         $('#categoria').val(data.categoria).trigger('change')
@@ -780,8 +800,8 @@
                     error('prod-nombre', 'El nombre debe contener al menos 3 caracteres')
                 }else if(data['venta_kilo'] == 1 && data['cant_kilo'] == ''){
                     error('prod-cant_kilo', 'Este campo es obligatorio')
-                }else if(data['venta_kilo'] == 1 && data['precio_kilo'] == ''){
-                    error('prod-precio_kilo', 'Este campo es obligatorio')
+                }else if(data['venta_kilo'] == 1 && data['codigo_kilo'] == ''){
+                    error('prod-codigo_kilo', 'Este campo es obligatorio')
                 }else if(data['minimo'] == ''){
                     error('prod-minimo', 'Este campo es obligatorio')
                 }else{
@@ -819,7 +839,7 @@
                     $('#tbl-info tbody').empty()
                     prod_id = $(this).data('id')
                     tr = $(this).closest('tr')
-                    name = $(tr).find('td:eq(4)').text()
+                    name = $(tr).find('td:eq(0)').text()
                     $.get(apiUrl+'producto/getStockSuc/'+prod_id, function(resp){
                         if(resp){
                             if(resp.msg){
@@ -1040,7 +1060,7 @@
                 $.get(apiUrl+'producto/getUnidades', function(resp){
                     $('#prod-prod_unidad_medida_id').append('<option value="0" selected disabled>Seleccione una opción</option>')
                     $.each(resp, function(index, item){
-                        $('#prod-prod_unidad_medida_id').append('<option value="'+item.id+'">'+item.descripcion+'</option>')
+                        $('#prod-prod_unidad_medida_id').append('<option value="'+item.id+'">'+item.clave+' - '+item.descripcion+'</option>')
                     })
                     $('#prod-prod_unidad_medida_id').val(value)
                 },'json')
@@ -1084,37 +1104,48 @@
                                 orderable: false,
                                 render: function (data, type, full, meta) {
                                     id = full['data_id']
-                                    return (
-                                        '<div class="btn-group">' +
-                                            '<a class="btn btn-sm dropdown-toggle hide-arrow" data-bs-toggle="dropdown">' +
-                                                feather.icons['more-vertical'].toSvg({ class: 'font-small-4' }) +
-                                            '</a>' +
-                                            '<div class="dropdown-menu dropdown-menu-end" style="min-width: 9rem; text-align:center; ">' +
-                                                <?php if(in_array(MOD_PROD_SUC, $permisos)) : ?>
-                                                    '<button type="button" class="btn btn-outline-new-warning btn-sm btnVer" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Ver en Sucursales" style="margin-right:4px;">'+
-                                                        feather.icons['eye'].toSvg({ class: 'font-small-4 me-20' })+
-                                                    '</button>'+
-                                                <?php endif; ?>
-                                                '<button type="button" class="btn btn-outline-new-success btn-sm btnlistadoP" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Precios" style="margin-right:4px;">'+ 
-                                                    feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' }) +
+                                    if(full['minimo'] != 'N/A' && full['stock'] != 'N/A' && full['enMinimo'] != 'N/A'){
+                                        acciones = '<div class="text-center">'+
+                                            <?php if(in_array(MOD_EDIT, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
+                                                    feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
-                                                <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
-                                                    '<button type="button" class="btn btn-outline-dark btn-sm btnBaja" data-id="'+id+'" data-toggle="tooltip" title="Baja Inventario" style="margin-right:4px;">'+
-                                                        feather.icons['download'].toSvg({ class: 'font-small-4 me-20' })+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_DEL, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDel" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
+                                                    feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>' +
+                                            <?php endif; ?>
+                                            '<div class="btn-group">' +
+                                                '<a class="btn btn-sm dropdown-toggle hide-arrow" data-bs-toggle="dropdown">' +
+                                                    feather.icons['more-vertical'].toSvg({ class: 'font-small-4' }) +
+                                                '</a>' +
+                                                '<div class="dropdown-menu dropdown-menu-end" style="min-width: 5rem; text-align:center; ">' +
+                                                    <?php if(in_array(MOD_PROD_SUC, $permisos)) : ?>
+                                                        '<button type="button" class="btn btn-outline-warning btn-sm btnVer" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Ver en Sucursales" style="margin-right:4px;">'+
+                                                            feather.icons['eye'].toSvg({ class: 'font-small-4 me-20' })+
+                                                        '</button>'+
+                                                    <?php endif; ?>
+                                                    '<button type="button" class="btn btn-outline-success btn-sm btnlistadoP" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Precios" style="margin-right:4px;">'+ 
+                                                        feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' }) +
                                                     '</button>'+
-                                                <?php endif; ?>
-                                                <?php if(in_array(MOD_EDIT, $permisos)) : ?>
-                                                    '<button type="button" class="btn btn-outline-new-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
-                                                        feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
-                                                    '</button>'+
-                                                <?php endif; ?>
-                                                <?php if(in_array(MOD_DEL, $permisos)) : ?>
-                                                    '<button type="button" class="btn btn-outline-danger btn-sm btnDel" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
-                                                        feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
-                                                    '</button>' +
-                                                <?php endif; ?>
-                                            '</div>' +
+                                                    <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
+                                                        '<button type="button" class="btn btn-outline-dark btn-sm btnBaja" data-id="'+id+'" data-toggle="tooltip" title="Baja Inventario" style="margin-right:4px;">'+
+                                                            feather.icons['download'].toSvg({ class: 'font-small-4 me-20' })+
+                                                        '</button>'+
+                                                    <?php endif; ?>
+                                                '</div>' +
+                                            '</div>'+
                                         '</div>'
+                                    }else if(full['minimo'] == 'N/A' && full['stock'] == 'N/A' && full['enMinimo'] == 'N/A'){
+                                        acciones = '<div class="text-center">'+
+                                            '<button type="button" class="btn btn-outline-success btn-sm btnlistadoP" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Precios" style="margin-right:4px;">'+ 
+                                                feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' }) +
+                                            '</button>'+
+                                        '</div>'
+                                    }
+                                    return (
+                                        acciones
                                     );
                                 }
                             },
@@ -1166,7 +1197,7 @@
                                 .appendTo('#tbl-producto_length').on('change', function () {
                                     stock = $('#enStock').val();
                                     $('#tbl-producto').DataTable().page.len( $(this).val() ).draw();
-                                    $('#enStock').val(tipo).trigger('change');
+                                    $('#enStock').val(stock).trigger('change');
                                 });
 
                             this.api()

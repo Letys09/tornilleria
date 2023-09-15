@@ -22,6 +22,7 @@ use App\Lib\Auth,
             $prod->precios = $this->model->producto->getPrecios($prod->id)->result;
             if($prod->venta_kilo){
                 $prod->kilo = $this->model->producto->getKiloBy($prod->id, 'producto_origen')->result;
+                $prod->kilo->codigo = $this->model->producto->get($prod->kilo->producto_id)->result->codigo;
             }else if($prod->es_kilo){
                 $prod->kilo = $this->model->producto->getKiloBy($prod->id, 'producto_id')->result;
             }
@@ -56,14 +57,15 @@ use App\Lib\Auth,
 			$data = [];
 			if(!isset($_SESSION)) { session_start(); }
 			foreach($productos->result as $producto) {
+                $stockMin = $producto->es_kilo ? 'N/A' : $producto->minimo;
                 $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto->id)->result;
-                $stock = is_object($stock) ? $stock->final : 0;
-                $minimo = floatval($stock) <= $producto->minimo ? 'Mínimo' : 'Suficiente';
+                $stock = $producto->es_kilo ? 'N/A' : (is_object($stock) ? $stock->final : 0);
+                $minimo = $producto->es_kilo ? 'N/A' : (floatval($stock) <= $producto->minimo ? 'Mínimo' : 'Suficiente');
                 $data[] = array(
 					"codigo" => $producto->codigo,
 					"categoria" => $producto->cat,
 					"subcategoria" => $producto->sub,
-					"minimo" => $producto->minimo,
+					"minimo" => $stockMin,
 					"stock" => $stock,
 					"enMinimo" => $minimo,
 					"nombre" => $producto->nombre,
@@ -83,21 +85,106 @@ use App\Lib\Auth,
         });
 
         $this->get('getRangos/{id}', function($req, $res, $args){
-            $rangos = $this->model->producto->get($args['id'])->result;
-            $precios = $this->model->producto->getPrecios($args['id'])->result;
+            $rangos = $this->model->producto->getRangos($_SESSION['sucursal_id'], $args['id'])->result;
             $prod = [
                 'menudeo' => $rangos->menudeo,
-                'precio_menudeo' => $precios->menudeo,
+                'precio_menudeo' => $rangos->precio_menudeo,
                 'medio' => $rangos->medio,
-                'precio_medio' => $precios->medio,
+                'precio_medio' => $rangos->precio_medio,
                 'mayoreo' => $rangos->mayoreo,
-                'precio_mayoreo' => $precios->mayoreo,
-                'precio_distribuidor' => $precios->distribuidor,
+                'precio_mayoreo' => $rangos->precio_mayoreo,
+                'precio_distribuidor' => $rangos->precio_distribuidor,
             ];
             return $res->withJson($prod);
         });
 
-		$this->post('add/',function($req, $res, $args){
+        $this->get('getCodigo', function($req, $res, $args){
+            return $res->withJson($this->model->producto->getCodigo()->result);
+        });
+
+        $this->get('getCat', function($req, $res, $args){
+            return $res->withJson($this->model->producto->getCat()->result);
+        });
+
+        $this->get('getSub/{cat}', function($req, $res, $args){
+            return $res->withJson($this->model->producto->getSubC($args['cat'])->result);
+        });
+
+        $this->get('getArea', function($req, $res, $args){
+            return $res->withJson($this->model->producto->getArea());
+        });
+
+        $this->get('getAllSub', function($req, $res, $args){
+            return $res->withJson($this->model->producto->getAllSub()->result);
+        });
+
+        $this->post('rangos', function($req, $res, $args){
+            $this->model->transaction->iniciaTransaccion();
+            $parsedBody = $req->getParsedBody();
+            $prod_id = $parsedBody['prod_rangos_id'];
+            unset($parsedBody['prod_rangos_id']);
+            $rangos = true; $precios = true;
+            $info = $this->model->producto->getRangos($_SESSION['sucursal_id'], $prod_id)->result;
+            $dataRangos = [
+                'menudeo' => $parsedBody['menudeo'],
+                'medio' => $parsedBody['medio'],
+                'mayoreo' => $parsedBody['mayoreo'],
+            ];
+
+            foreach($dataRangos as $field => $value) { 
+                if($info->$field != $value) { 
+                    $rangos = false; break; 
+                } 
+            }
+
+            $infoP = $this->model->producto->getPrecios($info->prod_precio_id)->result;
+            $dataPrecios = [
+                'menudeo' => $parsedBody['precio_menudeo'],
+                'medio' => $parsedBody['precio_medio'],
+                'mayoreo' => $parsedBody['precio_mayoreo'],
+                'distribuidor' => $parsedBody['precio_distribuidor'],
+            ];
+
+            foreach($dataPrecios as $field => $value) { 
+                if($infoP->$field != $value) { 
+                    $precios = false; break; 
+                } 
+            }
+
+            if(!$rangos){
+                $edit = $this->model->producto->edit('prod_rango', 'id', $dataRangos, $info->id);
+                if($edit->response){
+                    $seg_log = $this->model->seg_log->add('Modifica rangos de producto', 'prod_rango', $info->id, 1);
+                    if(!$seg_log->response){
+                        $seg_log->state = $this->model->transaction->regresaTransaccion();
+                    }
+                }else{
+                    $edit->state = $this->model->transaction->regresaTransaccion();
+                }
+            }
+
+            if(!$precios){
+                $dataPrecios['actualiza'] = date('Y-m-d H:i:s');
+                $edit = $this->model->producto->edit('prod_precio', 'id', $dataPrecios, $info->precio_id);
+                if($edit->response){
+                    $seg_log = $this->model->seg_log->add('Modifica precios de producto', 'prod_precio', $info->precio_id, 1);
+                    if(!$seg_log->response){
+                        $seg_log->state = $this->model->transaction->regresaTransaccion();
+                    }
+                }else{
+                    $edit->state = $this->model->transaction->regresaTransaccion();
+                }
+            }
+
+            if($rangos && $precios){
+                $edit = ['code' => 1, 'msg' => 'No existen datos diferentes a los antes registrados'];
+            }else{
+                $edit->state = $this->model->transaction->confirmaTransaccion();
+            }
+            return $res->withJson($edit);
+        });
+
+        $this->post('add/',function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();
             $data = [
@@ -110,73 +197,88 @@ use App\Lib\Auth,
                 'marca' => $parsedBody['marca'],
                 'minimo' => $parsedBody['minimo'],
                 'venta_kilo' => $parsedBody['venta_kilo'],
-                'menudeo' => $parsedBody['menudeo'],
-                'medio' => $parsedBody['medio'],
-                'mayoreo' => $parsedBody['mayoreo'],
                 'clave_sat' => $parsedBody['clave_sat'],
             ];                
             
             $producto = $this->model->producto->add($data, 'producto'); //Producto original
             if($producto->response){
                 $prod_origen = $producto->result;
-                $dataPrecio = [
-                    'producto_id' => $prod_origen,
-                    'menudeo' => $parsedBody['precio_menudeo'],
-                    'medio' => $parsedBody['precio_medio'],
-                    'mayoreo' => $parsedBody['precio_mayoreo'],
-                    'distribuidor' => $parsedBody['precio_distribuidor'],
-                ];
+                $dataPrecio = [ 'producto_id' => $prod_origen ];
                 $addPrecio = $this->model->producto->add($dataPrecio, 'prod_precio');
                 if($addPrecio->response){
-                    if($data['venta_kilo'] == 1){
-                        $dataKilo = [
-                            'prod_unidad_medida_id' => 2,
-                            'prod_categoria_id' => $data['prod_categoria_id'],
-                            'prod_area_id' => $data['prod_area_id'],
-                            'nombre' => 'Kilo de '.$data['nombre'],
-                            'descripcion' => 'Kilo de '.$data['nombre'],
-                            'codigo' => 'PK'.$data['codigo'],
-                            'marca' => $data['marca'],
-                            'es_kilo' => 1,
-                            'clave_sat' => $parsedBody['clave_sat'],
-                        ];
-                        $prod_kilo = $this->model->producto->add($dataKilo, 'producto');
-                        if($prod_kilo->response){
-                            $kilo_id = $prod_kilo->result;
-                            $prodKilo = [
-                                'producto_id' => $kilo_id,
-                                'producto_origen' => $prod_origen,
-                                'cantidad' => $parsedBody['cant_kilo'],
-                                'precio' => $parsedBody['precio_kilo']
+                    $dataRango = [
+                        'sucursal_id' => $_SESSION['sucursal_id'],
+                        'producto_id' => $prod_origen,
+                        'prod_precio_id' => $addPrecio->result,
+                    ];
+                    $addRangos = $this->model->producto->add($dataRango, 'prod_rango');
+                    if($addRangos->response){
+                        if($data['venta_kilo'] == 1){
+                            $dataKilo = [
+                                'prod_unidad_medida_id' => 2,
+                                'prod_categoria_id' => $data['prod_categoria_id'],
+                                'prod_area_id' => $data['prod_area_id'],
+                                'nombre' => 'Kilo de '.$data['nombre'],
+                                'descripcion' => 'Kilo de '.$data['nombre'],
+                                'codigo' => $parsedBody['codigo_kilo'],
+                                'marca' => $data['marca'],
+                                'es_kilo' => 1,
+                                'clave_sat' => $parsedBody['clave_sat'],
                             ];
-                            $kilo = $this->model->producto->add($prodKilo, 'prod_kilo');
-                            if($kilo->response){
-                                $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
-                                $seg_log = $this->model->seg_log->add('Agrega kilo', 'producto', $kilo_id, 1);
-                                if($seg_log->response){
-                                    $kilo->state = $this->model->transaction->confirmaTransaccion();	
-                                    return $res->withJson($kilo);
+                            $prod_kilo = $this->model->producto->add($dataKilo, 'producto');
+                            if($prod_kilo->response){
+                                $kilo_id = $prod_kilo->result;
+                                $prodKilo = [
+                                    'producto_id' => $kilo_id,
+                                    'producto_origen' => $prod_origen,
+                                    'cantidad' => $parsedBody['cant_kilo']
+                                ];
+                                $kilo = $this->model->producto->add($prodKilo, 'prod_kilo');
+                                if($kilo->response){
+                                    $precioKilo = [ 'producto_id' => $kilo_id ];
+                                    $addPrecioKilo = $this->model->producto->add($precioKilo, 'prod_precio');
+                                    if($addPrecioKilo->response){
+                                        $rangoKilo = [
+                                            'sucursal_id' => $_SESSION['sucursal_id'],
+                                            'producto_id' => $kilo_id,
+                                            'prod_precio_id' => $addPrecioKilo->result,
+                                        ];
+                                        $addRangos = $this->model->producto->add($rangoKilo, 'prod_rango');
+                                        $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
+                                        $seg_log = $this->model->seg_log->add('Agrega kilo', 'producto', $kilo_id, 1);
+                                        if($seg_log->response){
+                                            $kilo->state = $this->model->transaction->confirmaTransaccion();	
+                                            return $res->withJson($kilo);
+                                        }else{
+                                            $seg_log->state = $this->model->transaction->regresaTransaccion();	
+                                            return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
+                                        }
+                                    }
                                 }else{
-                                    $seg_log->state = $this->model->transaction->regresaTransaccion();	
-                                    return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
+                                    $kilo->state = $this->model->transaction->regresaTransaccion();	
+                                    return $res->withJson($kilo->SetResponse(false, 'No se pudo agregar el kilo del producto'));
                                 }
                             }else{
-                                $kilo->state = $this->model->transaction->regresaTransaccion();	
-                                return $res->withJson($kilo->SetResponse(false, 'No se pudo agregar el kilo del producto'));
+                                $prod_kilo->state = $this->model->transaction->regresaTransaccion();
+                                if($producto->errors->errorInfo[0] == 23000) {
+                                    $producto->error = 23000;
+                                    return $res->withJson($producto->SetResponse(false, 'El código de producto para venta por kilo ya existe'));
+                                }else 
+                                    return $res->withJson($prod_kilo->SetResponse(false, 'No se pudo agregar el producto para venta por kilo'));
                             }
                         }else{
-                            $prod_kilo->state = $this->model->transaction->regresaTransaccion();
-                            return $res->withJson($prod_kilo->SetResponse(false, 'No se pudo agregar el producto para venta por kilo'));
+                            $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
+                            if($seg_log->response){
+                                $producto->state = $this->model->transaction->confirmaTransaccion();	
+                                return $res->withJson($producto);
+                            }else{
+                                $seg_log->state = $this->model->transaction->regresaTransaccion();	
+                                return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
+                            }
                         }
                     }else{
-                        $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
-                        if($seg_log->response){
-                            $producto->state = $this->model->transaction->confirmaTransaccion();	
-                            return $res->withJson($producto);
-                        }else{
-                            $seg_log->state = $this->model->transaction->regresaTransaccion();	
-                            return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
-                        }
+                        $addRangos->state = $this->model->transaction->regresaTransaccion();	
+                        return $res->withJson($addRangos->SetResponse(false, 'No se pudo agregar el registro de rangos'));
                     }
                 }else{
                     $addPrecio->state = $this->model->transaction->regresaTransaccion();	
@@ -464,26 +566,6 @@ use App\Lib\Auth,
                 $addAjuste->state = $this->model->transaction->regresaTransaccion();	
                 return $res->withJson($addAjuste->SetResponse(false, 'No se pudo agregar el registro del ajuste'));
             }
-        });
-
-        $this->get('getCodigo', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getCodigo()->result);
-        });
-
-        $this->get('getCat', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getCat()->result);
-        });
-
-        $this->get('getSub/{cat}', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getSubC($args['cat'])->result);
-        });
-
-        $this->get('getArea', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getArea());
-        });
-
-        $this->get('getAllSub', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getAllSub()->result);
         });
 
         $this->get('excel/', function($req, $res, $args){
