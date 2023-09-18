@@ -20,7 +20,7 @@ class ClienteModel {
 		$this->response->result = $this->db
 			->from($this->table)
             ->select(null)
-            ->select("$this->table.id, $this->table.cli_datos_fiscales_id, nombre, apellidos, correo, telefono, cli_datos_fiscales.regimen_fiscal, rfc, razon_social, codigo_postal")
+            ->select("$this->table.id, $this->table.cli_datos_fiscales_id, nombre, apellidos, correo, telefono, descuento, cli_datos_fiscales.regimen_fiscal, rfc, razon_social, codigo_postal")
 			->innerJoin("cli_datos_fiscales ON cli_datos_fiscales.id = $this->table.cli_datos_fiscales_id")
 			->where("$this->table.id", $id)
 			->fetch();
@@ -35,7 +35,7 @@ class ClienteModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("id, nombre, apellidos, correo, telefono, saldo_favor")
+			->select("id, nombre, apellidos, correo, telefono, descuento, saldo_favor")
 			->where("$this->table.status", 1)
 			->fetchAll(); 
 					

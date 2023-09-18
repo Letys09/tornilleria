@@ -41,6 +41,7 @@
                                         <th>Apellidos</th>
                                         <th>Correo</th>
                                         <th>Teléfono</th>
+                                        <th>Descuento</th>
                                         <th>Saldo Disponible</th>
                                         <th>Acciones</th>
                                     </tr>
@@ -71,6 +72,15 @@
                                         <div class="mb-1">
                                             <label class="form-label fw-bolder fs-5" for="cli-telefono">Teléfono</label>
                                             <input type="text" id="cli-telefono" class="form-control phone-inputmask"/>
+                                        </div>
+                                        <div class="mb-1">
+                                            <label class="form-label fw-bolder fs-5" for="cli-descuento">Descuento</label>
+                                            <div class="input-group">
+                                                <input type="number" class="form-control" id="cli-descuento" placeholder="Descuento en porcentaje">
+                                                <div class="input-group-text">
+                                                    <span>%</span>
+                                                </div>
+                                            </div>
                                         </div>
                                         <hr>
                                         <div class="mt-1 text-center">
@@ -189,8 +199,16 @@
                         error('cli-nombre', 'Este campo es obligatorio')
                     }else if(data['nombre'].length < 4){
                         error('cli-nombre', 'El nombre debe contener al menos 4 caracteres')
-                    }else if(data['rfc'] != '' && data['rfc'].length < 12){
+                    }else if(data['rfc'] == ''){
+                        error('cli-rfc', 'Debe agregar el RFC')
+                    }else if(data['rfc'].length < 12){
                         error('cli-rfc', 'El RFC debe contener al menos 12 caracteres')
+                    }else if(data['regimen_fiscal'] == 0 ||  data['regimen_fiscal'] == null){
+                        error('cli-regimen_fiscal', 'Debe seleccionar una opción')
+                    }else if(data['razon_social'] == ''){
+                        error('cli-razon_social', 'Este campo es obligatorio')
+                    }else if(data['codigo_postal'] == ''){
+                        error('cli-codigo_postal', 'Este campo es obligatorio')
                     }else{
                         if(id == 0){
                             $.post(apiUrl+'cliente/add/', data, function(resp){
@@ -302,6 +320,7 @@
                             {data: 'apellidos'},
                             {data: 'correo'},
                             {data: 'telefono'},
+                            {data: 'descuento'},
                             {data: 'saldo'},
                             {data: ''}
                         ],
@@ -343,72 +362,6 @@
                         language: {
                             url:'../spanish.json'
                         },
-                        // initComplete: function () {
-                        //     var label = $('<label for="cuantos">Mostrar</label>').appendTo('#tbl-cliente_length');
-                        //     var selectCount = $('<select id="cuantos" class="form-select"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select>')
-                        //         .appendTo('#tbl-cliente_length').on('change', function () {
-                        //             documentacion = $('#documentacion').val();
-                        //             tipo = $('#tipoV').val();
-                        //             status = $('#statusV').val();
-                        //             dtVehiculoTable.DataTable().page.len( $(this).val() ).draw();
-                        //             $('#documentacion').val(documentacion).trigger('change');
-                        //             $('#tipoV').val(tipo).trigger('change');
-                        //             $('#statusV').val(status).trigger('change');
-                        //         });
-
-                        //     this.api().columns(3).every(function () {
-                        //         var column = this;
-                        //         var select = $('<select id="statusV" class="form-select text-capitalize mb-md-0 mb-2 select-dentro-datatable"><option value=""> TODOS </option></select>')
-                        //             .prependTo('#tbl-vehiculos_length').on('change', function () {
-                        //                 var val = $.fn.dataTable.util.escapeRegex($(this).val());
-                        //                 column.search(val ? '^' + val + '$' : '', true, false).draw();
-                        //             });
-                        //         var label = $('<label class="labelTypeU" class="form-label" for="statusV">Status</label>').prependTo('#tbl-vehiculos_length');
-                                            
-                        //         column.data().unique().sort().each(function (d, j) {
-                        //             j = d == 1 ? 'HUB' : (d == 2 ? 'En uso' : (d == 4 ? 'Perdida total' : (d == 5 ? 'Robada' : (d == 6 ? 'Vendida' : (d == 7 ? 'Devolución' : (d == 8 ? 'Renovación' : (d == 9 ? 'Taller' : (d == 10 ? 'Taller externo' : 'Corralón'))))))));
-                        //             select.append('<option value="' + d + '" class="text-capitalize">' + j + '</option>');
-                        //         });
-                        //     });
-
-                        //     this.api().columns(1).every(function () {
-                        //         var column = this;
-                        //         var select = $('<select id="tipoV" class="form-select text-capitalize mb-md-0 mb-2 select-dentro-datatable"><option value=""> TODOS </option></select>')
-                        //             .prependTo('#tbl-vehiculos_length')
-                        //             .on('change', function () {
-                        //                 dtVehiculoTable.DataTable().column( 1 ).search($('#tipoV').val()).draw(); 
-                        //             });
-                        //         var label = $('<label class="labelTypeU" class="form-label" for="tipoV">Tipo</label>').prependTo('#tbl-vehiculos_length');
-                                            
-                        //         column.data().unique().sort().each(function (d, j) {
-                        //             select.append('<option value="' + d + '" class="text-capitalize">' + d + '</option>');
-                        //         });
-                        //     });
-
-                        //     this.api().columns(10,12,16).every(function () {
-                        //         var column = this;
-                        //         var select = $('<select id="documentacion" class="form-select text-capitalize mb-md-0 mb-2 select-dentro-datatable"><option value=""> TODOS </option></select>')
-                        //             .prependTo('#tbl-vehiculos_length')
-                        //             .on('change', function () {
-                        //                 dtVehiculoTable.DataTable().search($('#documentacion').val()).draw(); 
-                        //             });
-                        //         var label = $('<label class="labelTypeU" class="form-label" for="documentacion">Documentación </label>').prependTo('#tbl-vehiculos_length');
-                                            
-                        //         column.data().unique().sort().each(function (d, j) {
-                        //             if(d != 'EN ORDEN' && d != 'N/A'){
-                        //                 select.append('<option value="' + d + '" class="text-capitalize">' + d + '</option>');
-                        //             }
-                        //         });
-                        //     });
-
-                        //     var busqueda = $('<div style="position: absolute; left: 20px; top: 110px;"><label class="inputDoc" class="form-label" for="txt-search"> Buscar  </label> <input type="text" id="txt-search" ></div>').prependTo('#tbl-vehiculos_length')
-                        //     .on('keyup', function () {
-                        //         dtVehiculoTable.DataTable().search($('#txt-search').val()).draw(); 
-                        //     });
-
-                        //     $('#tbl-vehiculos_length label:eq(4)').addClass('hidden');
-                        //     $('#tbl-vehiculos_filter').addClass('hidden');
-                        // }
                     });
                 }
             }

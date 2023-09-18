@@ -24,6 +24,7 @@ use App\Lib\Auth,
 					"apellidos" => $cliente->apellidos,
 					"correo" => $cliente->correo,
 					"telefono" => $cliente->telefono,
+					"descuento" => $cliente->descuento.' %',
 					"saldo" => '$ '.$cliente->saldo_favor,
 				);
 			}
@@ -50,7 +51,6 @@ use App\Lib\Auth,
             ];         
             
             $addFiscales = $this->model->cliente->add($fiscales, 'cli_datos_fiscales');
-            // print_r($addFiscales->result);exit();
             if($addFiscales->response){
                 $data = [
                     'cli_datos_fiscales_id' => $addFiscales->result,
@@ -58,6 +58,7 @@ use App\Lib\Auth,
                     'apellidos' => $parsedBody['apellidos'],
                     'correo' => $parsedBody['correo'],
                     'telefono' => $parsedBody['telefono'],
+                    'descuento' => $parsedBody['descuento'],
                     'registro' => date('Y-m-d H:i:s')
                 ];
                 $cliente = $this->model->cliente->add($data, 'cliente'); 
@@ -93,6 +94,7 @@ use App\Lib\Auth,
                 'apellidos' => $parsedBody['apellidos'],
                 'correo' => $parsedBody['correo'],
                 'telefono' => $parsedBody['telefono'],
+                'descuento' => $parsedBody['descuento'],
             ];
 
             foreach($data as $field => $value) { 
