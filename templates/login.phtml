@@ -135,6 +135,7 @@
                 })
                 
                 $('#btnLogin').click(function(){
+                    $('.datosLogin').html('');
                     sucursal = $('#sucursal_id').val()
                     usuario = $.trim($('#login-user').val())
                     pass = $.trim($('#login-password').val())
@@ -151,8 +152,8 @@
                             if(resp.response){
                                 window.location.href = $apiUrl+'principal'; 
                             }else{
-                            $('.datosLogin').append(resp.message+'<br> Verifica tus datos.');
-                            $.unblockUI();
+                                $('.datosLogin').append(resp.message+'<br> Verifica tus datos.');
+                                $.unblockUI();
                             }
                         },'json');
                     }

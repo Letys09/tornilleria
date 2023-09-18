@@ -29,7 +29,7 @@
                                         <button type="button "id="btnAdd" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-usuario" tabindex="0" 
                                         aria-controls="DataTables_table_0" type="button" data-toggle="modal"
                                         data-target="#frm-usuario">
-                                        <i data-feather="user-plus"></i>&nbsp;&nbsp;<span>Agregar</span></button>
+                                        <i data-feather="plus"></i>&nbsp;&nbsp;<span>Agregar</span></button>
 
                                         &nbsp;&nbsp;<button type="button "id="btnTypeUser" class="btn waves-effect waves-foat waves-light open-modal buttonModal" data-open="frm-type-user" tabindex="0" 
                                         aria-controls="DataTables_table_0" type="button" data-toggle="modal"
@@ -63,10 +63,6 @@
                                             <h4 class="modal-title text-uppercase"></h4>
                                         </div>
                                         <div class="modal-body flex-grow-1 form-horizontal">
-                                            <div class="mb-1">
-                                                <label class="form-label fw-bolder fs-5" for="user-sucursal_id">Sucursal</label>
-                                                <select id="user-sucursal_id" class="form-select"></select>
-                                            </div>
                                             <div class="mb-1">
                                                 <label class="form-label fw-bolder fs-5" for="user-usuario_tipo_id">Tipo de Usuario</label>
                                                 <select id="user-usuario_tipo_id" class="form-select"></select>
@@ -141,12 +137,11 @@
                                 </div>
                             </div>
 
-                            <!-- Modal para tipos de usuario -->
                             <div class="modal fade" id="frm-type-user">
                                 <div class="modal-dialog modalMediano">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h4 class="modal-title text-uppercase">tipos de usuarios</h4>
+                                            <h4 class="modal-title text-uppercase">tipos de usuario</h4>
                                         </div>
                                         <div class="modal-body">
                                             <div class="form-horizontal">
@@ -176,9 +171,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Termina modal tipos de usuario -->
-
-                            <!--Modal para agregar/editar tipo de usuario -->
+                            
                             <div class="modal fade" id="frm-type-user-acciones">
                                 <div class="modal-dialog modalMediano">
                                     <div class="modal-content">
@@ -205,9 +198,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!--Termina modal para agregar/editar tipo de usuario -->
 
-                            <!--Modal para eliminar a un usuario, solicita motivo de la baja y observaciones -->
                             <div class="modal modal-slide-in modal-danger fade" id="frm-del-user">
                                 <div class="modal-dialog">
                                     <form class="modal-content pt-0">
@@ -232,9 +223,7 @@
                                     </form>
                                 </div>
                             </div>
-                            <!--Termina modal para eliminar a un usuario -->
 
-                            <!--Modal para activar a un usuario, solicita confirmación para activar al usuario -->
                             <div class="modal modal-slide-in modal-success fade" id="frm-activar-user">
                                 <div class="modal-dialog">
                                     <form class="modal-content pt-0">
@@ -255,15 +244,12 @@
                                     </form>
                                 </div>
                             </div>
-                            <!--Termina modal para activar a un usuario -->
 
-                            <!-- Modal permisos -->
                             <div id="frm-permisos" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1">
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h3 class="modal-title"><i class="fas fa-lock"></i><span> Permisos de Usuario</span></h3>
-                                            <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button> -->
+                                            <h3 class="modal-title text-uppercase"><i class="fas fa-lock"></i><span> permisos de usuario</span></h3>
                                         </div>
                                         <div class="modal-body">
                                             <div class="card-columns" style="column-count:2">
@@ -305,15 +291,12 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Termina modal permisos -->
 
-                            <!-- Modal permisos para tipo de usuario-->
                             <div id="frm-permisos-type-user" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1">
                                 <div class="modal-dialog modal-lg">
                                     <div class="modal-content">
                                         <div class="modal-header">
-                                            <h3 class="modal-title"><i class="feather-16" style="color: black;" data-feather="lock"></i><span></span></h3>
-                                            <!-- <button type="button" class="close" data-dismiss="modal" aria-label="Close"><span aria-hidden="true">&times;</span></button> -->
+                                            <h3 class="modal-title text-uppercase"><i class="fas fa-lock"></i><span></span></h3>
                                         </div>
                                         <div class="modal-body">
                                             <div class="card-columns" style="column-count:2">
@@ -355,9 +338,7 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Termina modal permisos -->
 
-                            <!-- Modal foto usuario -->
                             <div class="modal fade" id="frm-user-foto">
                                 <div class="modal-dialog">
                                     <div class="modal-content">
@@ -378,7 +359,6 @@
                                     </div>
                                 </div>
                             </div>
-                            <!-- Termina modal foto usuario -->
                         </div>
                     </div>
                 </section>
@@ -399,17 +379,14 @@
 
             getItems('tbl-usuarios')
 
-            // Abre modal para agregar un nuevo usuario
             <?php if(in_array(MOD_ADD, $permisos)) : ?>
                 $('#btnAdd').click(function(){
                     getTypeUser()
                     clear()
-                    getSucursales(<?= $_SESSION['sucursal_id'] ?>)
                     $('#frm-usuario h4').html('agregar usuario')
                     $('#frm-usuario').modal('show');
                 });
 
-                // Muestra los tipos de usuario existentes en la base de datos y agrega acciones a algunos
                 $('#btnTypeUser').click(function() {   
                     $('#frm-type-user .tooltip-error').remove();
                     $.ajax({
@@ -447,7 +424,6 @@
                     $('#frm-type-user').modal('show');
                 }); 
 
-                // Abre modal para agregar un nuevo tipo de usuario
                 $('#btnNewTypeUser').on('click', function() {
                     $('#frm-type-user-acciones h4').html('agregar tipo de usuario')
                     $('#descripcion-nuevo-perfil').val('');
@@ -458,7 +434,6 @@
                     $("#btnDelPerfil").hide();   
                 });
 
-                // Guarda en la base de datos el nuevo tipo de usuario
                 $('#btnSaveNewPerfil').click(function(){
                     $('.alert').remove();
                     err = $('<div class="alert alert-blink-danger"></div>');
@@ -496,21 +471,20 @@
                     }
                 });
 
-                // Abre modal para editar un tipo de usuario 
                 $('#tbl-TypeUser').on('click', '.btnEditTypeUser', function() {
-                    tr = $(this).parents("tr");
-                    id = $(this).parents("td").data('id');
-                    $('#id_type_user').val(id);
-                    $('#frm-type-user-acciones h4').html('editar tipo de usuario');
-                    nom = tr.find('td:eq(0)').text();
-                    $('#frm-type-user-acciones').modal('show');
-                    $("#btnUpdatePerfil").show();   
-                    $("#btnSaveNewPerfil").hide();   
-                    $("#btnDelPerfil").hide();   
-                    $('#descripcion-nuevo-perfil').val(nom);   
+                    tr = $(this).parents("tr")
+                    id = $(this).parents("td").data('id')
+                    $('#id_type_user').val(id)
+                    $('#frm-type-user-acciones h4').html('editar tipo de usuario')
+                    nom = tr.find('td:eq(0)').text()
+                    $('#frm-type-user-acciones').modal('show')
+                    $("#btnUpdatePerfil").show() 
+                    $("#btnSaveNewPerfil").hide() 
+                    $("#btnDelPerfil").hide()  
+                    $('#frm-type-user').modal('hide')
+                    $('#descripcion-nuevo-perfil').val(nom)
                 });
 
-                // Actualiza el nombre del tipo de usuario
                 $('#btnUpdatePerfil').click(function() {
                     btn = $(this);
                     btn.addClass('disabled');
@@ -535,6 +509,7 @@
                                     step1('#tbl-TypeUser');
                                     addTypeUserRow(data, resp.result);
                                     step2('#tbl-TypeUser');
+                                    $('#frm-type-user').modal('show')
                                     btn.removeClass('disabled');
                                 } else {
                                     toastr["error"]("Ocurrió un error!", resp.message);
@@ -545,7 +520,6 @@
                     }
                 });
 
-                // Abre el modal que muestra todos los permisos existentes para que se asignen a un tipo de perfil
                 $('#tbl-TypeUser').on('click', '.btnPermTypeUser', function(){
                     tr = $(this).parents("tr");
                     id = $(this).parents("td").data('id');
@@ -566,19 +540,18 @@
                                     });
                                 });
                             } 
-                            $('#frm-permisos-type-user span').html(' Permisos Para Tipo Usuario '+nom);
+                            $('#frm-permisos-type-user span').html(' permisos para usuario tipo "'+nom+'"');
                             $('#frm-permisos-type-user').modal('show');
                         },
                     });
                 });
 
-                // Guarda en base de datos los permisos asignados al tipo de usuario
                 $('.checkPermTypeUser').click(function() {
                     accion = $(this).val();
                     user = $('#perm_user_id').val();
                     agrega = $(this).is(':checked');
                     data = {
-                        fk_perfil : user,
+                        usuario_tipo_id : user,
                         seg_accion_id : accion,
                         agrega    : agrega
                     };
@@ -592,7 +565,6 @@
                     });
                 });
 
-                // Muestra el modal para solicitar confirmación de baja del tipo de usuario
                 $('#frm-type-user').on('click', '.btnDelTypeUser', function(){
                     tr = $(this).parents("tr");
                     id = $(this).parents("td").data('id');
@@ -608,7 +580,6 @@
                     $("#btnUpdatePerfil").hide();   
                 });
 
-                // Da de baja el tipo de usuario
                 $('#btnDelPerfil').click(function(){
                     btn = $(this);
                     btn.addClass('disabled');
@@ -646,8 +617,7 @@
                             $('#user-'+index).val(item)
                         })
                         $('#user-contrasena').attr("placeholder", "Dejar en blanco para no modificar")
-                        $('#user_id').val(resp.result.id)
-                        getSucursales(resp.result.sucursal_id)                  
+                        $('#user_id').val(resp.result.id)             
                         getTypeUser(resp.result.usuario_tipo_id)
                     },'json')
                     $('#frm-usuario h4').html('editar usuario');
@@ -690,7 +660,7 @@
                     error('user-username', 'Este campo debe contener al menos 3 caracteres, es el username con el que ingresará al sistema.')
                     btn.removeClass('disabled');
                 }else if(id == 0 && (data.contrasena.length == 0 || data.contrasena.length < 7)){
-                    error('user-contraseña', 'Debe ingresar una contraseña con más de al menos 7 carácteres.')
+                    error('user-contraseña', 'Debe ingresar una contraseña de al menos 7 carácteres.')
                     btn.removeClass('disabled');
                 }else{
                     btn.addClass('disabled');
@@ -735,7 +705,6 @@
                     $('#frm-del-user').modal('show');
                 });
                 
-                // Da de baja del sistema al usuario, cambia de estatus 1 a estatus 0
                 $('#btnInactivar').on('click', function(){
                     btn = $(this);
                     btn.addClass('disabled');
@@ -783,7 +752,6 @@
                     }
                 });
 
-                // Activa al usuario, cambia de status 0 a status 1
                 $('#tbl-usuarios').on('click', '.btnActivar', function(e){
                     e.preventDefault();
                     id = $(this).data('id');
@@ -915,7 +883,6 @@
             });
             <?php endif; ?>
 
-            // FUNCIONES
             function getItems(tbl){
                 cleanTable(tbl);
                 $('#'+tbl+' tbody').empty();
@@ -964,16 +931,6 @@
                     }
                     $('#user-usuario_tipo_id').val(val).removeAttr('disabled')
                 },'json')
-            }
-
-            function getSucursales(val=0){
-                $('#user-sucursal_id').attr('disabled','disabled').empty();
-                $.get(apiUrl+'sucursal/getAll', function(resp){
-                    $.each(resp, function(index, item){
-                        $('#user-sucursal_id').append('<option value="'+item.id+'">'+item.nombre+'</option>')
-                    })
-                    $('#user-sucursal_id').val(val).removeAttr('disabled')
-                })
             }
             
             function createTable(){
@@ -1190,6 +1147,7 @@
                     scrollY: '600px',
                     scrollX: true,
                     paging:  false,
+                    languaje: '../spanish.json',
                     dom:     'Rlfrtip',
                     "columnDefs": [{"width": "350px", "orderable": false, "targets": [0] }],
                     "oColReorder": { "iFixedColumns": 1 },

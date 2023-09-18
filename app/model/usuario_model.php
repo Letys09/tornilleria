@@ -221,8 +221,9 @@ class UsuarioModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("usuario.id, usuario_tipo_id, usuario.nombre, apellidos, email, usuario.status, $this->tableTU.nombre as tipo_usuario, celular")
-			->where("sucursal_id", $_SESSION['sucursal_id'])
+			->select("usuario.id, usuario_tipo_id, usuario.nombre, apellidos, email, celular, usuario.status, $this->tableTU.nombre as tipo_usuario")
+			// ->innerJoin("$this->tableTU ON id_tipo_usuario = $this->table.usuario_tipo_id")
+			// ->where('usuario_tipo_id != 3')
 			->fetchAll(); 
 					
 		return $this->response->SetResponse(true);
@@ -296,16 +297,16 @@ class UsuarioModel {
 		try {
 			$this->response->result = $this->db
 				->from($this->tableSPP)
-				->where('fk_perfil' , $id)
+				->where('usuario_tipo_id' , $id)
 				->fetchAll();
 			if($this->response->result) { 
 				$this->response->SetResponse(true); 
 			}else { 
-				$this->response->SetResponse(false, 'no existe el registro'); 
+				$this->response->SetResponse(false, 'No existe el registro'); 
 			}
 		} catch(\PDOException $ex) {
 			$this->response->errors = $ex;
-			$this->response->SetResponse(false, "catch: edit model $this->tableSPP");
+			$this->response->SetResponse(false, "catch: $this->tableSPP");
 		}
 		return $this->response;
 	}
@@ -346,7 +347,7 @@ class UsuarioModel {
 				->where('id', $id)
 				->execute();
 				if($this->response->result) { $this->response->SetResponse(true); }
-				else { $this->response->SetResponse(false, 'no se actualizo el registro'); }
+				else { $this->response->SetResponse(false, 'No se actualizo el registro'); }
 		} catch(\PDOException $ex) {
 			$this->response->result = $data;
 			$this->response->errors = $ex;
@@ -364,7 +365,7 @@ class UsuarioModel {
 		} catch(\PDOException $ex) {
 			$this->response->errors = $ex;
 			$this->response->descripcion = $data;
-			$this->response->SetResponse(false, "catch: add model $this->tableTU");
+			$this->response->SetResponse(false, "catch: crear tipo usuario $this->tableTU");
 		}
 		return $this->response;
 	}
@@ -377,7 +378,7 @@ class UsuarioModel {
 			$this->response->SetResponse(true);
 		} catch(\PDOException $ex) {
 			$this->response->errors = $ex;
-			$this->response->SetResponse(false, "catch: add model $this->tableSPP");
+			$this->response->SetResponse(false, "catch: update permisos tipo usuario $this->tableSPP");
 		}
 		return $this->response;
 	}
@@ -386,14 +387,14 @@ class UsuarioModel {
 		try {
 			$this->response->result = $this->db
 				->deleteFrom($this->tableSPP)
-				->where('fk_perfil', $id)
+				->where('usuario_tipo_id', $id)
 				->where('seg_accion_id', $data)
 				->execute();
 			if($this->response->result) { $this->response->SetResponse(true); }
-			else { $this->response->SetResponse(false, 'no se actualizo el registro'); }
+			else { $this->response->SetResponse(false, 'No se actualizo el registro'); }
 		} catch(\PDOException $ex) {
 			$this->response->errors = $ex;
-			$this->response->SetResponse(false, "catch: add model $this->tableSPP");
+			$this->response->SetResponse(false, "catch: eliminar tipo de usuario $this->tableSPP");
 		}
 		return $this->response;
 	}

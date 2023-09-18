@@ -47,6 +47,14 @@
 			return $this->response->SetResponse(true);
 		}
 
+		public function getPermisosByUser($usuario_id){
+			$this->response->result = $this->db
+				->from($this->table)
+				->where("usuario_id", $usuario_id)
+				->fetchAll();
+			return $this->response->SetResponse(true);
+		}
+
 		public function getAll() {
 			$this->response->result = $this->db
 				->from($this->table)
@@ -68,7 +76,7 @@
 					->execute();
 
 				if($this->response->result != 0) $this->response->SetResponse(true, 'id del registro: '.$this->response->result);    
-				else { $this->response->SetResponse(false, 'no se inserto el registro'); }
+				else { $this->response->SetResponse(false, 'No se agregó el permiso'); }
 
 			} catch(\PDOException $ex) {
 				$this->response->errors = $ex;
@@ -95,24 +103,6 @@
 
 			return $this->response;
 		}
-
-		public function del($id) {
-			try {
-				$this->response->result = $this->db
-					->deleteFrom($this->table)
-					->where('id_permiso', $id)
-					->execute();
-
-				if($this->response->result!=0)	$this->response->SetResponse(true, 'id eliminado: '.$id);
-				else	$this->response->SetResponse(false, 'no se elimino el registro');
-
-			} catch(\PDOException $ex) {
-				$this->response->errors = $ex;
-				$this->response->SetResponse(false, "catch: del model.... $this->table");
-			}
-
-			return $this->response;
-		}
 		
 		public function delUserAccion($usuario_id, $seg_accion_id) {
 			try {
@@ -128,6 +118,24 @@
 			} catch(\PDOException $ex) {
 				$this->response->errors = $ex;
 				$this->response->SetResponse(false, "catch: del model $this->table");
+			}
+
+			return $this->response;
+		}
+
+		public function delPermisoUser($id){
+			try {
+				$this->response->result = $this->db
+					->deleteFrom($this->table)
+					->where('id', $id)
+					->execute();
+
+				if($this->response->result!=0)	$this->response->SetResponse(true, 'id eliminado: '.$id);
+				else	$this->response->SetResponse(false, 'No se elimino el registro '.$id);
+
+			} catch(\PDOException $ex) {
+				$this->response->errors = $ex;
+				$this->response->SetResponse(false, "catch: del model.... $this->table");
 			}
 
 			return $this->response;

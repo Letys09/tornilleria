@@ -134,7 +134,6 @@ use App\Lib\Auth,
 
 					if(!$existe){
 						$general = [
-							'sucursal_id' => $parsedBody['usuario_tipo_id'],
 							'usuario_tipo_id' => $parsedBody['usuario_tipo_id'],
 							'direccion_id' => $dir_id,
 							'nombre' => $parsedBody['nombre'],
@@ -148,13 +147,20 @@ use App\Lib\Auth,
 						];
 						$add = $this->model->usuario->add($general, 'usuario');
 						if($add->response){
+							$usuario_id = $add->result;
+							$permisos = $this->model->usuario->getPermisosPerfil($parsedBody['usuario_tipo_id'])->result;
+							foreach($permisos as $permiso){
+								$dataPermisos = ['usuario_id' => $usuario_id, 'fecha_asigno' => date('Y-m-d H:i:s'), 'seg_accion_id' => $permiso->seg_accion_id];
+								$this->model->seg_permiso->add($dataPermisos);
+							}
+
 							$contenido = '<h3><strong>Bienvenido a '.SITE_NAME.'</strong></h3>';
 							$contenido .= 'Se te ha agregado en el sistema <strong>'.SITE_NAME.'</strong>, con tu correo '.$parsedBody['email'].' y la contraseña que proporcionaste.<br>';
 							$contenido .= 'Para cambiar de usuario rápidamente, puedes usar el siguiente <strong>Switch Code</strong> dentro del sistema: <strong>'.$passcode.'</strong> ';
 							$contenido .= 'Recuerda que tu <strong>Switch Code</strong> es único e irrepetible y de uso exclusivamente personal. No debes compartirlo con nadie.';
 							$this->model->usuario->sendEmail($parsedBody['email'], 'Bienvenido a '.SITE_NAME, $contenido);
 
-							$seg_log = $this->model->seg_log->add('Agrega usuario', 'usuario', $add->result, 1);
+							$seg_log = $this->model->seg_log->add('Agrega usuario', 'usuario', $usuario_id, 1);
 							if($seg_log->response){
 								$add->state = $this->model->transaction->confirmaTransaccion();	
 								return $res->withJson($add);
@@ -190,7 +196,6 @@ use App\Lib\Auth,
 				$infoUser = $this->model->usuario->get($args['id'])->result;
 				
 				$general = [
-					'sucursal_id' => $parsedBody['sucursal_id'],
 					'usuario_tipo_id' => $parsedBody['usuario_tipo_id'],
 					'nombre' => $parsedBody['nombre'],
 					'apellidos' => $parsedBody['apellidos'],
@@ -229,9 +234,21 @@ use App\Lib\Auth,
 				}
 
 				if(!$igual){
+					if($infoUser->usuario_tipo_id != $parsedBody['usuario_tipo_id']){
+						$permisos = $this->model->seg_permiso->getPermisosByUser($args['id'])->result;
+						foreach($permisos as $permiso){
+							$this->model->seg_permiso->delPermisoUser($permiso->id);
+						}
+
+						$nuevos = $this->model->usuario->getPermisosPerfil($parsedBody['usuario_tipo_id'])->result;
+						foreach($nuevos as $nuevo){
+							$dataPermisos = ['usuario_id' => $args['id'], 'fecha_asigno' => date('Y-m-d H:i:s'), 'seg_accion_id' => $nuevo->seg_accion_id];
+							$this->model->seg_permiso->add($dataPermisos);
+						}
+					}
 					$edit = $this->model->usuario->edit($general, $args['id'], 'usuario');
 					if($edit->response){
-						$seg_log = $this->model->seg_log->add('Modifica usuario', $args['id'], '1');
+						$seg_log = $this->model->seg_log->add('Modifica usuario', 'usuario', $args['id'], '1');
 						if(!$seg_log->response){
 							$seg_log->state = $this->model->transaction->regresaTransaccion();
 						}
@@ -242,7 +259,7 @@ use App\Lib\Auth,
 				if(!$dirIgual){
 					$edit = $this->model->usuario->edit($dataDir, $infoUser->direccion_id, 'direccion');
 					if($edit->response){
-						$seg_log = $this->model->seg_log->add('Modifica dirección', $infoUser->direccion_id, '1');
+						$seg_log = $this->model->seg_log->add('Modifica dirección', 'direccion', $infoUser->direccion_id, '1');
 						if(!$seg_log->response){
 							$seg_log->state = $this->model->transaction->regresaTransaccion();
 						}
@@ -354,9 +371,9 @@ use App\Lib\Auth,
 		$this->post('createProfile', function ($req, $res, $args) {
 			$this->model->transaction->iniciaTransaccion();
 			$parsedBody = $req->getParsedBody();
-			$desc = $parsedBody['descripcion'];
+			$nombre = $parsedBody['nombre'];
 
-			$existe = $this->model->usuario->findPerfil($desc);
+			$existe = $this->model->usuario->findPerfil($nombre);
 			if(!$existe->response){
 				$existe->state = $this->model->transaction->regresaTransaccion();
 				return $res->withJson($existe);
@@ -383,7 +400,7 @@ use App\Lib\Auth,
 			}else{
 				$updateProfile = $this->model->usuario->updateTypeUser($args['id'], $parsedBody);
 				if($updateProfile->response){
-					$seg_log = $this->model->seg_log->add('Modifica tipo de usuario', $args['id'], '2');
+					$seg_log = $this->model->seg_log->add('Modifica tipo de usuario', 'usuario_tipo', $args['id'], 0);
 					if($seg_log->response){
 						$seg_log->state = $this->model->transaction->confirmaTransaccion();
 					}else{
@@ -419,12 +436,12 @@ use App\Lib\Auth,
 		$this->post('updatePermitTypeUser', function ($req, $res, $args) {
 			$parsedBody = $req->getParsedBody();
 			$agrega = $parsedBody['agrega']; 
-			$data = array('fk_perfil'   => $parsedBody['fk_perfil'], 
+			$data = array('usuario_tipo_id'   => $parsedBody['usuario_tipo_id'], 
 						  'seg_accion_id'   => $parsedBody['seg_accion_id'],);
 			if ($agrega == true) {
 				return $res->withJson($this->model->usuario->updatePermitTypeUser($data));
 			}else if ($agrega == false){
-				$id = $parsedBody['fk_perfil']; 
+				$id = $parsedBody['usuario_tipo_id']; 
 				$seg_accion_id = $parsedBody['seg_accion_id']; 
 				return $res->withJson($this->model->usuario->DeleteTypeUser($seg_accion_id, $id));
 			}
