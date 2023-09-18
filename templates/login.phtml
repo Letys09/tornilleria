@@ -38,7 +38,7 @@
                                             <div class="text-center" id="bienvenida">
                                                 <h2>BIENVENIDO</h2>
                                                 <br>
-                                                <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/torni-removebg-preview.png" alt="Logo"/>
+                                                <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Logo"/>
                                             </div>
                                             <br><hr>
                                             <?php if(!isset($_SESSION['sucursal_id'])) : ?>
@@ -149,7 +149,7 @@
                         blockPage();
                         $.post($apiUrl+'usuario/login', {sucursal: sucursal, user: usuario, contrasena: pass}, function(resp) {
                             if(resp.response){
-                            window.location.href = $apiUrl+'bienvenida'; 
+                                window.location.href = $apiUrl+'principal'; 
                             }else{
                             $('.datosLogin').append(resp.message+'<br> Verifica tus datos.');
                             $.unblockUI();

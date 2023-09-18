@@ -14,12 +14,12 @@
 			if((isset($_SESSION['usuario']))) {
 				if($args['name'] == '') {
 					return $this->view->render($response, 'login.phtml', $args);
-				}else if($args['name'] == 'bienvenida'){
+				}else if($args['name'] == 'principal'){
 					$user = $_SESSION['usuario']->id;
 					$permisos = $this->model->usuario->getAcciones($user, 0);
 					$arrPermisos = getPermisos($permisos); 
-					$params = array('vista' => ucfirst($args['name']), 'permisos' => $arrPermisos, 'todo' => $this);
-					return $this->view->render($response, 'bienvenida.phtml', $params);
+					$params = array('vista' => ucfirst($args['name']), 'permisos' => $arrPermisos, 'todo' => $this, 'modulos' => $_SESSION['permisos']);
+					return $this->view->render($response, 'principal.phtml', $params);
 				}else{
 					$params = array('vista' => ucfirst($args['name']));
 					try{
