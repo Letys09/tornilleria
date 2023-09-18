@@ -368,12 +368,20 @@
                                                 </div>
                                             </div>       
                                             <div class="form-group row mt-1">
-                                                <div class="col-sm-6">
+                                                <div class="col-sm-4">
                                                     <label class="form-label fs-5" for="baja-fecha">Fecha *</label>
                                                     <input type="date" id="baja-fecha" class="form-control" min="<?= date('Y-m-01') ?>" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-d')?>">
                                                 </div>
-                                                <div class="col-sm-6">
-                                                    <label class="form-label fs-5" for="baja-cantidad">Cantidad del producto a dar de baja *</label>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fs-5" for="baja-motivo">Motivo *</label>
+                                                    <select class="form-control" id="baja-motivo">
+                                                        <option value="0" selected disabled>Seleccione una opción</option>
+                                                        <option value="2">Perdida</option>
+                                                        <option value="3">Merma</option>
+                                                    </select>
+                                                </div>
+                                                <div class="col-sm-4">
+                                                    <label class="form-label fs-5" for="baja-cantidad">Cantidad a dar de baja *</label>
                                                     <input type="number" id="baja-cantidad" class="form-control" min="1">
                                                 </div>
                                             </div>                                        
@@ -452,13 +460,16 @@
                                                 </div>
                                                 <div class="card-body cardBody">
                                                     <div class="" id="inventario">
-                                                        <div class="alert alert-info p-1 text" role="alert">
+                                                        <div class="alert instrucciones p-1 text" role="alert">
                                                             <p>
                                                                 Este módulo es para dar de alta de forma masiva los productos, contenidos en un Excel con el layout siguiente:
-                                                                <br><center><b>Categoría, Subcategoría, Área, Nombre, Descripción, Código, Marca, Mínimo, Venta por kilo, Venta por kilo (Cantidad), Venta por kilo (Precio) y Rangos de precios.</b></center> <br>
-                                                                * Columna I -> Venta por kilo, para indicar que el producto se vende por kilo colocar 1 en caso de que no colocar 0. <br>
-                                                                * Columna J -> Venta por kilo (Cantidad), si en la columna I especificó que el producto se vende por kilo (1), en esta columna debe indicar el número de piezas que conforman un kilo del producto. <br>
-                                                                * Columna K -> Venta por kilo (Precio), si en la columna I especificó que el producto se vende por kilo (1), en esta columna debe indicar el precio en el que vende el kilo del producto.
+                                                                <br><center><b>Categoría, Subcategoría, Área, Nombre, Descripción, Unidad de Medida, Código, Marca, Mínimo, Clave SAT, Venta por kilo, Venta por kilo (Cantidad), Venta por kilo (Código).</b></center> <br>
+                                                                * Columna F -> Unidad de Medida, debe colocar solo uno de los siguientes números: <b>1</b> indicará que el producto se vende por pieza, <b>3</b> indicará que el producto se vende por metro.<br>
+                                                                * Columna G -> Código, ningún código de producto debe estar repetido, en caso de que alguno se repita el sistema solo dará de alta los productos anteriores al del código repetido.
+                                                                * Columna K -> Venta por kilo, para indicar que el producto se vende por kilo colocar 1 en caso de que no colocar 0. <br>
+                                                                * Columna L -> Venta por kilo (Cantidad), si en la columna K especificó que el producto se vende por kilo (1), en esta columna debe indicar el número de piezas que conforman un kilo del producto. <br>
+                                                                * Columna M -> Venta por kilo (Código), si en la columna K especificó que el producto se vende por kilo (1), en esta columna debe indicar el código utilizado para vender el producto por kilo.<br>
+                                                                * Al indicar que el producto se vende por kilo el sistema agregará de manera automática un producto con unidad de medida <b>kilo</b>.
                                                                 <br>
                                                                 Antes de continuar verifique que el Excel que está seleccionando cumple con ese layout, de lo contrario no se podrán agregar los productos. <br>Si requiere descargar el formato del layout, lo puede hacer desde 
                                                                 <button class="btn btn-sm btn-success" id="btnExcel">Aquí</button><br><br>
@@ -513,25 +524,26 @@
                                                 </div>
                                                 <div class="card-body cardBody">
                                                     <div class="" id="inventario">
-                                                        <div class="alert alert-info p-1 text" role="alert">
+                                                        <div class="alert instrucciones p-1 text" role="alert">
                                                             Seleccione área, categoría y subcategoría a las que pertenecen los productos de los cuales va a modificar el precio.
                                                             <div class="form-group row">
                                                                 <div class="col-sm-4">
-                                                                    <label class="form-label fw-bolder fs-5" for="precios-area">Área *</label>
+                                                                    <label class="form-label fw-bolder fs-5 text-white" for="precios-area">Área *</label>
                                                                     <select class="form-control" id="precios-area"></select>
                                                                 </div>
                                                                 <div class="col-sm-4">
-                                                                    <label class="form-label fw-bolder fs-5" for="precios-cat">Categoría *</label>
+                                                                    <label class="form-label fw-bolder fs-5 text-white" for="precios-cat">Categoría *</label>
                                                                     <select class="form-control" id="precios-cat"></select>
                                                                 </div>
                                                                 <div class="col-sm-4 preciosSub hidden">
-                                                                    <label class="form-label fw-bolder fs-5" for="precios-sub">Subcategoría *</label>
+                                                                    <label class="form-label fw-bolder fs-5 text-white" for="precios-sub">Subcategoría *</label>
                                                                     <select class="form-control" id="precios-sub"></select>
                                                                 </div>
                                                             </div><br>
                                                             <p>
                                                                 Este módulo es para modificar de forma masiva el precio de los productos contenidos en un Excel con el layout siguiente:
                                                                 <br><center><b>Id, Nombre, Precio Menudeo, Precio Medio-Mayoreo, Precio Mayoreo, Precio Distribuidor.</b></center><br>
+                                                                <b>IMPORTANTE: Este procedimiento se debe realizar por sucursal, el archivo que aquí se cargue únicamente modificará los precios de los productos en la sucursal donde se encuentra logeado.</b><br>
                                                                 Antes de continuar verifique que el Excel que está seleccionando cumple con ese layout, de lo contrario no se podrá modificar el precio de los productos. <br>Descargue el layout desde 
                                                                 <button class="btn btn-sm btn-success" id="btnPrecios">Aquí</button><br><br>
                                                                 <b>Especificaciones: <br>
@@ -640,7 +652,8 @@
                     $.each(resp, function(index, item){
                         $('#rango-'+index).val(item)
                     })
-                    $('#rango-distribuidor').val(parseInt(resp.mayoreo)+1)
+                    mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                    $('#rango-distribuidor').val(parseInt(mayoreo)+1)
                 })
                 $('#prod_rangos_id').val(prod_id)
                 $('#frm-listadoP h4').html('rangos de precios "'+producto+'"')
@@ -675,8 +688,8 @@
                 $('#tbl-producto').on('click', '.btnBaja', function(){
                     prod_id = $(this).data('id')
                     tr = $(this).closest('tr')
-                    name = $(tr).find('td:eq(4)').text()
-                    stock = $(tr).find('td:eq(3)').text()
+                    name = $(tr).find('td:eq(0)').text()
+                    stock = $(tr).find('td:eq(5)').text()
                     $('#frm-baja h4').html('baja de inventario')
                     $('#nameP').val(name)
                     $('#existencia').val(stock)
@@ -686,11 +699,13 @@
                     if(stock == 0){
                         error('existencia', 'No hay stock disponible para dar de baja')
                         $('#baja-fecha').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#baja-motivo').prop('disabled', true).attr('disabled', 'disabled')
                         $('#baja-cantidad').prop('disabled', true).attr('disabled', 'disabled')
                         $('#baja-comentarios').prop('disabled', true).attr('disabled', 'disabled')
                         $('#btnBajaP').prop('disabled', true).attr('disabled', 'disabled')
                     }else{
                         $('#baja-fecha').prop('disabled', false).attr('disabled', false)
+                        $('#baja-motivo').prop('disabled', false).attr('disabled', false)
                         $('#baja-cantidad').prop('disabled', false).attr('disabled', false)
                         $('#baja-comentarios').prop('disabled', false).attr('disabled', false)
                         $('#btnBajaP').prop('disabled', false).attr('disabled', false)
@@ -712,7 +727,7 @@
 
                 $('#btnBajaP').click(function(){
                     data = {}
-                    $.each($('#frm-baja input, #frm-baja textarea'), function(index, elem){
+                    $.each($('#frm-baja input, #frm-baja textarea, #frm-baja select'), function(index, elem){
                         if(!$(elem).hasClass('empty')){
                             ide = $(elem).attr('id').replace('baja-','')
                             data[ide] = $.trim($(elem).val())
@@ -752,6 +767,7 @@
 
             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
                 $('#tbl-producto').on('click', '.btnEdit', function(){
+                    $('#kilo').prop('checked', false)
                     categorias('categoria'); areas('prod-prod_area_id'); clear(); 
                     $('#frm-producto h4').html('editar producto')
                     id = $(this).data('id')
@@ -921,6 +937,7 @@
                     if(resp.response){
                         toastr["success"]("¡Listo!", "Se realizó la carga del inventario.")
                         $('#frm-masiva').modal('hide')
+                        getItems('tbl-producto')
                     }else{
                         if(resp.error == 23000) toastr["error"]("¡Código repetido!", resp.message)
                         else toastr["error"]("¡Ocurrió un error inesperado!", 'No se pudo completar la carga de productos.')
@@ -963,7 +980,16 @@
                     cat = $('#precios-cat').val()
                     sub = $('#precios-sub').val()
                     area = $('#precios-area').val()
-                    window.open(apiUrl+'producto/precios/'+cat+'/'+sub+'/'+area)
+                    
+                    if(area == null){
+                        error('precios-area', 'Debe seleccionar una opción')
+                    }else if(cat == null){
+                        error('precios-cat', 'Debe seleccionar una opción')
+                    }else if(sub == null){
+                        error('precios-sub', 'Debe seleccionar una opción')
+                    }else{
+                        window.open(apiUrl+'producto/precios/'+cat+'/'+sub+'/'+area)
+                    }
                 })
 
                 $('#layout_precios').dropzone({
@@ -993,7 +1019,7 @@
                 Dropzone.forElement("#layout_precios").on("success", function(file, resp, formData) {
                     console.log(resp)
                     if(resp.response){
-                        toastr["success"]("¡Listo!", "Se actualizaron los precios de los prodcutos.")
+                        toastr["success"]("¡Listo!", "Se actualizaron los precios de los productos.")
                         $('#frm-precios').modal('hide')
                     }else{
                         toastr["error"]("¡Ocurrió un error inesperado!", 'No se pudo completar la actualización de precios.')

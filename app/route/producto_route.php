@@ -32,7 +32,10 @@ use App\Lib\Auth,
         $this->get('getBy/{param}', function($req, $res, $args){
             $prods = $this->model->producto->getBy($args['param'])->result;
             foreach($prods as $prod){
-                $prod->nombre = $prod->nombre.', '.$prod->marca.', '.$prod->descripcion.', '.$prod->codigo;
+                $marca = $prod->marca != '' ? ', '.$prod->marca : '';
+                $descripcion = $prod->descripcion != '' ? ', '.$prod->descripcion : '';
+                $codigo = $prod->codigo != '' ? ', '.$prod->codigo : '';
+                $prod->nombre = $prod->nombre.$marca.$descripcion.$codigo;
             }
             return $res->withJson($prods);
         });
@@ -165,9 +168,9 @@ use App\Lib\Auth,
 
             if(!$precios){
                 $dataPrecios['actualiza'] = date('Y-m-d H:i:s');
-                $edit = $this->model->producto->edit('prod_precio', 'id', $dataPrecios, $info->precio_id);
+                $edit = $this->model->producto->edit('prod_precio', 'id', $dataPrecios, $info->prod_precio_id);
                 if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Modifica precios de producto', 'prod_precio', $info->precio_id, 1);
+                    $seg_log = $this->model->seg_log->add('Modifica precios de producto', 'prod_precio', $info->prod_precio_id, 1);
                     if(!$seg_log->response){
                         $seg_log->state = $this->model->transaction->regresaTransaccion();
                     }
@@ -529,7 +532,7 @@ use App\Lib\Auth,
                 'producto_id' => $producto_id,
                 'usuario_id' => $usuario,
                 'fecha' => $fecha,
-                'tipo' => 2,
+                'tipo' => $parsedBody['motivo'],
                 'cantidad' => $parsedBody['cantidad'],
                 'comentarios' => $parsedBody['comentarios']
             ];
@@ -584,43 +587,20 @@ use App\Lib\Auth,
             $sheet->getColumnDimension('K')->setAutoSize(true);
             $sheet->getColumnDimension('L')->setAutoSize(true);
             $sheet->getColumnDimension('M')->setAutoSize(true);
-            $sheet->getColumnDimension('N')->setAutoSize(true);
-            $sheet->getColumnDimension('O')->setAutoSize(true);
-            $sheet->getColumnDimension('P')->setAutoSize(true);
-            $sheet->getColumnDimension('Q')->setAutoSize(true);
-            $sheet->getColumnDimension('R')->setAutoSize(true);
-            $sheet->getColumnDimension('S')->setAutoSize(true);
-            $sheet->getColumnDimension('T')->setAutoSize(true);
-
-            $sheet->mergeCells('L1:M1');
-            $sheet->mergeCells('N1:O1');
-            $sheet->mergeCells('P1:Q1');
-            $sheet->getStyle("L1:M1")->getAlignment()->setHorizontal('center');
-            $sheet->getStyle("N1:O1")->getAlignment()->setHorizontal('center');
-            $sheet->getStyle("P1:Q1")->getAlignment()->setHorizontal('center');
            
-            $sheet->setCellValue("A2", 'Categoría');
-            $sheet->setCellValue("B2", 'Subcategoría');
-            $sheet->setCellValue("C2", 'Área');
-            $sheet->setCellValue("D2", 'Nombre');
-            $sheet->setCellValue("E2", 'Descripción');
-            $sheet->setCellValue("F2", 'Código');
-            $sheet->setCellValue("G2", 'Marca');
-            $sheet->setCellValue("H2", 'Mínimo');
-            $sheet->setCellValue("I2", 'Venta por kilo (0->No, 1->Si)');
-            $sheet->setCellValue("J2", 'Venta por kilo (Cantidad)');
-            $sheet->setCellValue("K2", 'Venta por kilo (Precio)');
-            $sheet->setCellValue("L1", 'MENUDEO');
-            $sheet->setCellValue("L2", 'Hasta');
-            $sheet->setCellValue("M2", 'Precio');
-            $sheet->setCellValue("N1", 'MEDIO MAYOREO');
-            $sheet->setCellValue("N2", 'Hasta');
-            $sheet->setCellValue("O2", 'Precio');
-            $sheet->setCellValue("P1", 'MAYOREO');
-            $sheet->setCellValue("P2", 'Hasta');
-            $sheet->setCellValue("Q2", 'Precio');
-            $sheet->setCellValue("R1", 'DISTRIBUIDOR');
-            $sheet->setCellValue("R2", 'Precio');
+            $sheet->setCellValue("A1", 'Categoría');
+            $sheet->setCellValue("B1", 'Subcategoría');
+            $sheet->setCellValue("C1", 'Área');
+            $sheet->setCellValue("D1", 'Nombre');
+            $sheet->setCellValue("E1", 'Descripción');
+            $sheet->setCellValue("F1", 'Unidad de Medida (1->Pieza, 3->Metro)');
+            $sheet->setCellValue("G1", 'Código');
+            $sheet->setCellValue("H1", 'Marca');
+            $sheet->setCellValue("I1", 'Mínimo');
+            $sheet->setCellValue("J1", 'Clave SAT');
+            $sheet->setCellValue("K1", 'Venta por kilo (0->No, 1->Si)');
+            $sheet->setCellValue("L1", 'Venta por kilo (Cantidad)');
+            $sheet->setCellValue("M1", 'Venta por kilo (Código)');
             $sheet->setTitle('Hoja 1');
 
             $writer = new Xlsx($spreadsheet);
@@ -641,10 +621,13 @@ use App\Lib\Auth,
            
             $sheet->setCellValue("A1", 'ID');
             $sheet->setCellValue("B1", 'Nombre');
-            $sheet->setCellValue("C1", 'Precio Menudeo');
-            $sheet->setCellValue("D1", 'Precio Medio-Mayoreo');
-            $sheet->setCellValue("E1", 'Precio Mayoreo');
-            $sheet->setCellValue("F1", 'Precio Distribuidor');
+            $sheet->setCellValue("C1", 'Menudeo (Hasta)');
+            $sheet->setCellValue("D1", 'Precio Menudeo');
+            $sheet->setCellValue("E1", 'Medio-Mayoreo (Hasta)');
+            $sheet->setCellValue("F1", 'Precio Medio-Mayoreo');
+            $sheet->setCellValue("G1", 'Mayoreo (Hasta)');
+            $sheet->setCellValue("H1", 'Precio Mayoreo');
+            $sheet->setCellValue("I1", 'Precio Distribuidor');
             $sheet->setTitle('Hoja 1');
             $fila = 2;
 
@@ -654,9 +637,12 @@ use App\Lib\Auth,
                 $sheet->setCellValue("A$fila", $prod->id);
                 $sheet->setCellValue("B$fila", $prod->nombre);
                 $sheet->setCellValue("C$fila", $prod->menudeo);
-                $sheet->setCellValue("D$fila", $prod->medio);
-                $sheet->setCellValue("E$fila", $prod->mayoreo);
-                $sheet->setCellValue("F$fila", $prod->distribuidor);
+                $sheet->setCellValue("D$fila", $prod->precio_menudeo);
+                $sheet->setCellValue("E$fila", $prod->medio);
+                $sheet->setCellValue("F$fila", $prod->precio_medio);
+                $sheet->setCellValue("G$fila", $prod->mayoreo);
+                $sheet->setCellValue("H$fila", $prod->precio_mayoreo);
+                $sheet->setCellValue("I$fila", $prod->precio_distribuidor);
                 $fila++;
             }
 
@@ -682,7 +668,7 @@ use App\Lib\Auth,
 
 			$documento = IOFactory::load($directory.DIRECTORY_SEPARATOR.$filename);
     		$hojaActual = $documento->getSheet(0);
-			$fila = 3;
+			$fila = 2;
 
 			while(strlen($hojaActual->getCell("A$fila")->getValue()) != '') {
                 $categoria = $hojaActual->getCell("A$fila")->getValue();
@@ -713,79 +699,94 @@ use App\Lib\Auth,
                 }
                 $data = [  
                     'prod_categoria_id' => $subId,
+                    'prod_unidad_medida_id' => $hojaActual->getCell("F$fila")->getValue(),
                     'prod_area_id' => $areaId,
                     'nombre' => $hojaActual->getCell("D$fila")->getValue(),
                     'descripcion' => $hojaActual->getCell("E$fila")->getValue(),
-                    'codigo' => $hojaActual->getCell("F$fila")->getValue(),
-                    'marca' => $hojaActual->getCell("G$fila")->getValue(),
-                    'minimo' => $hojaActual->getCell("H$fila")->getValue(),
-                    'venta_kilo' => $hojaActual->getCell("I$fila")->getValue(),
-                    'menudeo' => $hojaActual->getCell("L$fila")->getValue(),
-                    'medio' => $hojaActual->getCell("N$fila")->getValue(),
-                    'mayoreo' => $hojaActual->getCell("P$fila")->getValue(),
+                    'codigo' => $hojaActual->getCell("G$fila")->getValue(),
+                    'marca' => $hojaActual->getCell("H$fila")->getValue(),
+                    'minimo' => $hojaActual->getCell("I$fila")->getValue(),
+                    'venta_kilo' => $hojaActual->getCell("K$fila")->getValue(),
+                    'clave_sat' => $hojaActual->getCell("J$fila")->getValue(),
                 ];
                 $addProd = $this->model->producto->add($data, 'producto');
                 if($addProd->response){
                     $prod_origen = $addProd->result;
-                    $dataPrecio = [
-                        'producto_id' => $prod_origen,
-                        'menudeo' =>  $hojaActual->getCell("M$fila")->getValue(),
-                        'medio' =>  $hojaActual->getCell("O$fila")->getValue(),
-                        'mayoreo' =>  $hojaActual->getCell("Q$fila")->getValue(),
-                        'distribuidor' =>  $hojaActual->getCell("R$fila")->getValue(),
-                    ];
-                    $addPrecio = $this->model->producto->add($dataPrecio, 'prod_precio');
-                    if($addPrecio->response){
-                        if($hojaActual->getCell("I$fila")->getValue() == 1){
-                            $dataKilo = [
-                                'prod_categoria_id' => $subId,
-                                'prod_area_id' => $areaId,
-                                'nombre' => 'Kilo de '.$hojaActual->getCell("D$fila")->getValue(),
-                                'descripcion' => 'Kilo de '.$hojaActual->getCell("E$fila")->getValue(),
-                                'codigo' => 'PK'.$hojaActual->getCell("F$fila")->getValue(),
-                                'marca' => $hojaActual->getCell("G$fila")->getValue(),
-                                'es_kilo' => 1,
+                    $sucursales = $this->model->sucursal->getAll()->result;
+                    foreach($sucursales as $sucursal){
+                        $sucursal_id = $sucursal->id;
+                        $dataPrecio = [ 'producto_id' => $prod_origen, ];
+                        $addPrecio = $this->model->producto->add($dataPrecio, 'prod_precio');
+                        if($addPrecio->response){
+                            $dataRango = [ 
+                                'sucursal_id' => $sucursal_id, 
+                                'producto_id' => $prod_origen, 
+                                'prod_precio_id' => $addPrecio->result, 
                             ];
-                            $prod_kilo = $this->model->producto->add($dataKilo, 'producto');
-                            if($prod_kilo->response){
-                                $kilo_id = $prod_kilo->result;
-                                $prodKilo = [
-                                    'producto_id' => $kilo_id,
-                                    'producto_origen' => $prod_origen,
-                                    'cantidad' => $hojaActual->getCell("J$fila")->getValue(),
-                                    'precio' => $hojaActual->getCell("K$fila")->getValue()
-                                ];
-                                $kilo = $this->model->producto->add($prodKilo, 'prod_kilo');
-                                if($kilo->response){
-                                    $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
-                                    $seg_log = $this->model->seg_log->add('Agrega kilo', 'producto', $kilo_id, 1);
-                                    if(!$seg_log->response){
-                                        $seg_log->state = $this->model->transaction->regresaTransaccion();	
-                                        return $response->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
+                            $addRango = $this->model->producto->add($dataRango, 'prod_rango');
+                        }
+                    }
+                    if($hojaActual->getCell("K$fila")->getValue() == 1){
+                        $dataKilo = [
+                            'prod_categoria_id' => $subId,
+                            'prod_unidad_medida_id' => 2,
+                            'prod_area_id' => $areaId,
+                            'nombre' => 'Kilo de '.$hojaActual->getCell("D$fila")->getValue(),
+                            'descripcion' => 'Kilo de '.$hojaActual->getCell("E$fila")->getValue(),
+                            'codigo' => $hojaActual->getCell("M$fila")->getValue(),
+                            'marca' => $hojaActual->getCell("H$fila")->getValue(),
+                            'es_kilo' => 1,
+                            'clave_sat' => $hojaActual->getCell("J$fila")->getValue(),
+                        ];
+                        $prod_kilo = $this->model->producto->add($dataKilo, 'producto');
+                        if($prod_kilo->response){
+                            $kilo_id = $prod_kilo->result;
+                            $prodKilo = [
+                                'producto_id' => $kilo_id,
+                                'producto_origen' => $prod_origen,
+                                'cantidad' => $hojaActual->getCell("L$fila")->getValue()
+                            ];
+                            $kilo = $this->model->producto->add($prodKilo, 'prod_kilo');
+                            if($kilo->response){
+                                $sucursal = $this->model->sucursal->getAll()->result;
+                                foreach($sucursal as $suc){
+                                    $sucursal_id = $suc->id;
+                                    $precioKilo = [ 'producto_id' => $kilo_id, ];
+                                    $addPrecioK = $this->model->producto->add($precioKilo, 'prod_precio');
+                                    if($addPrecioK->response){
+                                        $dataRangoK = [ 
+                                            'sucursal_id' => $sucursal_id, 
+                                            'producto_id' => $kilo_id, 
+                                            'prod_precio_id' => $addPrecioK->result, 
+                                        ];
+                                        $addRangoK = $this->model->producto->add($dataRangoK, 'prod_rango');
                                     }
-                                }else{
-                                    $kilo->state = $this->model->transaction->regresaTransaccion();	
-                                    return $response->withJson($kilo->SetResponse(false, 'No se pudo agregar el kilo del producto'));
+                                }
+                                $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
+                                $seg_log = $this->model->seg_log->add('Agrega kilo', 'producto', $kilo_id, 1);
+                                if(!$seg_log->response){
+                                    $seg_log->state = $this->model->transaction->regresaTransaccion();	
+                                    return $response->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
                                 }
                             }else{
-                                $kilo->state = $this->model->transaction->regresaTransaccion();
-                                return $response->withJson($kilo->SetResponse(false, 'No se pudo agregar el producto para venta por kilo'));
+                                $kilo->state = $this->model->transaction->regresaTransaccion();	
+                                return $response->withJson($kilo->SetResponse(false, 'No se pudo agregar el kilo del producto'));
                             }
                         }else{
-                            $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
-                            if(!$seg_log->response){
-                                $seg_log->state = $this->model->transaction->regresaTransaccion();	
-                                return $response->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
-                            }
+                            $kilo->state = $this->model->transaction->regresaTransaccion();
+                            return $response->withJson($kilo->SetResponse(false, 'No se pudo agregar el producto para venta por kilo'));
                         }
                     }else{
-                        $addPrecio->state = $this->model->transaction->regresaTransaccion();	
-                        return $response->withJson($addPrecio->SetResponse(false, 'No se pudo agregar la lista de precios'));
+                        $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
+                        if(!$seg_log->response){
+                            $seg_log->state = $this->model->transaction->regresaTransaccion();	
+                            return $response->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
+                        }
                     }
                 }else{
                     if($addProd->errors->errorInfo[0] == 23000) {
                         $addProd->error = 23000;
-                        return $response->withJson($addProd->SetResponse(false, 'El código '.$hojaActual->getCell("F$fila")->getValue().' del producto '.$hojaActual->getCell("D$fila")->getValue().' en la fila '.$fila.' ya existe.'));
+                        return $response->withJson($addProd->SetResponse(false, 'El código '.$hojaActual->getCell("G$fila")->getValue().' del producto '.$hojaActual->getCell("D$fila")->getValue().' en la fila '.$fila.' ya existe.'));
                     }else{
                         $addProd->state = $this->model->transaction->regresaTransaccion();	
                         return $response->withJson($addProd->SetResponse(false, 'No se pudo agregar el producto'));
@@ -800,7 +801,7 @@ use App\Lib\Auth,
         $this->post('cambiarP/', function($request, $response, $arguments){
 			$this->response = new Response();
 			$uploadedFiles = $request->getUploadedFiles();
-			$data = $request->getParsedBody();
+			$data = $request->getParsedBody(); $fecha = date('Y-m-d H:i:s');
 
 			$directory = 'data/uploads/precio/';
 			$uploadedFile = $uploadedFiles['file'];
@@ -816,28 +817,31 @@ use App\Lib\Auth,
 			$fila = 2;
 
 			while(strlen($hojaActual->getCell("A$fila")->getValue()) != '') {
-                $id_prod = $hojaActual->getCell("A$fila")->getValue();
-                $id_precio = $this->model->producto->getPrecios($id_prod)->result->id;
-                $data = [  
+                $precio_id = $hojaActual->getCell("A$fila")->getValue();
+                $id_rango = $this->model->producto->getByName('prod_rango', 'prod_precio_id', $precio_id)->result->id;
+                $rango = [
                     'menudeo' => $hojaActual->getCell("C$fila")->getValue(),
-                    'medio' => $hojaActual->getCell("D$fila")->getValue(),
-                    'mayoreo' => $hojaActual->getCell("E$fila")->getValue(),
-                    'distribuidor' => $hojaActual->getCell("F$fila")->getValue(),
-                    'actualiza' => date('Y-m-d H:i:s'),
+                    'medio' => $hojaActual->getCell("E$fila")->getValue(),
+                    'mayoreo' => $hojaActual->getCell("G$fila")->getValue(),   
+                    'actualiza' => $fecha,
                 ];
-                $edit = $this->model->producto->edit('prod_precio', 'producto_id', $data, $id_prod);
-                if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Edita precios con layout', 'prod_precio', $id_precio, 1);
-                    if(!$seg_log->response){
-                        $seg_log->state = $this->model->transaction->regresaTransaccion();	
-                        return $response->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
-                    }
-                }else{
+                $edit = $this->model->producto->edit('prod_rango', 'id', $rango, $precio_id);
+                $precio = [  
+                    'menudeo' => $hojaActual->getCell("D$fila")->getValue(),
+                    'medio' => $hojaActual->getCell("F$fila")->getValue(),
+                    'mayoreo' => $hojaActual->getCell("H$fila")->getValue(),
+                    'distribuidor' => $hojaActual->getCell("I$fila")->getValue(),
+                    'actualiza' => $fecha,
+                ];
+                $edit = $this->model->producto->edit('prod_precio', 'id', $precio, $precio_id);
+                if(!$edit->response){
                     $edit->state = $this->model->transaction->regresaTransaccion();	
-                    return $response->withJson($edit->SetResponse(false, 'No se editaron los precios del producto'));
+                    return $response->withJson($edit->SetResponse(false, 'No se editaron los precios'));
                 }
 				$fila++;
 			}
+
+            $seg_log = $this->model->seg_log->add('Edita rangos de precios con layout', 'prod_precio', $precio_id, 1);
             $edit->state = $this->model->transaction->confirmaTransaccion();	
             return $response->withJson($edit);		
 		});
