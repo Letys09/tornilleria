@@ -90,10 +90,10 @@
 
     $('#menuDatos').click(function(e){
         e.preventDefault();
-        id = $.trim($('#user-id_actualizar').val());
+        id = $.trim($('#usuario-id_actualizar').val());
         
         $.get(apiUrl+'usuario/get/'+id, function(resp){
-            $.each(resp.result, function(index, val) { $('#user-'+index).val(val); });
+            $.each(resp.result, function(index, val) { $('#usuario-'+index).val(val); });
         },'json')
 
         $('#frm-datos').modal('show');
@@ -102,31 +102,31 @@
     $('#btnActualizar').on('click',function(){
         btn = $(this);
         btn.addClass('disabled');
-        id = $('#user-id_actualizar').val()
+        id = $('#usuario-id_actualizar').val()
         data = {};
         $.each($('#frm-datos input, #frm-datos select'), function(index, item){
-            ide = $(item).attr('id').replace('user-','')
+            ide = $(item).attr('id').replace('usuario-','')
             data[ide] = $.trim($(item).val())
         })
         data['celular'] = data['celular'].replace('(','').replace(')','').replace(' ','').replace('-','')
 
         if(data.nombre.length == 0 || data.nombre.length < 3){
-            error('user-nombre', 'El nombre debe contener al menos 3 caracteres')
+            error('usuario-nombre', 'El nombre debe contener al menos 3 caracteres')
             btn.removeClass('disabled');
         }else if(data.apellidos.length == 0 || data.apellidos.length < 3){
-            error('user-apellidos', 'Este campo debe contener al menos 3 caracteres')
+            error('usuario-apellidos', 'Este campo debe contener al menos 3 caracteres')
             btn.removeClass('disabled');
         }else if(data.email.length == 0 || data.email.length < 4){
-            error('user-email', 'Debe ingresar un correo electrónico válido.')
+            error('usuario-email', 'Debe ingresar un correo electrónico válido.')
             btn.removeClass('disabled');
         }else if(id == 0 && (data.celular.length == 0 || data.celular.length < 10)){
-            error('user-celular', 'Debe ingresar un número de celular.')
+            error('usuario-celular', 'Debe ingresar un número de celular.')
             btn.removeClass('disabled');
         }else if(data.username.length == 0 || data.username.length < 3){
-            error('user-username', 'Este campo debe contener al menos 3 caracteres, es el username con el que ingresará al sistema.')
+            error('usuario-username', 'Este campo debe contener al menos 3 caracteres, es el username con el que ingresará al sistema.')
             btn.removeClass('disabled');
         }else if(id == 0 && (data.contrasena.length == 0 || data.contrasena.length < 7)){
-            error('user-contraseña', 'Debe ingresar una contraseña con más de 7 carácteres.')
+            error('usuario-contraseña', 'Debe ingresar una contraseña con más de 7 carácteres.')
             btn.removeClass('disabled');
         }else{
             $.post(apiUrl+'usuario/edit/1/'+id, data, function(resp){

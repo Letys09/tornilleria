@@ -6,6 +6,7 @@
     $icono = '';
     // echo($vista);
     switch ($vista) {
+        case 'Principal': $vista = strtoupper($_SESSION['sucursal_nombre']); break;
         case 'Usuarios': $icono = 'fas fa-user'; break;
         case 'Sucursales': $icono = 'fas fa-store'; break;
         case 'Productos': $icono = 'fas fa-boxes'; $vista = 'Inventario / Precios'; break;
@@ -115,66 +116,66 @@
                         <h5>Generales</h5>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-nombre">Nombre</label>
-                        <input type="text" class="form-control" id="user-nombre"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-nombre">Nombre</label>
+                        <input type="text" class="form-control" id="usuario-nombre"/>
                     </div>
                     <div class="mb-1"> 
-                        <label class="form-label fw-bolder fs-5" for="user-apellidos">Apellidos</label>
-                        <input type="text" id="user-apellidos" class="form-control"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-apellidos">Apellidos</label>
+                        <input type="text" id="usuario-apellidos" class="form-control"/>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-email">Email</label>
-                        <input type="text" id="user-email" class="form-control email-inputmask"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-email">Email</label>
+                        <input type="text" id="usuario-email" class="form-control email-inputmask"/>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-celular">Teléfono</label>
-                        <input type="text" id="user-celular" class="form-control phone-inputmask"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-celular">Teléfono</label>
+                        <input type="text" id="usuario-celular" class="form-control phone-inputmask"/>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-username">Username</label>
-                        <input type="text" id="user-username" class="form-control" placeholder="Nombre de usuario con el que ingresará al sistema"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-username">Username</label>
+                        <input type="text" id="usuario-username" class="form-control" placeholder="Nombre de usuario con el que ingresará al sistema"/>
                     </div>
                     <hr>
                     <div class="mb-1 alignCenter">
                         <h5>Dirección</h5>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-calle">Calle</label>
-                        <input type="text" id="user-calle" class="form-control"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-calle">Calle</label>
+                        <input type="text" id="usuario-calle" class="form-control"/>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-no_ext">No. Exterior</label>
-                        <input type="text" id="user-no_ext" class="form-control"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-no_ext">No. Exterior</label>
+                        <input type="text" id="usuario-no_ext" class="form-control"/>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-no_int">No. Interior</label>
-                        <input type="text" id="user-no_int" class="form-control"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-no_int">No. Interior</label>
+                        <input type="text" id="usuario-no_int" class="form-control"/>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-colonia">Colonia</label>
-                        <input type="text" id="user-colonia" class="form-control"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-colonia">Colonia</label>
+                        <input type="text" id="usuario-colonia" class="form-control"/>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-municipio">Municipio</label>
-                        <input type="text" id="user-municipio" class="form-control"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-municipio">Municipio</label>
+                        <input type="text" id="usuario-municipio" class="form-control"/>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-estado">Estado</label>
-                        <input type="text" id="user-estado" class="form-control"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-estado">Estado</label>
+                        <input type="text" id="usuario-estado" class="form-control"/>
                     </div>
                     <div class="mb-1">
-                        <label class="form-label fw-bolder fs-5" for="user-codigo_postal">Código Postal</label>
-                        <input type="text" id="user-codigo_postal" class="form-control"/>
+                        <label class="form-label fw-bolder fs-5" for="usuario-codigo_postal">Código Postal</label>
+                        <input type="text" id="usuario-codigo_postal" class="form-control"/>
                     </div> 
                 </div>
                 <div class="modal-footer">
                     <div class="buttonsEnd">
                         <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
                         <button type="button" class="btn btn-success mb-1 data-submit" id="btnActualizar">Actualizar</button>
-                        <input type="hidden" id="user-id_actualizar" value="<?= $id ?>">
-                        <input type="hidden" id="user-sucursal_id">
-                        <input type="hidden" id="user-usuario_tipo_id">
-                        <input type="hidden" id="user-contrasena" value="">
+                        <input type="hidden" id="usuario-id_actualizar" value="<?= $id ?>">
+                        <input type="hidden" id="usuario-sucursal_id">
+                        <input type="hidden" id="usuario-usuario_tipo_id">
+                        <input type="hidden" id="usuario-contrasena" value="">
                     </div>
                 </div>
             </form>
