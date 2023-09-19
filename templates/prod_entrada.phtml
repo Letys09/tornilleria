@@ -57,7 +57,7 @@
                                 <div class="modal-dialog modal-xl">
                                     <form class="modal-content pt-0">
                                         <div class="modal-header mb-1">
-                                            <h4 class="modal-title text-uppercase">agregar entrada de productos</h4>
+                                            <h4 class="modal-title text-uppercase"></h4>
                                             <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         </div>
                                         <div class="modal-body flex-grow-1 form-horizontal">
@@ -167,10 +167,117 @@
                                         </div>
                                         <div class="modal-footer">
                                             <div class="buttonsEnd">
-                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="reset" class="btn btn-outline-secondary mb-1 hidden" data-bs-dismiss="modal" id="salir">Salir</button>
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal" id="cancelEnt">Cancelar</button>
                                                 <button type="button" class="btn btn-success mb-1 data-submit" id="btnSave">Guardar</button>
                                                 <input type="hidden" id="prod_id" value="0">
                                                 <input type="hidden" id="entrada_id" value="0">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-ver_entrada" >
+                                <div class="modal-dialog modal-xl">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase"></h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">
+                                            <div class="mb-1 form-group row">
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fw-bolder fs-5" for="sucursal_nombre">Sucursal</label>
+                                                    <input class="form-control" id="sucursal_nombre">
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fw-bolder fs-5" for="folio">Folio</label>
+                                                    <input type="text" class="form-control" id="folio">
+                                                </div>
+                                            </div>
+
+                                            <section class="row">
+                                                <div class="col-sm">
+                                                    <table id="tbl_ver_entrada" class="table table-bordered table-sm">
+                                                        <thead>
+                                                            <tr>
+                                                                <th class="fw-bolder" width="45%">Producto</th>
+                                                                <th class="fw-bolder" width="10%">Cantidad</th>
+                                                                <th class="fw-bolder" width="10%">Costo</th>
+                                                                <th class="fw-bolder" width="10%">Importe</th>
+                                                                <th class="fw-bolder" width="10%">Descuento</th>
+                                                                <th class="fw-bolder" width="10%">Total</th>
+                                                            </tr>
+                                                        </thead>
+                                                        <tbody></tbody>
+                                                    </table>
+                                                </div>
+                                            </section>
+                                        </div>
+                                        <br>
+                                        <div class="col-sm-12 text-end mt-5">
+                                            <div class="col-sm-12 p-0">
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">importe </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <small>$</small>
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="importe" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">descuento </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <small>$</small>
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="descuento" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">subtotal </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <small>$</small>
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="subtotal" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">iva </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <input class="form-check-input" type="checkbox" id="iva_entrada">
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="iva" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                                <div class="form-group row m-1">
+                                                    <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">total </label>
+                                                    <div class="col-sm-2">
+                                                        <div class="input-group">
+                                                            <div class="input-group-text">
+                                                                <small>$</small>
+                                                            </div>
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total" readonly value="0.00">
+                                                        </div>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal" id="salir">Salir</button>
                                             </div>
                                         </div>
                                     </form>
@@ -192,12 +299,9 @@
 
             <?php if(in_array(MOD_ADD, $permisos)) : ?>
                 $('#btnAdd').click(function(){
-                    $.get(apiUrl+'sucursal/getAll', function(resp){
-                        $.each(resp, function(index, item){
-                            $('#entrada-sucursal').append('<option value="'+item.id+'">'+item.nombre+'</option>')
-                        })
-                        $('#entrada-sucursal').val(<?= $_SESSION['sucursal_id'] ?>)
-                    })
+                    getSucursales(<?= $_SESSION['sucursal_id'] ?>)
+                    clearAll()
+                    $('#frm-entrada h4').html('agregar entrada de productos')
                     $('#frm-entrada').modal('show')
                 })
 
@@ -322,7 +426,7 @@
                   
                     if($('#entrada_id').val() == 0){
                         console.log(data)
-                        $.post(apiUrl+'entrada/add/', data, function(resp){
+                        $.post(apiUrl+'prod_entrada/add/', data, function(resp){
                             if(resp.response){
                                 toastr["success"]("¡Listo!", "Se ha realizado la entrada de productos.")
                                 $('#frm-entrada').modal('hide')
@@ -363,6 +467,28 @@
                 }
             <?php endif; ?>
 
+            $('#tbl-entrada').on('click', '.btnVer', function(){
+                id = $(this).data('id')
+                $('#tbl_ver_entrada tbody').empty()
+                $.get(apiUrl+'prod_entrada/getEntrada/'+id, function(resp){
+                    $('#sucursal_nombre').val(resp.nombre).prop('disabled', true).attr('disabled', 'disabled')
+                    $('#folio').val(resp.folio).prop('disabled', true).attr('disabled', 'disabled')
+                    $('#importe').val(resp.importe)
+                    $('#descuento').val(resp.descuento)
+                    $('#subtotal').val(resp.subtotal)
+                    if(resp.iva != 0 && resp.iva != 0.00) $('#iva_entrada').prop('checked', true).prop('disabled', true).attr('disabled', 'disabled')
+                    else $('#iva_entrada').prop('checked', false).prop('disabled', true).attr('disabled', 'disabled')
+                    $('#iva').val(resp.iva)
+                    $('#total').val(resp.total)
+                    $('#frm-ver_entrada h4').html('entrada de productos del '+resp.date+' a las '+resp.hora)
+                    $('#tbl_ver_entrada tfoot').addClass('hidden')
+                    $.each(resp.detalles, function(index, item){
+                        addDetalle(item)
+                    })
+                    $('#frm-ver_entrada').modal('show')
+                },'json')
+            })
+
             function clear(){
                 $('#entrada-producto').focus().val('')
                 $('#entrada-cantidad').val('0')
@@ -371,6 +497,33 @@
                 $('#entrada-descuento').val('0.00')
                 $('#entrada-total').val('0.00')
                 $('#prod_id').val(0)
+            }
+
+            function clearAll(){
+                $('#entrada-producto').focus().val('')
+                $('#entrada-folio').val('')
+                $('#entrada-cantidad').val('0')
+                $('#entrada-costo').val('0.00')
+                $('#entrada-importe').val('0.00')
+                $('#entrada-descuento').val('0.00')
+                $('#entrada-total').val('0.00')
+                $('#total-importe').val('0.00')
+                $('#total-descuento').val('0.00')
+                $('#total-subtotal').val('0.00')
+                $('#iva').prop('checked', false)
+                $('#total-iva').val('0.00')
+                $('#total-total').val('0.00')
+                $('#tbl_entrada tbody').empty()
+                $('#prod_id').val(0)
+            }
+
+            function getSucursales(val=0){
+                $.get(apiUrl+'sucursal/getAll', function(resp){
+                    $.each(resp, function(index, item){
+                        $('#entrada-sucursal').append('<option value="'+item.id+'">'+item.nombre+'</option>')
+                    })
+                    $('#entrada-sucursal').val(val)
+                })
             }
 
             function getTotal(){
@@ -392,6 +545,18 @@
                 $('#total-total').val(tot+iva)
             }
 
+            function addDetalle(item){  
+                elem =  $('#tbl_ver_entrada tbody')
+                tr = $('<tr></tr>')
+                tr.append('<td>'+item.producto+'</td>')
+                tr.append('<td class="text-center">'+item.cantidad+'</td>')
+                tr.append('<td class="text-end">'+parseFloat(item.costo).toFixed(2)+'</td>')
+                tr.append('<td class="text-end">'+parseFloat(item.importe).toFixed(2)+'</td>')
+                tr.append('<td class="text-end">'+parseFloat(item.descuento).toFixed(2)+'</td>')
+                tr.append('<td class="text-end">'+parseFloat(item.total).toFixed(2)+'</td>')
+                elem.append(tr)
+            }
+
             function getItems(tbl){
                 cleanTable(tbl)
                 $('#'+tbl+' tbody').empty()
@@ -409,7 +574,7 @@
                 if($('#tbl-entrada').length){
                     $('#tbl-entrada').DataTable({
                         ajax:{
-                            url: apiUrl+'entrada/getAllDataTable',
+                            url: apiUrl+'prod_entrada/getAllDataTable',
                             type: 'GET',
                         },
                         columns: [
@@ -434,13 +599,16 @@
                                     id = full['data_id'];
                                     return (
                                         '<div class="text-center">' +
+                                            '<button type="button" class="btn btn-outline-new-success btn-sm btnVer" data-id="'+id+'" data-toggle="tooltip" title="Ver" style="margin-right:4px;">'+
+                                                feather.icons['eye'].toSvg({ class: 'font-small-4 me-20' })+
+                                            '</button>'+
                                             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
-                                                '<button type="button" id="btnEdit" class="btn btn-outline-new-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
                                                     feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
                                             <?php if(in_array(MOD_DEL, $permisos)) : ?>
-                                                '<button type="button" id="btnDel" class="btn btn-outline-danger btn-sm" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-danger btn-sm" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
                                                     feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>' +
                                             <?php endif; ?>
@@ -508,7 +676,7 @@
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-end">' +
-                                        full['importe'] +
+                                        full['total'] +
                                     '</div>';
                                     return salida;
                                 }

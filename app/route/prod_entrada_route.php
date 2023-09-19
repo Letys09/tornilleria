@@ -6,7 +6,7 @@ use App\Lib\Auth,
 
 	date_default_timezone_set('America/Mexico_City');
 
-	$app->group('/entrada/', function () use ($app){
+	$app->group('/prod_entrada/', function () use ($app){
 
         $this->get('get/{id}', function ($req, $res, $args) {
 			$prod = $this->model->producto->get($args['id'])->result;
@@ -25,6 +25,8 @@ use App\Lib\Auth,
 			$data = [];
 			if(!isset($_SESSION)) { session_start(); }
 			foreach($entradas->result as $entrada) {
+                // print_r($entrada);
+                // print_r('<hr>');
                 $data[] = array(
 					"fecha" => $entrada->date,
 					"hora" => $entrada->hora,
@@ -46,6 +48,20 @@ use App\Lib\Auth,
 			));
 			exit(0);
 		});
+
+        $this->get('getEntrada/{id}', function($req, $res, $args){
+            $entrada = $this->model->prod_entrada->get($args['id'])->result;
+            $entrada->detalles = $this->model->prod_entrada->getDetalles($args['id'])->result;
+
+            foreach($entrada->detalles as $detalle){
+                $prod = $this->model->producto->get($detalle->producto_id)->result;
+                $marca = $prod->marca != '' ? ', '.$prod->marca : '';
+                $descripcion = $prod->descripcion != '' ? ', '.$prod->descripcion : '';
+                $codigo = $prod->codigo != '' ? ', '.$prod->codigo : '';
+                $detalle->producto = $prod->nombre.$marca.$descripcion.$codigo;
+            }
+            return $res->withJson($entrada);
+        });
 
 		$this->post('add/',function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();

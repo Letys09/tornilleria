@@ -7,6 +7,7 @@ class EntradaModel {
 	private $table = 'prod_entrada';
 	private $tableDet = 'prod_det_entrada';
 	private $tableSuc = 'sucursal';
+	private $tableProd = 'producto';
 	private $response;
 	
 	public function __CONSTRUCT($db) {
@@ -14,6 +15,17 @@ class EntradaModel {
 		if(!isset($_SESSION)) { session_start(); }
 		$this->db = $db;
 		$this->response = new Response();
+	}
+
+	public function get($id){
+		$this->response->result = $this->db
+			->from($this->table)
+			->select(null)
+			->select("DATE_FORMAT(fecha, '%d-%m-%Y') as date, CAST(fecha AS TIME) as hora, sucursal_id, folio, importe, descuento, subtotal, iva, total, sucursal.nombre")
+			->where("$this->table.id", $id)
+			->where("$this->table.status", 1)
+			->fetch();
+		return $this->response->SetResponse(true);
 	}
 
 	public function getAllDataTable(){
@@ -25,6 +37,17 @@ class EntradaModel {
 			->where("$this->table.status", 1)
 			->fetchAll();
 		return $this->response;
+	}
+
+	public function getDetalles($id){
+		$this->response->result = $this->db
+			->from($this->tableDet)
+			->select(null)
+			->select("producto_id, cantidad, costo, importe, descuento, total")
+			->where("prod_entrada_id", $id)
+			->where("status", 1)
+			->fetchAll();
+		return $this->response->SetResponse(true);
 	}
 
 	public function add($data, $table){
