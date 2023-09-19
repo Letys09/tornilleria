@@ -517,7 +517,7 @@ use Slim\Http\UploadedFile;
 					$_SESSION['usuario'] = $user;
 					$_SESSION['usuario_id'] = $user->id;
 					$_SESSION['permisos'] = $newModulos;
-					$_SESSION['foto'] = $this->model->usuario->getFoto($infoUser->id);
+					$_SESSION['foto'] = $this->model->usuario->getFoto($user->id);
 
 					$this->model->seg_log->add('Inicio de sesión SwitchCode', 'usuario', $user->id, 1);
 					$this->response->username = $user->nombre;
