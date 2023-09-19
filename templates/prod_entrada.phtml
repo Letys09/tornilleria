@@ -43,7 +43,7 @@
                                             <th>Sucursal id</th>
                                             <th>Sucursal</th>
                                             <th>Importe</th>
-                                            <th>Descuento</th>
+                                            <th>Descuento %</th>
                                             <th>Subtotal</th>
                                             <th>IVA</th>
                                             <th>Total</th>
@@ -80,8 +80,8 @@
                                                                 <th class="fw-bolder" width="45%">Producto</th>
                                                                 <th class="fw-bolder" width="10%">Cantidad</th>
                                                                 <th class="fw-bolder" width="10%">Costo</th>
-                                                                <th class="fw-bolder" width="10%">Importe</th>
-                                                                <th class="fw-bolder" width="10%">Descuento</th>
+                                                                <!-- <th class="fw-bolder" width="10%">Importe</th> -->
+                                                                <!-- <th class="fw-bolder" width="10%">Descuento</th> -->
                                                                 <th class="fw-bolder" width="10%">Total</th>
                                                                 <th class="fw-bolder" width="5%"></th>
                                                             </tr>
@@ -90,11 +90,11 @@
                                                         <tfoot>
                                                             <tr>
                                                                 <td><input class="form-control form-control-sm" id="entrada-producto" placeholder="Buscar por nombre, descripción, código, marca"></td>
-                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-cantidad" value="0"></td>
-                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-costo" value="0.00"></td>
-                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-importe" value="0.00" disabled></td>
-                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-descuento" value="0.00"></td>
-                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-total" value="0.00" disabled>
+                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-cantidad" placeholder="0"></td>
+                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-costo" placeholder="0.00"></td>
+                                                                <!-- <td><input class="form-control form-control-sm text-end entrada" id="entrada-importe" placeholder="0.00" disabled></td> -->
+                                                                <!-- <td><input class="form-control form-control-sm text-end entrada" id="entrada-descuento" placeholder="0.00"></td> -->
+                                                                <td><input class="form-control form-control-sm text-end entrada" id="entrada-total" placeholder="0.00" disabled>
                                                                 <td class="text-center">
                                                                     <button type="button" class="btn btn-sm btn-success" id="btnAddRow" data-toggle="tooltip" title="Confirmar"><i class="fas fa-check"></i></button>
                                                                     <button type="button" class="btn btn-sm btn-danger" id="delRow" data-toggle="tooltip" title="Quitar"><i class="fas fa-window-close"></i></button>
@@ -123,10 +123,10 @@
                                                     <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">descuento </label>
                                                     <div class="col-sm-2">
                                                         <div class="input-group">
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-descuento" placeholder="0">
                                                             <div class="input-group-text">
-                                                                <small>$</small>
+                                                                <small>%</small>
                                                             </div>
-                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-descuento" readonly value="0.00">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -205,8 +205,8 @@
                                                                 <th class="fw-bolder" width="45%">Producto</th>
                                                                 <th class="fw-bolder" width="10%">Cantidad</th>
                                                                 <th class="fw-bolder" width="10%">Costo</th>
-                                                                <th class="fw-bolder" width="10%">Importe</th>
-                                                                <th class="fw-bolder" width="10%">Descuento</th>
+                                                                <!-- <th class="fw-bolder" width="10%">Importe</th>
+                                                                <th class="fw-bolder" width="10%">Descuento</th> -->
                                                                 <th class="fw-bolder" width="10%">Total</th>
                                                             </tr>
                                                         </thead>
@@ -233,10 +233,10 @@
                                                     <label class="col-sm-10 d-flex align-items-center justify-content-end text-uppercase">descuento </label>
                                                     <div class="col-sm-2">
                                                         <div class="input-group">
-                                                            <div class="input-group-text">
-                                                                <small>$</small>
-                                                            </div>
                                                             <input type="text" class="form-control form-control-sm text-end fs-6" id="descuento" readonly value="0.00">
+                                                            <div class="input-group-text">
+                                                                <small>%</small>
+                                                            </div>
                                                         </div>
                                                     </div>
                                                 </div>
@@ -258,7 +258,7 @@
                                                             <div class="input-group-text">
                                                                 <input class="form-check-input" type="checkbox" id="iva_entrada">
                                                             </div>
-                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="iva" readonly value="0.00">
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="iva_cant" readonly value="0.00">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -354,6 +354,14 @@
                     getTotal()
                 })
 
+                $('#total-descuento').change(function(){
+                    val = $(this).val()
+                    if(val > 100){
+                        error('total-descuento', 'No se puede aplicar un descuento mayor a 100%')
+                        $(this).val(100)
+                    }else getTotal()
+                })
+
                 data = {}; data['totales'] = {};
                 $('#tbl_entrada tfoot').on('click', '#btnAddRow', function(e){
                     e.preventDefault()
@@ -386,6 +394,7 @@
                     e.preventDefault()
 				    $(this).parents('tr').remove()
                     $('#entrada-producto').focus().val('');
+                    getTotal()
                 })
 
                 $('#tbl_entrada tfoot').on('click', '#delRow', function(e){
@@ -416,8 +425,8 @@
                                 'producto_id': $(trInfo).data('id'), 
                                 'cantidad': $(trInfo).find('.ent-cantidad').text(), 
                                 'costo': $(trInfo).find('.ent-costo').text(), 
-                                'importe': $(trInfo).find('.ent-importe').text(), 
-                                'descuento': $(trInfo).find('.ent-descuento').text(), 
+                                // 'importe': $(trInfo).find('.ent-importe').text(), 
+                                // 'descuento': $(trInfo).find('.ent-descuento').text(), 
                                 'total': $(trInfo).find('.ent-total').text(), 
                             }
                             data.entradas.push(entradas);
@@ -457,8 +466,8 @@
                     tr.append('<td>'+data.producto+'</td>')
                     tr.append('<td class="text-center ent-cantidad">'+data.cantidad+'</td>')
                     tr.append('<td class="text-end ent-costo">'+parseFloat(data.costo).toFixed(2)+'</td>')
-                    tr.append('<td class="text-end ent-importe">'+parseFloat(data.importe).toFixed(2)+'</td>')
-                    tr.append('<td class="text-end ent-descuento">'+parseFloat(data.descuento).toFixed(2)+'</td>')
+                    // tr.append('<td class="text-end ent-importe">'+parseFloat(data.importe).toFixed(2)+'</td>')
+                    // tr.append('<td class="text-end ent-descuento">'+parseFloat(data.descuento).toFixed(2)+'</td>')
                     tr.append('<td class="text-end ent-total">'+parseFloat(data.total).toFixed(2)+'</td>')
                     tr.append('<td class="text-center"><button type="button" class="btn btn-sm btn-danger btnDelRow" data-toggle="tooltip" title="Eliminar"><i class="fas fa-trash"></i></button></td>')
                     elem.append(tr)
@@ -478,7 +487,7 @@
                     $('#subtotal').val(resp.subtotal)
                     if(resp.iva != 0 && resp.iva != 0.00) $('#iva_entrada').prop('checked', true).prop('disabled', true).attr('disabled', 'disabled')
                     else $('#iva_entrada').prop('checked', false).prop('disabled', true).attr('disabled', 'disabled')
-                    $('#iva').val(resp.iva)
+                    $('#iva_cant').val(resp.iva)
                     $('#total').val(resp.total)
                     $('#frm-ver_entrada h4').html('entrada de productos del '+resp.date+' a las '+resp.hora)
                     $('#tbl_ver_entrada tfoot').addClass('hidden')
@@ -491,24 +500,24 @@
 
             function clear(){
                 $('#entrada-producto').focus().val('')
-                $('#entrada-cantidad').val('0')
-                $('#entrada-costo').val('0.00')
-                $('#entrada-importe').val('0.00')
-                $('#entrada-descuento').val('0.00')
-                $('#entrada-total').val('0.00')
+                $('#entrada-cantidad').val('')
+                $('#entrada-costo').val('')
+                $('#entrada-importe').val('')
+                $('#entrada-descuento').val('')
+                $('#entrada-total').val('')
                 $('#prod_id').val(0)
             }
 
             function clearAll(){
                 $('#entrada-producto').focus().val('')
                 $('#entrada-folio').val('')
-                $('#entrada-cantidad').val('0')
-                $('#entrada-costo').val('0.00')
-                $('#entrada-importe').val('0.00')
-                $('#entrada-descuento').val('0.00')
-                $('#entrada-total').val('0.00')
+                $('#entrada-cantidad').val('')
+                $('#entrada-costo').val('')
+                $('#entrada-importe').val('')
+                $('#entrada-descuento').val('')
+                $('#entrada-total').val('')
                 $('#total-importe').val('0.00')
-                $('#total-descuento').val('0.00')
+                $('#total-descuento').val('')
                 $('#total-subtotal').val('0.00')
                 $('#iva').prop('checked', false)
                 $('#total-iva').val('0.00')
@@ -526,23 +535,24 @@
                 })
             }
 
-            function getTotal(){
+            function getTotal(general = 0){
                 imp = 0.00; desc = 0.00; tot = 0.00;
                 $.each($('#tbl_entrada tbody tr'), function(index, trInfo) {
                     if($(trInfo).hasClass('new')){
-                        imp += parseFloat($(trInfo).find('.ent-importe').text())
-                        desc += parseFloat($(trInfo).find('.ent-descuento').text())
                         tot += parseFloat($(trInfo).find('.ent-total').text())
                     }
                 })
 
-                iva = $('#iva').is(':checked') ? parseFloat(((imp - desc)*0.16)) : parseFloat('0.00')
-                
-                $('#total-importe').val(imp)
-                $('#total-descuento').val(desc)
-                $('#total-subtotal').val(imp-desc)
-                $('#total-iva').val(iva)
-                $('#total-total').val(tot+iva)
+                descuento = $('#total-descuento').val()
+                cantDesc = ((tot * $('#total-descuento').val()) / 100)
+
+                iva = $('#iva').is(':checked') ? parseFloat(((tot - cantDesc)*0.16)) : parseFloat('0.00')
+                sub = tot-cantDesc
+                $('#total-importe').val(parseFloat(tot).toFixed(2))
+                $('#total-descuento').val(descuento)
+                $('#total-subtotal').val(parseFloat(sub).toFixed(2))
+                $('#total-iva').val(parseFloat(iva).toFixed(2))
+                $('#total-total').val(parseFloat(sub+iva).toFixed(2))
             }
 
             function addDetalle(item){  
@@ -551,8 +561,8 @@
                 tr.append('<td>'+item.producto+'</td>')
                 tr.append('<td class="text-center">'+item.cantidad+'</td>')
                 tr.append('<td class="text-end">'+parseFloat(item.costo).toFixed(2)+'</td>')
-                tr.append('<td class="text-end">'+parseFloat(item.importe).toFixed(2)+'</td>')
-                tr.append('<td class="text-end">'+parseFloat(item.descuento).toFixed(2)+'</td>')
+                // tr.append('<td class="text-end">'+parseFloat(item.importe).toFixed(2)+'</td>')
+                // tr.append('<td class="text-end">'+parseFloat(item.descuento).toFixed(2)+'</td>')
                 tr.append('<td class="text-end">'+parseFloat(item.total).toFixed(2)+'</td>')
                 elem.append(tr)
             }

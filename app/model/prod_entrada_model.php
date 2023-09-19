@@ -43,7 +43,7 @@ class EntradaModel {
 		$this->response->result = $this->db
 			->from($this->tableDet)
 			->select(null)
-			->select("producto_id, cantidad, costo, importe, descuento, total")
+			->select("producto_id, cantidad, costo, total")
 			->where("prod_entrada_id", $id)
 			->where("status", 1)
 			->fetchAll();

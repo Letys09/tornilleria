@@ -90,8 +90,6 @@ use App\Lib\Auth,
                         'producto_id' => $prod_id,
                         'cantidad' => $cantidad,
                         'costo' => $costo,
-                        'importe' => $prod_entrada['importe'],
-                        'descuento' => $prod_entrada['descuento'],
                         'total' => $prod_entrada['total'],
                     ];
                     $addDet = $this->model->prod_entrada->add($det_entrada, 'prod_det_entrada');
