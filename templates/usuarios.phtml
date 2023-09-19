@@ -162,7 +162,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <div class="buttonsFrmUser">
+                                            <div class="buttonsEnd">
                                                 <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
                                                 <button id="btnClose" type="button" class="btn btn-danger mb-1">Salir</button>
                                                 <input type="hidden" id="user-id" value="0">
@@ -187,7 +187,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <div class="buttonsFrmUser">
+                                            <div class="buttonsEnd">
                                                 <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
                                                 <button id="btnSaveNewPerfil" type="button" class="btn btn-success mb-1">Registrar</button>
                                                 <button id="btnUpdatePerfil" type="button" class="btn btn-success mb-1">Actualizar</button>
@@ -204,7 +204,7 @@
                                     <form class="modal-content pt-0">
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         <div class="modal-header mb-1">
-                                            <h4 class="modal-title" id="exampleModalLabel">Inactivar Usuario</h4>
+                                            <h4 class="modal-title text-uppercase" id="exampleModalLabel">inactivar usuario</h4>
                                         </div>
                                         <div class="modal-body flex-grow-1">
                                             <div class="mb-1">
@@ -213,7 +213,9 @@
                                             <div>
                                                 <label for="observaciones_baja" class="form-label"><h5>Observaciones</h5></label>
                                                 <textarea id="observaciones_baja" name="observaciones_baja" rows="5" cols="40" placeholder="Observaciones de la baja del usuario"></textarea>
-                                            </div><br><br>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
                                             <div class="buttonsEnd">
                                                 <input  type="hidden" id="id_user_del" value="0">
                                                 <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
@@ -229,13 +231,15 @@
                                     <form class="modal-content pt-0">
                                         <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                         <div class="modal-header mb-1">
-                                            <h4 class="modal-title" id="exampleModalLabel">Activar Usuario</h4>
+                                            <h4 class="modal-title text-uppercase" id="exampleModalLabel">activar usuario</h4>
                                         </div>
                                         <div class="modal-body flex-grow-1">
                                             <div class="mb-1">
                                                 ¿Estas seguro de cambiar el estatus de <strong></strong> a activo?
-                                            </div><hr><br><br>
-                                            <div class="buttonsFrmUser">
+                                            </div><hr>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
                                                 <input  type="hidden" id="id_user_activar" value="0">
                                                 <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                                                 <button type="button" class="btn btn-success me-1" id="btnActivar">Activar</button>
@@ -347,7 +351,7 @@
                                         </div>
                                         <div class="modal-body text-center">
                                             <input type="file" id="imagen" name="imagen" accept="image/jpeg" class="classHide">
-                                            <img id="emp-foto" src="<?= URL_DATA ?>empleado/profile.png" alt="" class="thumbnail">
+                                            <img id="usuario-foto" src="<?= URL_DATA ?>empleado/profile.png" alt="" class="thumbnail">
                                         </div>
                                         <div class="modal-footer">
                                             <?php if(in_array(MOD_ADD, $permisos) || in_array(MOD_EDIT, $permisos) ) :  ?>
@@ -700,7 +704,6 @@
 
                     $('#frm-del-user strong').html(name);
                     $('#id_user_del').val(id);
-                    $('#motivo_baja').val('0');
                     $('#observaciones_baja').val('');
                     $('#frm-del-user').modal('show');
                 });
@@ -708,47 +711,27 @@
                 $('#btnInactivar').on('click', function(){
                     btn = $(this);
                     btn.addClass('disabled');
-                    $('.alert').remove();
-                    err = $('<div class="alert alert-blink-danger"></div>');
-                    date = new Date();
-                    y = date.getFullYear();
-                    m = $.trim(date.getMonth() + 1).length == 1 ? '0'+(date.getMonth() + 1) : date.getMonth() + 1;
-                    d = $.trim(date.getDate()).length == 1 ? '0'+date.getDate() : date.getDate();
-                    baja = y+'-'+m+'-'+d;
-                    if($('#motivo_baja').val() == null){
-                        $(err).append('Seleccione el motivo de baja del usuario.');
-                        $('#motivo_baja').parent().append(err);
-                        btn.removeClass('disabled');
-                    }else if($('#observaciones_baja').val()==''){
-                        $(err).append('Agregue las observaciones de la baja del usuario.');
-                        $('#observaciones_baja').parent().append(err);
+                    if($('#observaciones_baja').val()==''){
+                        error('observaciones_baja', 'Agregue las observaciones de la baja del usuario.')
                         btn.removeClass('disabled');
                     }else{
                         id = $('#id_user_del').val();
-                        data = { 
-                            baja: baja,
+                        data = {
                             status: 0,
-                            motivo: $('#motivo_baja').val(),
                             observaciones: sinDiacriticos($('#observaciones_baja').val())
                         }
 
-                        $.ajax({
-                            url: apiUrl+'usuario/estatusUser/'+id,
-                            type: 'PUT',
-                            dataType: "json",
-                            data: data,  
-                            success: function( resp ) {
-                                if(resp.response){
-                                    toastr["success"]("Listo!", 'Usuario dado de baja');
-                                    btn.removeClass('disabled');
-                                    $('#frm-del-user').modal('hide');
-                                    getItems('tbl-usuarios');
-                                }else{
-                                    toastr["error"]("Ocurrió un error!", 'No se dio de baja al usuario');
-                                    btn.removeClass('disabled');
-                                }
-                            }  
-                        });
+                        $.post(apiUrl+'usuario/estatusUser/'+id, data, function(resp){
+                            if(resp.response){
+                                toastr["success"]("Listo!", 'Usuario dado de baja');
+                                btn.removeClass('disabled');
+                                $('#frm-del-user').modal('hide');
+                                getItems('tbl-usuarios');
+                            }else{
+                                toastr["error"]("Ocurrió un error!", 'No se dio de baja al usuario');
+                                btn.removeClass('disabled');
+                            }
+                        },'json')
                     }
                 });
 
@@ -769,23 +752,17 @@
                     id = $('#id_user_activar').val();
                     data = { status: 1}
                 
-                    $.ajax({
-                        url: apiUrl+'usuario/estatusUser/'+id,
-                        type: 'PUT',
-                        dataType: "json",
-                        data: data,  
-                        success: function( resp ) {
-                            if(resp.response){
-                                toastr["success"]("Listo!", 'Usuario activado');
-                                btn.removeClass('disabled');
-                                $('#frm-activar-user').modal('hide');
-                                getItems('tbl-usuarios');
-                            }else{
-                                toastr["error"]("Ocurrió un error!", 'No se pudo activar al usuario');
-                                btn.removeClass('disabled');
-                            }
-                        }  
-                    });
+                    $.post(apiUrl+'usuario/estatusUser/'+id, data, function(resp){
+                        if(resp.response){
+                            toastr["success"]("Listo!", 'Usuario activado');
+                            btn.removeClass('disabled');
+                            $('#frm-activar-user').modal('hide');
+                            getItems('tbl-usuarios');
+                        }else{
+                            toastr["error"]("Ocurrió un error!", 'No se activó al usuario');
+                        }
+                    },'json')
+                    btn.removeClass('disabled');
                 });
             <?php endif; ?>
 
@@ -833,54 +810,54 @@
             <?php endif; ?>
             
             <?php if(in_array(MOD_ADD, $permisos) || in_array(MOD_EDIT, $permisos) ) :  ?>
-                // $('#tbl-usuarios').on('click', '.btnFoto', function(){
-                //     id = $(this).data('id');
-                //     name = $(this).data('name');
-                //     $('#frm-user-foto h4').html(name);
-                //     $('#user-id-img').val(id);
-                //     $('#emp-foto').prop('src', '<?= URL_DATA ?>empleado/profile.png');
-                //     $.get(apiUrl+'rh/getFoto/'+id, function(data) {
-                //         if(data){
-                //             urlf = '<?= URL_DATA ?>empleado/foto'+id+'.jpg';
-                //             $('#emp-foto').prop('src', urlf);
-                //         }
-                //     });
-                //     $('#frm-user-foto').modal('show');
-                // });
-
-                // $('#btnFoto').click(function(event) { $('#imagen').trigger('click'); });
-                $('#imagen').change(function(event) {
-                var fd = new FormData();
-                var files = $('#imagen')[0].files[0];
-                var id = $('#user-id-img').val();
-                var urlf = '<?= URL_DATA ?>empleado/foto'+id+'.jpg';
-                fd.append('imagen',files);
-                fd.append('fk_empleado',id);
-                $('#resUP').addClass('hide').text('');
-                if(files.type != 'image/jpeg'){
-                    $('#resUP').removeClass('alert-info').removeClass('alert-success')
-                                .addClass('alert-danger').removeClass('hide').text('Solo se permiten imagenes JPG');
-                }else{
-                    $.ajax({
-                        url: apiUrl+'rh/addFoto',
-                        type: 'post',
-                        data: fd,
-                        contentType: false,
-                        processData: false,
-                        success: function(resp){
-                            if(resp.response){
-                                $('#emp-foto').prop('src', urlf);
-                            }else{
-                                $('#resUP').removeClass('alert-info').removeClass('alert-success')
-                                .addClass('alert-danger').text('No se pudo subir la foto. Intente nuevamente más tarde.');
-                            }
-                            $('#resUP').addClass('hide').text('');
-                            $('#imagen').val(null);
-                            getItems('tbl-usuarios');
-                        },
+                $('#tbl-usuarios').on('click', '.btnFoto', function(){
+                    id = $(this).data('id');
+                    name = $(this).data('name');
+                    $('#frm-user-foto h4').html(name);
+                    $('#user-id-img').val(id);
+                    $('#usuario-foto').prop('src', '<?= URL_DATA ?>empleado/profile.png');
+                    $.get(apiUrl+'usuario/getFoto/'+id, function(data) {
+                        if(data){
+                            urlf = '<?= URL_DATA ?>empleado/foto'+id+'.jpg';
+                            $('#usuario-foto').prop('src', urlf);
+                        }
                     });
-                }
-            });
+                    $('#frm-user-foto').modal('show');
+                });
+
+                $('#btnFoto').click(function(event) { $('#imagen').trigger('click'); });
+                $('#imagen').change(function(event) {
+                    var fd = new FormData();
+                    var files = $('#imagen')[0].files[0];
+                    var id = $('#user-id-img').val();
+                    var urlf = '<?= URL_DATA ?>empleado/foto'+id+'.jpg';
+                    fd.append('imagen', files);
+                    fd.append('usuario_id',id);
+                    $('#resUP').addClass('hide').text('');
+                    if(files.type != 'image/jpeg'){
+                        $('#resUP').removeClass('alert-info').removeClass('alert-success')
+                                    .addClass('alert-danger').removeClass('hide').text('Solo se permiten imagenes JPG');
+                    }else{
+                        $.ajax({
+                            url: apiUrl+'usuario/addFoto',
+                            type: 'post',
+                            data: fd,
+                            contentType: false,
+                            processData: false,
+                            success: function(resp){
+                                if(resp.response){
+                                    $('#usuario-foto').prop('src', urlf);
+                                }else{
+                                    $('#resUP').removeClass('alert-info').removeClass('alert-success')
+                                    .addClass('alert-danger').text('No se pudo subir la foto. Intente nuevamente más tarde.');
+                                }
+                                $('#resUP').addClass('hide').text('');
+                                $('#imagen').val(null);
+                                getItems('tbl-usuarios');
+                            },
+                        });
+                    }
+                });
             <?php endif; ?>
 
             function getItems(tbl){
@@ -965,7 +942,7 @@
                                     }
                                     if (image != '') {
                                         var output =
-                                            '<img src="' + image + '" alt="Avatar" height="40" width="35">';
+                                            '<img src="' + image + '" alt="Avatar" height="40" width="40">';
                                     } else {
                                         var stateNum = Math.floor(Math.random() * 6) + 1;
                                         var states = ['success', 'danger', 'warning', 'info', 'dark', 'primary', 'secondary'];
@@ -1029,7 +1006,7 @@
                                                     feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
-                                            <?php if(in_array(MOD_VER, $permisos)) : ?>
+                                            <?php if(in_array(MOD_ASIGP, $permisos)) : ?>
                                                 '<button type="button" class="btn btn-outline-dark btn-sm btnPermisos" data-id="'+id+'" data-toggle="tooltip" title="Permisos" style="margin-right:4px;">'+
                                                     feather.icons['lock'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+

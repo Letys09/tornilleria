@@ -23,6 +23,7 @@
 <script src="<?= URL_ROOT ?>/app-assets/plugin/typeahead.js-master/dist/typeahead.bundle.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/js/lightbox.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/plugin/session-timeout/jquery.sessionTimeout.min.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.min.js"></script>
 
 
 <script src="<?= URL_ROOT ?>/app-assets/js/core/app-menu.min.js"></script>
@@ -55,15 +56,6 @@
     );
     })();
 
-    let setError = (function(elem,msg){
-        console.log(elem,msg)
-        $('#'+elem).tooltip('destroy');
-        msg = '<span class="ddsicon-info-sign"></span> '+msg;
-        $('#'+elem).tooltip({title: msg, trigger: 'manual', template: '<div class="tooltip tooltip-error"><div class="tooltip-arrow"></div class="tooltip-inner"></div></div>', html: true});
-        $('#'+elem).tooltip('show');
-        $('#'+elem).focus();
-    });
-
     var apiUrl = '<?= URL_ROOT ?>/';
 
     toastr.options = {									
@@ -87,6 +79,49 @@
     //     logoutButton: 'Salir',
     //     ignoreUserActivity: false,
     // });
+
+    $('.btnSwitch').click(function(e){
+        e.preventDefault();
+        swal({
+            title: 'Cambiar de usuario',
+            text: 'Ingresa tu <strong class="font-weight-bold">Switch Code</strong><br><small>Se cerrará la sesión actual.</small>',
+            type: "input",
+            inputType: "password",
+            inputPlaceholder: "Switch Code (4 digitos)",
+            html: true,
+            showCancelButton: true,   
+            cancelButtonText: "Cancelar",
+            confirmButtonText: "Cambiar",
+            closeOnConfirm: false , 
+        }, function(code) {
+            if(code != ''){
+                $.post(apiUrl+"usuario/switchUser", {code: code},
+                    function (resp) {
+                        if(resp.response){
+                            swal({
+                                type: "success",
+                                title: "Bienvenido "+resp.username,   
+                                text: resp.message,
+                                showConfirmButton: false, 
+                                timer: 4000
+                            });
+                            setTimeout(() => {
+                                location.reload();
+                            }, 3000);
+                        }else{
+                            swal({
+                                type: "warning",
+                                title: "Oops!",   
+                                text: resp.message,   
+                                timer: 4000
+                            });
+                        }
+                    },
+                    "json"
+                );
+            }
+        });
+    });
 
     $('#menuDatos').click(function(e){
         e.preventDefault();

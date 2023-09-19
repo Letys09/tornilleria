@@ -226,7 +226,7 @@ input[type="search"]{
 	margin-bottom: 2px;
 }
 
-#emp-foto{
+#usuario-foto{
 	max-width: 100%; 
 	display: inline!important
 }
@@ -407,6 +407,57 @@ div.card-header.link{
 .instrucciones{
 	background-color: #5d84a5;;
 
+}
+
+.user-profile {
+    position: relative;
+    background-size: cover
+}
+
+.user-profile .setpos {
+    top: -47px;
+    right: -3px
+}
+
+.user-profile .profile-img {
+    width: 70px;
+    margin: 0 auto;
+    padding: 20px 0 5px 0;
+    border-radius: 100%
+}
+
+.user-profile .profile-img img {
+    /*padding: 5px;*/
+    width: 100%;
+    border: 1px solid rgba(120, 130, 140, 0.13);
+    border-radius: 100%
+}
+
+.user-profile .profile-text {
+    padding: 5px 0px;
+    position: relative;
+    text-align: center
+}
+
+.user-profile .profile-text>a {
+    color: #99abb4;
+    padding: 0 5px
+}
+
+.user-profile .profile-text>a:hover {
+    color: #1976d2
+}
+
+.user-profile .profile-text>a:after {
+    display: none
+}
+
+.user-profile .dropdown-menu {
+    left: 0px;
+    right: 0px;
+    top: 62px!important;
+    width: 180px;
+    margin: 0 auto
 }
 
 

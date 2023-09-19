@@ -18,6 +18,8 @@
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/plugins/forms/form-validation.css">
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/pages/authentication.css">
     <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/assets/css/style.css">
+    <link href="<?= URL_ROOT ?>/app-assets/plugin/toast/toastr.min.css" rel="stylesheet" />
+
     </head>
     <body class="vertical-layout vertical-menu-modern blank-page navbar-floating footer-static" data-open="click" onload="getSucursales()">
         <div class="app-content content ">
@@ -66,8 +68,6 @@
                                                 <button id="btnForgot" type="button" class="btn btn-link" >¿Olvidaste tu contraseña?</button>
                                             </div>
                                         </div>
-                                        <div class="alert datosLogin fs-4">
-                                        </div>
                                         <div>
                                             <input type="text" class="hidden" id="sucursal_id" value="0">
                                             <button id="btnLogin" class="btn w-100" tabindex="4">Iniciar Sesión</button>
@@ -79,23 +79,21 @@
                                             <div id="Forgotmesssage">
                                                 <h3 class="text-uppercase">restablecer contraseña</h3>
                                                 <br>
-                                                <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/torni-removebg-preview.png" alt="Logo"/>
+                                                <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Logo"/>
                                             </div>
                                             <hr>
                                             <label class="form-label" for="first-name-icon"><h5>Usuario</h5></label>
                                             <div class="input-group input-group-merge">
                                                 <span class="input-group-text"><img src="<?= URL_ROOT ?>/app-assets/images/icons/user.svg"></img></span>
-                                                <input type="text" id="user" class="form-control" placeholder="Usuario" autofocus>
+                                                <input type="text" id="user" class="form-control" placeholder="Ingrese el usuario con el que se logea en el sistema" autofocus>
                                             </div>
                                             <br>
-                                            <div id="btngc" class="btn-group btn-group-justified">
-                                                <button id="btnForgotCancel" class="btn btn-default w-100" tabindex="4">Cancelar</button>
-                                                <hr>
-                                                <button id="btnGenerate" class="btn w-100" tabindex="4">Generar</button>
-                                            </div>
+                                        </div>
+                                        <div id="btngc" class="col-sm-12 btn-group">
+                                            <button id="btnForgotCancel" class="m-1 btn btn-outline-dark w-100">Cancelar</button>
+                                            <button id="btnGenerate" class="m-1 btn w-100">Generar</button>
                                         </div>
                                     </form> 
-
                                     <hr>
                                     <p class="text-center text-muted"><small>&copy; <?php echo SITE_NAME; ?> - <?php echo date('Y'); ?></small></p>
                                 </div>
@@ -110,7 +108,14 @@
         <script src="<?= URL_ROOT ?>/app-assets/vendors/js/forms/validation/jquery.validate.min.js"></script>
         <script src="<?= URL_ROOT ?>/app-assets/js/core/app-menu.min.js"></script>
         <script src="<?= URL_ROOT ?>/app-assets/js/core/app.min.js"></script>
+        <script src="<?= URL_ROOT ?>/app-assets/plugin/toast/toastr.min.js"></script>   
         <script>
+            toastr.options = {									
+                "positionClass": "toast-top-center",
+                "progressBar": true,
+                "timeOut": "5000",
+            }
+
             $('#passwordView').click(function(){
                 if($('#passwordViewEye').val() == 0){
                     $('#passwordViewEye').val('1');
@@ -152,7 +157,7 @@
                             if(resp.response){
                                 window.location.href = $apiUrl+'principal'; 
                             }else{
-                                $('.datosLogin').append(resp.message+'<br> Verifica tus datos.');
+                                toastr["error"]("Verifique sus datos!", resp.message);
                                 $.unblockUI();
                             }
                         },'json');
@@ -168,7 +173,6 @@
                     $('#login-password').val("");
                 });
 
-                //Boton "Olvidaste Contraseña" Cancelar.
                 $('#btnForgotCancel').click(function (e) {
                     e.preventDefault();
                     $('.alert').alert('close');
@@ -178,32 +182,27 @@
                     $('#user').val("");
                 });
 
-                //Boton "Olvidaste Contraseña" Generar. 
                 $('#btnGenerate').click(function(e){
                     e.preventDefault();
-                    $('#user').focus();
-                    $('.alert').alert('close');
-                    users = $.trim($('#user').val());
-                    err = $('<div class="alert alert-danger"></div>');
+                    $('#user').focus()
+                    user = $.trim($('#user').val());
+                    err = $('<div class="alert datosRecovery"></div>');
                     btn = $(this);
 
-                    if(users.length == 0){
-                        err.append('Debes ingresar tu usuario');
-                        $(this).parent().before(err);
+                    if(user.length == 0){
+                        error('user', 'Debe ingresar su usuario')
                     } else { 
                         btn.addClass('disabled');
-                        $.post($apiUrl+'usuario/recovery', {users: users}, function(resp) { 
+                        $.post($apiUrl+'usuario/recovery', {user: user}, function(resp) { 
                             if(resp.error){
-                                err.addClass('alert-danger');
+                                toastr["error"]("Lo sentimos!", 'No se pudo generar una nueva contarseña');
                             }else{  
-                                err.addClass('alert-success');
-                                $(err).append('<center>'+resp.msg+'</center>');
+                                toastr["success"]("Listo!", resp.msg);
                             }
-                            $('#user').val('');
                             setTimeout(function() {
                                 $('#btnForgotCancel').trigger('click');
-                                $('.alert').alert('close');
-                            }, 5000);
+                                $('#user').val('')
+                            }, 7000);
                             btn.parent().before(err);
                             btn.removeClass('disabled');
                         },'json'); 

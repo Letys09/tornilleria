@@ -3,6 +3,7 @@
 	use App\Lib\Response;
 	use PHPMailer\PHPMailer\PHPMailer;
 	use PHPMailer\PHPMailer\Exception;
+	use Slim\Http\UploadedFile;
 
 class UsuarioModel {
 	private $db;
@@ -44,15 +45,15 @@ class UsuarioModel {
 		return $this->response;					
 	}
 
-	public function recovery($users){
+	public function recovery($user){
 
 		$usuario = $this->db
 			->from($this->table)
-			->select(null)->select("$this->table.id, CONCAT_WS(' ',$this->table.nombre, $this->table.apellidos) as nombre, $this->table.email, $this->table.iniciar")
-			->where('login',$users)
-			->where('status',1)
-			->where('usuario_tipo_id != 2')
+			->select(null)->select("$this->table.id, CONCAT_WS(' ',$this->table.nombre, $this->table.apellidos) as nombre, $this->table.email")
+			->where('username', $user)
+			->where('status', 1)
 			->fetch();
+
 		$this->response->result = $usuario;
 		if($this->response->result){
 			$this->response->SetResponse(true, 'Datos correctos');
@@ -272,7 +273,7 @@ class UsuarioModel {
 	}
 
 	public function estatusUser($data, $id){
-		$accion = $data['status'] == 1 ? 'activo' : 'desactivo';
+		$accion = $data['status'] == 1 ? 'activó' : 'desactivó';
 		try {
 			$this->response->result = $this->db
 				->update($this->table, $data)
@@ -287,7 +288,7 @@ class UsuarioModel {
 
 		} catch(\PDOException $ex) {
 			$this->response->errors = $ex;
-			$this->response->SetResponse(false, 'catch: edit model usuario');
+			$this->response->SetResponse(false, 'catch: cambiar estatus de usuario');
 		}
 
 		return $this->response;
@@ -325,6 +326,34 @@ class UsuarioModel {
 		}
 		return $this->response;
 	}
+
+	public function getFoto($id){
+		$archivo = '';
+        $base_url = 'data/empleado/';
+        $file = 'foto'.$id.'.jpg';
+        if(file_exists($base_url.$file)){
+            $archivo = true;
+        }else{
+            $archivo = false;
+        }
+
+        return $archivo; 
+	}
+
+	function moveUploadedFileFoto($directory, UploadedFile $uploadedFile, $data){
+        $extension = pathinfo($uploadedFile->getClientFilename(), PATHINFO_EXTENSION);
+        if($extension == 'jpg' || $extension == 'jpeg' ){
+            $extension = 'jpg';
+        }else{
+            return '0';
+        }
+        $basename = 'foto'.$data['usuario_id'];
+        $filename = sprintf('%s.%0.8s', $basename, $extension);
+
+        $uploadedFile->moveTo($directory . DIRECTORY_SEPARATOR . $filename);
+
+        return $filename;
+    }
 
 	public function findPerfil($data){
 		$this->response->result = $this->db
@@ -443,6 +472,15 @@ class UsuarioModel {
 		}
 
 		return $this->response;
+	}
+
+	public function addSessionLogin(){
+		$browser = $_SERVER['HTTP_USER_AGENT'];
+		$ipAddr = $_SERVER['REMOTE_ADDR'];
+
+		if (!isset($_SESSION)) { session_start(); }
+		$_SESSION['ip']  = $ipAddr;
+		$_SESSION['navegador']  = $browser;
 	}
 	
 }

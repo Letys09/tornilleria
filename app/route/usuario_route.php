@@ -3,6 +3,7 @@ use App\Lib\Auth,
 	App\Lib\Response,
 	App\Lib\MiddlewareToken,
 	App\Middleware\AccesoMiddleware;
+use Slim\Http\UploadedFile;
 
 	date_default_timezone_set('America/Mexico_City');
 
@@ -30,6 +31,7 @@ use App\Lib\Auth,
 				$infoSuc = $this->model->sucursal->get($sucursal_id)->result;
 				$_SESSION['sucursal_nombre'] = $infoSuc->nombre;
 				$_SESSION['sucursal_id'] = $sucursal_id;
+				$_SESSION['foto'] = $this->model->usuario->getFoto($infoUser->id);
 				
 				$browser = $_SERVER['HTTP_USER_AGENT'];
 				$ipAddr = $_SERVER['REMOTE_ADDR'];
@@ -70,7 +72,7 @@ use App\Lib\Auth,
 		$this->post('recovery',function($req, $res, $args){
 
 			$parsedBody = $req->getParsedBody();
-			$users = $parsedBody['users'];
+			$users = $parsedBody['user'];
 
 			$usuario = $this->model->usuario->recovery($users);
 
@@ -79,21 +81,20 @@ use App\Lib\Auth,
 				
 				$mail = $infoUser->email;
 				$newPass = randomString(8);
-				$newpassBD = strrev(md5(sha1(trim($newPass)))); //<-----------
+				$newpassBD = strrev(md5(sha1(trim($newPass))));
 
-				$nombre = $infoUser->nombre;			
+				$nombre = $infoUser->nombre;	
+				
+				$contenido = '<h3><strong>Hola '.$nombre.'</strong></h3>';
+				$contenido .= 'Su contraseña provisional es '.$newPass.'.<br>';
+				$contenido .= 'Puede cambiar su contraseña una vez que inicie ssión en '.URL_ROOT;
+				$contenido .= '<br><br><br>...............................................................................<br>';
+				$contenido .="Este correo fue enviado desde una cuenta no monitoreada. Por favor no responda este correo.";
+				$this->model->usuario->sendEmail($infoUser->email, 'Recuperación de contraseña', $contenido);
+				$new = ['contrasena' => $newpassBD];
+				$this->model->usuario->edit($new, $infoUser->id, 'usuario');
 
-				$disc = "\n\n\n-------------------------------------\n";
-				$disc .="Este correo fue enviado desde una cuenta no monitoreada. Por favor no respondas este correo.";
-				$to = $mail;
-				$subject = "Recuperación de Contraseña";
-				$body = "Hola ". $nombre ."\n\nTu contraseña provisional es $newPass \nPuedes cambiarla en cuanto inicies sesión en ".URL_ROOT;
-				$body = $body.$disc;
-				$header = "From: ".SITE_NAME." <notifica@blinkmensajeros.com>\r\n";
-				$resultMail = mail($to, $subject, $body, $header); 
-				//$arrRes = array('error' => false, 'msg' => 'Te enviamos una nueva contraseña a tu correo. Si no encuentras el mensaje, verifica tu bandeja de correo no deseado o spam.');
-			
-				$usuario->msg = 'Te enviamos una nueva contraseña a tu correo. <br> Si no encuentras el mensaje, verifica tu bandeja de correo no deseado o spam';
+				$usuario->msg = 'Enviamos una nueva contraseña a '.$infoUser->email.' <br> Si no encuentra el mensaje, verifique su bandeja de correo no deseado o spam';
 
 			}else{
 				$usuario->msg = 'No encontramos al usuario con el username ingresado';
@@ -292,6 +293,7 @@ use App\Lib\Auth,
 			$data = [];
 			if(!isset($_SESSION)) { session_start(); }
 			foreach($usuarios->result as $usuario) {
+				$foto = $this->model->usuario->getFoto($usuario->id);
 				$data[] = array(
 					"id" => $usuario->id,
 					"nombre" => $usuario->nombre,
@@ -302,7 +304,7 @@ use App\Lib\Auth,
 					"celular" => $usuario->celular,
 					"status" => $usuario->status == '1' ? 'Activo' : 'Inactivo',
 					"data_id" => $usuario->id,
-					"foto" => "",
+					"foto" => $foto,
 				);
 			}
 
@@ -313,7 +315,7 @@ use App\Lib\Auth,
 			exit(0);
 		});
 
-		$this->put('estatusUser/{id}', function($request, $response, $arguments){
+		$this->post('estatusUser/{id}', function($request, $response, $arguments){
 			$this->model->transaction->iniciaTransaccion();
 			$parsedBody = $request->getParsedBody();
 				if(isset($arguments['id'])){
@@ -322,30 +324,15 @@ use App\Lib\Auth,
 					$data = array('status' => $parsedBody['status']);
 					
 					$edit = $this->model->usuario->estatusUser($data, $arguments['id']);
+					$obs = isset($parsedBody['observaciones']) ? $parsedBody['observaciones'] : '';
+					$motivo = $parsedBody['status'] == 0 ? ' Motivo: '.$obs : '';
 					if($edit->response){
-						if($parsedBody['status'] == 0){
-							$data = array(
-								'fk_empleado' => $arguments['id'],
-								'fecha' => $parsedBody['baja'],
-								'ultimo_dia' => $parsedBody['baja'],
-								'motivo' => $parsedBody['motivo'],
-								'observaciones' => $parsedBody['observaciones'],
-							);
-								$seg_log = $this->model->seg_log->add($accion.' usuario', $arguments['id'], '1');
-								if($seg_log->response){
-									$seg_log->state = $this->model->transaction->confirmaTransaccion();
-								}else{
-									$seg_log->state = $this->model->transaction->regresaTransaccion();
-									return $response->withJson($seg_log);
-								}
+						$seg_log = $this->model->seg_log->add($accion.' usuario.'.$motivo, 'usuario', $arguments['id'], '1');
+						if($seg_log->response){
+							$seg_log->state = $this->model->transaction->confirmaTransaccion();
 						}else{
-							$seg_log = $this->model->seg_log->add($accion.' usuario', $arguments['id'], '1');
-							if($seg_log->response){
-								$seg_log->state = $this->model->transaction->confirmaTransaccion();
-							}else{
-								$seg_log->state = $this->model->transaction->regresaTransaccion();
-								return $response->withJson($seg_log);
-							}
+							$seg_log->state = $this->model->transaction->regresaTransaccion();
+							return $response->withJson($seg_log);
 						}
 					}else{
 						$edit->state = $this->model->transaction->regresaTransaccion();
@@ -367,6 +354,35 @@ use App\Lib\Auth,
 		$this->get('getTypeUser', function ($req, $res, $args) {
 			return $res->withJson($this->model->usuario->getTypeUser());
 		});
+
+		$this->get('getFoto/{id}', function($req, $res, $args){
+            $this->response = new Response();        
+            return $res->withHeader('Content-type', 'application/json')
+                    ->write(json_encode($this->model->usuario->getFoto($args['id'])));
+		});
+
+		$this->post('addFoto', function ($req, $res, $args) {
+            $this->response = new Response();
+            $parsedBody = $req->getParsedBody();
+            $directory = 'data/empleado';
+            $uploadedFiles = $req->getUploadedFiles();
+            
+            $uploadedFile = $uploadedFiles['imagen'];
+            if ($uploadedFile->getError() === UPLOAD_ERR_OK) {
+                $filename = $this->model->usuario->moveUploadedFileFoto($directory, $uploadedFile, $parsedBody);
+                if($filename == '0'){
+					$this->response->result = 0;
+					return $this->response->SetResponse(false,'Extensión de archivo inválido, solo se aceptan imagenes en formato jpg');
+                }else{
+					$this->response->result = 1;
+					$this->response->SetResponse(true,'Archivo cargado con exito: ' . $filename);
+					return $res->withjson($this->response);
+                }       
+            }
+
+            $this->response->result = 1;
+            return $this->response->SetResponse(true,'Archivo cargado con exito: ' . $filename);
+        });
 		
 		$this->post('createProfile', function ($req, $res, $args) {
 			$this->model->transaction->iniciaTransaccion();
@@ -456,6 +472,63 @@ use App\Lib\Auth,
 			
 			return $response->withJson($this->model->seg_sesion->edit($data, $_SESSION['logID']));
 		})->add( new MiddlewareToken() );
+
+		$this->post('switchUser', function($request, $response, $arguments) {
+			$this->response = new Response();
+			$parsedBody = $request->getParsedBody();
+
+			$existe = $this->model->usuario->getByPasscode(strrev(md5(sha1($parsedBody['code']))))->result;
+
+			if(is_object($existe)){
+				$user = $existe;
+				if($user->id == $_SESSION['usuario']->id){
+					$this->response->SetResponse(false, 'Debe ingresar el Switch Code de otro colaborador.');
+				}else{
+					if(!isset($_SESSION)) { session_start(); }
+
+					if(isset($_SESSION['usuario'])){
+						$userId = $_SESSION['usuario_id'];
+						$this->model->seg_log->add('Cierra Sesion SwitchCode', 'usuario', $userId, 1);
+						$data = [
+							'status' => 0,
+							'finalizada' => date('Y-m-d H:i:s'),
+						];
+						$this->model->seg_sesion->edit($data, $_SESSION['logID']);
+					}
+
+					$ultimo = ['acceso' => date('Y-m-d H:i:s')];
+					$this->model->usuario->edit($ultimo, $user->id, 'usuario');
+					$newModulos = array();
+					$newModulos = $this->model->usuario->getPermisos($user->id);
+					$this->model->usuario->addSessionLogin($user, $newModulos);
+
+					// $foto="data/foto/".md5($user->id).".jpg";
+					// $user->foto = file_exists($foto);
+
+					$token = $this->model->seg_sesion->crearToken($user);
+					$data = [
+						'usuario_id' => $user->id,
+						'ip_address' => $_SERVER['REMOTE_ADDR'],
+						'user_agent' => $_SERVER['HTTP_USER_AGENT'],
+						'iniciada' => date('Y-m-d H:i:s'),
+						'token' => $token,
+					];
+					$this->model->seg_sesion->add($data);
+					$_SESSION['usuario'] = $user;
+					$_SESSION['usuario_id'] = $user->id;
+					$_SESSION['permisos'] = $newModulos;
+					$_SESSION['foto'] = $this->model->usuario->getFoto($infoUser->id);
+
+					$this->model->seg_log->add('Inicio de sesión SwitchCode', 'usuario', $user->id, 1);
+					$this->response->username = $user->nombre;
+					$this->response->SetResponse(true, 'Esta ventana se cerrará en 4 segundos');
+				}
+			}else{
+				$this->response->SetResponse(false, 'No encontramos el usuario. Verifique Switch Code.');
+			}
+
+			return $response->withJson($this->response);
+		});
 		
 	});
 

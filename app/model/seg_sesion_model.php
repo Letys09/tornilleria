@@ -127,7 +127,6 @@ class SegSesionModel {
 			$JWT = new JWT();
 			$datos = [
 				'nbf' => time(),
-				// 'exp' => time() + 14400,
 				'aud' => SITE_NAME,
 				'id' => $usuario,
 			];

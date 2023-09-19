@@ -54,6 +54,8 @@
 
         <link href="<?= URL_ROOT ?>/app-assets/plugin/toast/toastr.min.css" rel="stylesheet" />
         <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/css/lightbox.min.css">
+
+	    <link href="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.css" rel="stylesheet" type="text/css">
     </head>
 
     <?php include 'sidebar.phtml'; ?>
@@ -82,8 +84,12 @@
                         <span class="user-name fw-bolder"><?= $nombreEmp ?></span>
                     </div>
                     <span class="avatar">
+                    <?php if($_SESSION['foto']) : ?>
+                        <img class="round" src="<?= URL_DATA ?>empleado/foto<?= $id ?>.jpg" alt="avatar" width="40" height="40">
+                    <?php else : ?>
+                        <img class="round" src="<?= URL_DATA ?>empleado/profile.png" alt="avatar" width="40" height="40">
+                    <?php endif; ?>
                         <!-- <img class="round" src="<?= URL_DATA ?>empleado/foto<?= $id ?>.jpg" alt="avatar" height="40" width="40"> -->
-                        <img class="round" src="http://localhost/tornilleria/public/app-assets/images/profile.png" alt="avatar" height="40" width="40">
                         <span class="avatar-status-online"></span>
                     </span>
                     </a>
