@@ -50,6 +50,18 @@ class EntradaModel {
 		return $this->response->SetResponse(true);
 	}
 
+	public function getLastCosto($sucursal_id, $producto_id){
+		$this->response->result = $this->db
+			->from($this->table)
+			->select(null)
+			->select("costo")
+			->innerJoin("$this->tableDet ON $this->tableDet.prod_entrada_id = $this->table.id")
+			->where("$this->table.sucursal_id", $sucursal_id)
+			->where("$this->tableDet.producto_id", $producto_id)
+			->fetch();
+		return $this->response->SetResponse(true);
+	}
+
 	public function add($data, $table){
 		$SQL = $this->db
 			->insertInto($table, $data)

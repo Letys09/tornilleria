@@ -7,6 +7,8 @@ use App\Lib\Auth,
 	date_default_timezone_set('America/Mexico_City');
 
 	$app->group('/prod_entrada/', function () use ($app){
+        $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : 0;
+        $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : 0;
 
         $this->get('get/{id}', function ($req, $res, $args) {
 			$prod = $this->model->producto->get($args['id'])->result;
@@ -61,6 +63,11 @@ use App\Lib\Auth,
                 $detalle->producto = $prod->nombre.$marca.$descripcion.$codigo;
             }
             return $res->withJson($entrada);
+        });
+
+        $this->get('getLastCosto/{producto_id}', function($req, $res, $args){
+            $sucursal_id = 3;
+            return $res->withJson($this->model->prod_entrada->getLastCosto($sucursal_id, $args['producto_id']));
         });
 
 		$this->post('add/',function($req, $res, $args){
