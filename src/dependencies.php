@@ -54,9 +54,13 @@
 					'sucursal' 				  => new App\Model\SucursalModel($c->db),
 					'producto' 				  => new App\Model\ProductoModel($c->db),
 					'cliente' 				  => new App\Model\ClienteModel($c->db),
+					'cliente_saldo' 		  => new App\Model\ClienteSaldoModel($c->db),
 					'prod_entrada' 			  => new App\Model\EntradaModel($c->db),
 					'prod_stock' 		      => new App\Model\StockModel($c->db),
 					'prod_baja' 			  => new App\Model\BajaModel($c->db),
+					'venta' 				  => new App\Model\VentaModel($c->db),
+					'venta_detalle'			  => new App\Model\VentaDetModel($c->db),
+					'venta_pago'			  => new App\Model\VentaPagoModel($c->db),
 				];
 			};
 ?>
