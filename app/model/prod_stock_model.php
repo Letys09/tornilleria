@@ -30,6 +30,20 @@ class StockModel {
         return $this->response;
     }
 
+	public function getAllDataTable($id, $desde, $hasta){
+		$this->response->result = $this->db
+			->from($this->table)
+			->select(null)
+			->select("tipo, inicial, cantidad, final, DATE_FORMAT(fecha, '%d-%m-%Y') as fecha, CAST(fecha AS TIME) as hora, motivo, origen_tipo, origen_id, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario")
+			->where("$this->table.sucursal_id", $_SESSION['sucursal_id'])
+			->where("producto_id", $id)
+			->where("DATE_FORMAT(fecha, '%Y-%m-%d') BETWEEN '$desde' AND '$hasta'")
+			->where("$this->table.status", 1)
+			->orderBy("fecha DESC")
+			->fetchAll();
+		return $this->response->SetResponse(true);
+	}
+
 	public function add($data){
 		$SQL = $this->db
 			->insertInto($this->table, $data)
