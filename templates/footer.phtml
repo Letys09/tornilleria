@@ -22,17 +22,11 @@
 <script src="<?= URL_ROOT ?>/app-assets/plugin/toast/toastr.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/plugin/typeahead.js-master/dist/typeahead.bundle.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/js/lightbox.min.js"></script>
-<script src="<?= URL_ROOT ?>/app-assets/plugin/session-timeout/jquery.sessionTimeout.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.min.js"></script>
 
 
 <script src="<?= URL_ROOT ?>/app-assets/js/core/app-menu.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/js/core/app.min.js"></script>
-
-<!-- <script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBTq2fQyVvsgMLnwLAu3dUI52GY9UE8GDc&libraries=places&sensor=false"></script> -->
-<script type="text/javascript" src="https://maps.googleapis.com/maps/api/js?key=AIzaSyBTq2fQyVvsgMLnwLAu3dUI52GY9UE8GDc&libraries=places&sensor=false"></script>
-
-
 
 <script>
     $(window).on('load', function() {
@@ -63,22 +57,6 @@
         "progressBar": true,
         "timeOut": "5000",
     }
-
-    // $.sessionTimeout({
-    //     heading: 'h5',
-    //     title: 'Sesión por expirar',
-    //     message: 'Tu sesión está a punto de expirar. ¿Deseas seguir conectado?',
-    //     countdownMessage: "Se cerrará en {timer} segundos.",
-    //     warnAfter: 550000, //270000
-    //     redirUrl: '<?= URL_ROOT ?>/usuario/logout', 
-    //     redirAfter: 600000, //300000
-    //     keepAlive: true,
-    //     keepAliveUrl: '<?= URL_ROOT ?>/usuario/renovarToken/', 
-    //     logoutUrl: '<?= URL_ROOT ?>/usuario/logout', 
-    //     keepAliveButton: 'Seguir conectado',
-    //     logoutButton: 'Salir',
-    //     ignoreUserActivity: false,
-    // });
 
     $('.btnSwitch').click(function(e){
         e.preventDefault();
@@ -122,6 +100,47 @@
             }
         });
     });
+
+    prod_buscado = $('#producto_bus_id').val()
+    prod_selected = 0
+
+    $('.busPrecios').click(function(e){
+        e.preventDefault()
+        $('#tbl-precios_bus').addClass('hidden')
+        var findProductos = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: {
+                url: apiUrl+'producto/getProdsBy/%QUERY',
+                wildcard: '%QUERY'
+            }
+        })
+
+        $('#producto_bus_name').typeahead(
+            {hint: true, highlight: true, minLength: 2}, 
+            {display: 'nombre', source: findProductos}
+        )
+
+        $('#producto_bus_name').bind('typeahead:select', function(ev, suggestion) {
+            producto = suggestion.producto;
+            prod_id = suggestion.id;
+
+            if($.isNumeric(prod_id) && prod_id > 0){
+                $('#producto_bus_name').val(producto);
+                $('#producto_bus_id').val(prod_id);
+                $('#tbl-precios_bus').removeClass('hidden')
+                $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                    $.each(resp, function(index, item){
+                        $('#bus-'+index).val(item)
+                    })
+                    mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                    $('#bus-distribuidor').val(parseInt(mayoreo)+1)
+                })
+            }
+        })
+        $('#producto_bus_name').focus().val('')
+        $('#buscarPrecios').modal('show')
+    })
 
     $('#menuDatos').click(function(e){
         e.preventDefault();

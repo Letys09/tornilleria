@@ -46,6 +46,17 @@ class ProductoModel {
 		return $this->response->setResponse(true);
 	}
 
+	public function getProdsBy($param){
+		$this->response->result = $this->db
+			->from("$this->table")
+			->select(null)
+			->select("id, nombre, descripcion, codigo, marca")
+			->where("CONCAT_WS(' ', $this->table.nombre, $this->table.descripcion, $this->table.codigo, $this->table.marca) LIKE '%$param%'")
+			->where("status", 1)
+			->fetchAll();
+		return $this->response->setResponse(true);
+	}
+
 	public function getAll($cat, $sub, $area){
 		if($cat == 0){
 			$sub = true;

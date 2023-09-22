@@ -78,20 +78,22 @@
                 </ul>
             </div>
             <ul class="nav navbar-nav align-items-center ms-auto">
+                <li>
+                    <a class="nav-link"><i class="fas fa-search-dollar busPrecios" data-toggle="tooltip" title="Buscar Precios"></i></a>
+                </li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <li class="nav-item dropdown dropdown-user">
                     <a class="nav-link dropdown-toggle dropdown-user-link" id="dropdown-user" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    <div class="user-nav d-sm-flex d-none">
-                        <span class="user-name fw-bolder"><?= $nombreEmp ?></span>
-                    </div>
-                    <span class="avatar">
-                    <?php if($_SESSION['foto']) : ?>
-                        <img class="round" src="<?= URL_DATA ?>empleado/foto<?= $id ?>.jpg" alt="avatar" width="40" height="40">
-                    <?php else : ?>
-                        <img class="round" src="<?= URL_DATA ?>empleado/profile.png" alt="avatar" width="40" height="40">
-                    <?php endif; ?>
-                        <!-- <img class="round" src="<?= URL_DATA ?>empleado/foto<?= $id ?>.jpg" alt="avatar" height="40" width="40"> -->
-                        <span class="avatar-status-online"></span>
-                    </span>
+                        <div class="user-nav d-sm-flex d-none">
+                            <span class="user-name fw-bolder"><?= $nombreEmp ?></span>
+                        </div>
+                        <span class="avatar">
+                        <?php if($_SESSION['foto']) : ?>
+                            <img class="round" src="<?= URL_DATA ?>empleado/foto<?= $id ?>.jpg" alt="avatar" width="40" height="40">
+                        <?php else : ?>
+                            <img class="round" src="<?= URL_DATA ?>empleado/profile.png" alt="avatar" width="40" height="40">
+                        <?php endif; ?>
+                            <span class="avatar-status-online"></span>
+                        </span>
                     </a>
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-user">
                         <a class="dropdown-item" id="menuDatos"><i class="me-50" data-feather="user"></i> Mis Datos</a>
@@ -230,6 +232,90 @@
         </div>
     </div>
 
-    
+    <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="buscarPrecios" >
+        <div class="modal-dialog modal-lg">
+            <form class="modal-content pt-0">
+                <div class="modal-header mb-1">
+                    <h4 class="modal-title text-uppercase">precios de producto</h4>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                </div>
+                <div class="modal-body flex-grow-1 form-horizontal">    
+                    <div class="form-group row mb-1">
+                        <label class="col-sm-3 d-flex align-items-center justify-content-start form-label fs-5" for="producto_bus_name">Nombre del Producto</label>
+                        <div class="col-sm-9">
+                            <input type="text" class="form-control fs-5" id="producto_bus_name" placeholder="Buscar producto por nombre o código"></input>
+                        </div>
+                    </div>                                                
+                    <div>
+                        <table id="tbl-precios_bus" class="table">
+                            <thead class="table-light">
+                                <tr class="text-center">
+                                    <th>Tipo</th>
+                                    <th>Hasta</th>
+                                    <th>Precio</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                <tr>
+                                    <td>Menudeo</td>
+                                    <td><input type="text" class="form-control text-end" id="bus-menudeo" placeholder="0"></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <small>$</small>
+                                            </div>
+                                            <input type="text" class="form-control text-end" id="bus-precio_menudeo" placeholder="0.00">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Medio mayoreo</td>
+                                    <td><input type="text" class="form-control text-end" id="bus-medio" placeholder="0"></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <small>$</small>
+                                            </div>
+                                            <input type="text" class="form-control text-end" id="bus-precio_medio" placeholder="0.00">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Mayoreo</td>
+                                    <td><input type="text" class="form-control text-end" id="bus-mayoreo" placeholder="0"></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <small>$</small>
+                                            </div>
+                                            <input type="text" class="form-control text-end" id="bus-precio_mayoreo" placeholder="0.00">
+                                        </div>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td>Distribuidor</td>
+                                    <td><input type="text" class="form-control text-end" id="bus-distribuidor" placeholder="0"></td>
+                                    <td>
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <small>$</small>
+                                            </div>
+                                            <input type="text" class="form-control text-end" id="bus-precio_distribuidor" placeholder="0.00">
+                                        </div>
+                                    </td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <div class="buttonsEnd">
+                        <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Salir</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+    </div>
+
   </body>
 </html>

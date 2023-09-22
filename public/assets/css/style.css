@@ -460,4 +460,9 @@ div.card-header.link{
     margin: 0 auto
 }
 
+.busPrecios{
+	color: #492d77 !important;
+	/* text-shadow: 2px 2px rgb(157, 97, 216); */
+	font-size: x-large;
+}
 

@@ -40,18 +40,15 @@ use App\Lib\Auth,
             return $res->withJson($prods);
         });
 
-        $this->get('getStockSuc/{id}', function($req, $res, $args){
-            $sucursales = $this->model->sucursal->getAll()->result;
-            foreach($sucursales as $sucursal){
-                $prod_stock = $this->model->prod_stock->getStock($sucursal->id, $args['id'])->result;
-                if(is_object($prod_stock)){
-                    $sucursal->stock = $prod_stock->final;
-                    $sucursal->date = $prod_stock->date;
-                }else{
-                    $sucursales = ['msg' => 'No hay entradas registradas del producto en otra sucursal'];
-                }
+        $this->get('getProdsBy/{param}', function($req, $res, $args){
+            $prods = $this->model->producto->getProdsBy($args['param'])->result;
+            foreach($prods as $prod){
+                $marca = $prod->marca != '' ? ', '.$prod->marca : '';
+                $descripcion = $prod->descripcion != '' ? ', '.$prod->descripcion : '';
+                $codigo = $prod->codigo != '' ? ', '.$prod->codigo : '';
+                $prod->nombre = $prod->nombre.$marca.$descripcion.$codigo;
             }
-            return $res->withJson($sucursales);
+            return $res->withJson($prods);
         });
 
         $this->get('getAllDataTable', function($req, $res, $args){
@@ -546,7 +543,7 @@ use App\Lib\Auth,
                     'tipo' => -1,
                     'inicial' => $inicial,
                     'cantidad' => $parsedBody['cantidad'],
-                    'final' => intval($inicial - $parsedBody['cantidad']),
+                    'final' => floatval($inicial - $parsedBody['cantidad']),
                     'fecha' => $fecha,
                     'origen_tipo' => 2,
                     'origen_id' => $addAjuste->result
