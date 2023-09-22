@@ -149,6 +149,14 @@ class SucursalModel {
 
 		return $this->response;
 	}
+
+	public function cerrar(){
+		session_unset();
+		session_regenerate_id(true);
+		session_destroy();
+
+		return $this->response;
+	}
 	
 }
 ?>

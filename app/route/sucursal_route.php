@@ -155,6 +155,15 @@ use App\Lib\Auth,
             }
         });
 
+        $this->get('cerrar', function($req, $res, $args) use ($app) {
+			if(!isset($_SESSION)) { session_start(); }
+			$userId = $_SESSION['usuario_id'];
+			$this->model->seg_sesion->logout();
+            $this->model->sucursal->cerrar();
+            
+			return $res->withRedirect('../login');
+		});
+
 	});
 
 ?>

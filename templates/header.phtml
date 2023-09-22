@@ -3,6 +3,8 @@
     $id = $_SESSION['usuario_id'];
     $nombreEmp = $_SESSION['usuario']->nombre;
 
+    define('MOD_CERRAR',    30);
+
     $icono = '';
     // echo($vista);
     switch ($vista) {
@@ -15,8 +17,6 @@
         case 'Clientes': $icono = 'fas fa-handshake'; break;
         case 'Ventas': $icono = 'fas fa-hand-holding-usd'; $vista = 'Nueva Venta'; break;
     }
-
-	include 'core/actions.php';
 ?> 
 
 <!DOCTYPE html>
@@ -100,6 +100,9 @@
                             <!-- <hr><a class="dropdown-item" href="<?= URL_ROOT ?>/log"><i class="me-50" data-feather="check-square"></i> Bitácora de Acciones</a> -->
                         <?php // endif; ?>
                         <div class="dropdown-divider"></div><a class="dropdown-item" href="<?= URL_ROOT ?>/usuario/logout"><i class="me-50" data-feather="power"></i> Logout</a>
+                        <?php if(in_array(MOD_CERRAR, $permisos)) : ?>
+                            <div class="dropdown-divider"></div><a class="dropdown-item" href="<?= URL_ROOT ?>/sucursal/cerrar"><i class="me-50" data-feather="slash"></i> Cerrar Sucursal</a>
+                        <?php endif; ?>
                     </div>
                 </li>
             </ul>

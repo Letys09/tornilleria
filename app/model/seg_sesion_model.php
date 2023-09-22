@@ -137,7 +137,7 @@ class SegSesionModel {
         public function logout() {
             if(isset($_SESSION['logID'])) {
                 $data = [
-                    'finished' => date('Y-m-d H:i:s'),
+                    'finalizada' => date('Y-m-d H:i:s'),
                 ];
                 $this->response = $this->edit($data, $_SESSION['logID']);
             }
