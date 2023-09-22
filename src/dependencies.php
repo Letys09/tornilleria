@@ -58,6 +58,8 @@
 					'prod_entrada' 			  => new App\Model\EntradaModel($c->db),
 					'prod_stock' 		      => new App\Model\StockModel($c->db),
 					'prod_baja' 			  => new App\Model\BajaModel($c->db),
+					'prod_inventario'		  => new App\Model\ProdInvModel($c->db),
+					'prod_det_inventario'	  => new App\Model\ProdDetInvModel($c->db),
 					'venta' 				  => new App\Model\VentaModel($c->db),
 					'venta_detalle'			  => new App\Model\VentaDetModel($c->db),
 					'venta_pago'			  => new App\Model\VentaPagoModel($c->db),
