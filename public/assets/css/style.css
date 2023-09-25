@@ -248,8 +248,8 @@ input[type="search"]{
 }
 
 .img-fluid, .img-thumbnail {
-	/* max-width: 0%; */
-	/* height: auto; */
+	max-width: 0%;
+	height: auto;
 }
 
 .btnFoto{
@@ -466,3 +466,6 @@ div.card-header.link{
 	font-size: x-large;
 }
 
+.img-portada{
+	max-width: 55rem;
+}

@@ -32,11 +32,19 @@
                     <div class="auth-wrapper auth-cover">
                         <div class="auth-inner row m-0">
                             <div class="d-none d-lg-flex col-lg-8">
-                                <div class="d-lg-flex align-items-bottom justify-content-center">
+                                <div class="w-100 d-lg-flex align-items-center justify-content-center">
                                     <?php if(isset($_SESSION['sucursal_nombre'])) : ?>
-                                        <!-- <h2><?= strtoupper($_SESSION['sucursal_nombre']) ?></h2> -->
+                                        <div>
+                                            <h1 class="text-center mb-5"><?= strtoupper($_SESSION['sucursal_nombre']) ?></h2>
+                                            <?php if(isset($_SESSION['sucursal_nombre']) && $_SESSION['sucursal_id'] == 1) : ?>
+                                                <img class="img-portada" width="100%" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Imagen portada">
+                                            <?php elseif(isset($_SESSION['sucursal_nombre']) && $_SESSION['sucursal_id'] == 2) : ?> 
+                                                <img class="img-portada" width="100%" src="<?= URL_ROOT ?>/app-assets/images/logo/fondo-torni.jpg" alt="Imagen portada">
+                                            <?php elseif(isset($_SESSION['sucursal_nombre']) && $_SESSION['sucursal_id'] == 3) : ?> 
+                                                <img class="img-portada" width="100%" src="<?= URL_ROOT ?>/app-assets/images/logo/TORNILLOS1.jpg" alt="Imagen portada">
+                                            <?php endif; ?> 
+                                        </div>
                                     <?php endif; ?>
-                                    <!-- <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Imagen portada"> -->
                                 </div>
                             </div>
                             <div class="d-flex col-lg-4 align-items-center auth-bg px-2 px-lg-5">
