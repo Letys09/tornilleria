@@ -54,9 +54,11 @@
                                     <form class="auth-login-form mt-2" id="formLogin">
                                         <div class="mb-1">
                                             <div class="text-center" id="bienvenida">
-                                                <h2>BIENVENIDO</h2>
+                                                <h2>¡BIENVENIDO!</h2>
                                                 <br>
-                                                <!-- <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Logo"/> -->
+                                                <?php if(!isset($_SESSION['sucursal_id'])) : ?>
+                                                    <img class="" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Logo"/>
+                                                <?php endif; ?>
                                             </div>
                                             <br><hr>
                                             <?php if(!isset($_SESSION['sucursal_id'])) : ?>
