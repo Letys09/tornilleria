@@ -430,9 +430,9 @@ window.colors = {
     i18next.use(window.i18nextXHRBackend).init(
       {
         debug: false,
-        fallbackLng: 'en',
+        fallbackLng: 'spanish',
         backend: {
-          loadPath: assetPath + 'data/locales/{{lng}}.json'
+          loadPath: assetPath + '../{{lng}}.json'
         },
         returnObjects: true
       },
