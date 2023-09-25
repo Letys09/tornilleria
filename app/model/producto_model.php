@@ -23,7 +23,7 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
             ->select(null)
-            ->select("$this->table.id, prod_unidad_medida_id, $this->table.prod_categoria_id, prod_categoria.prod_categoria_id as categoria, prod_area_id, $this->table.nombre, descripcion, codigo, marca, costo, minimo, venta_kilo, es_kilo, clave_sat")
+            ->select("$this->table.id, prod_unidad_medida_id, $this->table.prod_categoria_id, prod_categoria.prod_categoria_id as categoria, prod_area_id, clave, descripcion, medida, costo, minimo, venta_kilo, es_kilo, clave_sat")
             ->innerJoin("prod_categoria ON prod_categoria.id = $this->table.prod_categoria_id ")
 			->where("$this->table.id", $id)
 			->fetch();
@@ -38,8 +38,8 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from("$this->table")
 			->select(null)
-			->select("id, nombre, descripcion, codigo, marca")
-			->where("CONCAT_WS(' ', $this->table.nombre, $this->table.descripcion, $this->table.codigo, $this->table.marca) LIKE '%$param%'")
+			->select("id, clave, descripcion, medida")
+			->where("CONCAT_WS(' ', $this->table.nombre, $this->table.descripcion, $this->table.clave, $this->table.marca) LIKE '%$param%'")
 			->where("$this->table.es_kilo",0)
 			->where("status", 1)
 			->fetchAll();
@@ -50,8 +50,8 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from("$this->table")
 			->select(null)
-			->select("id, nombre, descripcion, codigo, marca")
-			->where("CONCAT_WS(' ', $this->table.nombre, $this->table.descripcion, $this->table.codigo, $this->table.marca) LIKE '%$param%'")
+			->select("id, descripcion, clave, medida")
+			->where("CONCAT_WS(' ', $this->table.descripcion, $this->table.clave, $this->table.medida) LIKE '%$param%'")
 			->where("status", 1)
 			->fetchAll();
 		return $this->response->setResponse(true);
@@ -139,7 +139,7 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.id, codigo, sub.nombre as sub, cat.nombre as cat, $this->table.nombre, marca, minimo, es_kilo")
+			->select("$this->table.id, clave, sub.nombre as sub, cat.nombre as cat, descripcion, medida, minimo, es_kilo")
 			->innerJoin("prod_categoria sub ON sub.id = $this->table.prod_categoria_id")
 			->innerJoin("prod_categoria cat ON cat.id = sub.prod_categoria_id")
 			// ->where("$this->table.es_kilo != 1")
@@ -152,20 +152,11 @@ class ProductoModel {
 	public function getUnidades(){
 		$this->response->result = $this->db
 			->from("prod_unidad_medida")
+			->where("clave != 'KGM'")
 			->where("status", 1)
 			->fetchAll();
 		return $this->response->SetResponse(true);
 	}
-
-    public function getCodigo(){
-        $this->response->result = $this->db
-            ->from("$this->table")
-            ->select(null)
-            ->select('id')
-            ->orderBy('id DESC')
-            ->fetch();
-        return $this->response;
-    }
 
     public function getCat(){
         $this->response->result = $this->db
@@ -219,6 +210,14 @@ class ProductoModel {
             ->fetchAll();
         return $this->response;
     }
+
+	public function getLast(){
+		$this->response->result = $this->db
+			->from($this->table)
+			->where('status', 2)
+			->fetch();
+		return $this->response->SetResponse(true);
+	}
 
 	public function add($data, $table){
 		try {

@@ -19,10 +19,9 @@ use App\Lib\Auth,
 			$prod = $this->model->producto->get($args['id'])->result;
             $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $args['id'])->result;
             $prod->stock = is_object($stock) ? $stock->final : 0;
-            $prod->precios = $this->model->producto->getPrecios($prod->id)->result;
             if($prod->venta_kilo){
                 $prod->kilo = $this->model->producto->getKiloBy($prod->id, 'producto_origen')->result;
-                $prod->kilo->codigo = $this->model->producto->get($prod->kilo->producto_id)->result->codigo;
+                $prod->kilo->clave = $this->model->producto->get($prod->kilo->producto_id)->result->clave;
             }else if($prod->es_kilo){
                 $prod->kilo = $this->model->producto->getKiloBy($prod->id, 'producto_id')->result;
             }
@@ -32,10 +31,10 @@ use App\Lib\Auth,
         $this->get('getBy/{param}', function($req, $res, $args){
             $prods = $this->model->producto->getBy($args['param'])->result;
             foreach($prods as $prod){
-                $marca = $prod->marca != '' ? ', '.$prod->marca : '';
+                $medida = $prod->medida != '' ? ', '.$prod->medida : '';
                 $descripcion = $prod->descripcion != '' ? ', '.$prod->descripcion : '';
-                $codigo = $prod->codigo != '' ? ', '.$prod->codigo : '';
-                $prod->nombre = $prod->nombre.$marca.$descripcion.$codigo;
+                $clave = $prod->clave != '' ? $prod->clave : '';
+                $prod->nombre = $clave.$descripcion.$medida;
             }
             return $res->withJson($prods);
         });
@@ -43,15 +42,15 @@ use App\Lib\Auth,
         $this->get('getProdsBy/{param}', function($req, $res, $args){
             $prods = $this->model->producto->getProdsBy($args['param'])->result;
             foreach($prods as $prod){
-                $marca = $prod->marca != '' ? ', '.$prod->marca : '';
+                $medida = $prod->medida != '' ? ', '.$prod->medida : '';
                 $descripcion = $prod->descripcion != '' ? ', '.$prod->descripcion : '';
-                $codigo = $prod->codigo != '' ? ', '.$prod->codigo : '';
-                $prod->nombre = $prod->nombre.$marca.$descripcion.$codigo;
+                $clave = $prod->clave != '' ? $prod->clave : '';
+                $prod->nombre = $clave.$descripcion.$medida;
             }
             return $res->withJson($prods);
         });
 
-        $this->get('getAllDataTable', function($req, $res, $args){
+        $this->get('getAllDataTable', function($req, $res, $args){ 
 			$productos = $this->model->producto->getAllDataTable();
 
 			$data = [];
@@ -62,14 +61,15 @@ use App\Lib\Auth,
                 $stock = $producto->es_kilo ? 'N/A' : (is_object($stock) ? $stock->final : 0);
                 $minimo = $producto->es_kilo ? 'N/A' : (floatval($stock) <= $producto->minimo ? 'Mínimo' : 'Suficiente');
                 $data[] = array(
-					"codigo" => $producto->codigo,
+					"clave" => $producto->clave,
+					"descripcion" => $producto->descripcion,
+					"medida" => $producto->medida,
+					"codigo_barras" => '*'.$producto->clave.'*',
 					"categoria" => $producto->cat,
 					"subcategoria" => $producto->sub,
 					"minimo" => $stockMin,
 					"stock" => $stock,
 					"enMinimo" => $minimo,
-					"nombre" => $producto->nombre,
-					"marca" => $producto->marca,
 					"data_id" => $producto->id,
 				);
 			}
@@ -96,10 +96,6 @@ use App\Lib\Auth,
                 'precio_distribuidor' => $rangos->precio_distribuidor,
             ];
             return $res->withJson($prod);
-        });
-
-        $this->get('getCodigo', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getCodigo()->result);
         });
 
         $this->get('getCat', function($req, $res, $args){
@@ -184,6 +180,47 @@ use App\Lib\Auth,
             return $res->withJson($edit);
         });
 
+        $this->post('addCorto/', function($req, $res, $args){
+            $existe = $this->model->producto->getLast()->result;
+            if(is_object($existe)){
+                $existe->clave = $existe->id;
+                return $res->withJson($existe); 
+            }else{
+                $this->model->transaction->iniciaTransaccion();
+                $data = [
+                    'prod_unidad_medida_id' => 1,
+                    'prod_categoria_id' => 1,
+                    'prod_area_id' => 1,
+                    'status' => 2,
+                ];
+                $add = $this->model->producto->add($data, 'producto');
+                if($add->response){
+                    $producto_id = $add->result;
+                    $precio = ['producto_id' => $producto_id];
+                    $addPrecio = $this->model->producto->add($precio, 'prod_precio');
+                    if($addPrecio->response){
+                        $precio_id = $addPrecio->result;
+                        $rangos = ['sucursal_id' => $_SESSION['sucursal_id'], 'producto_id' => $producto_id, 'prod_precio_id' => $precio_id];
+                        $addRangos = $this->model->producto->add($rangos, 'prod_rango');
+                        if($addRangos->response){
+                            $add->clave = $producto_id;
+                            $add->state = $this->model->transaction->confirmaTransaccion();
+                            return $res->withJson($add);
+                        }else{
+                            $addRangos->state = $this->model->transaction->regresaTransaccion();
+                            return $res->withJson($addRangos);
+                        }
+                    }else{
+                        $addPrecio->state = $this->model->transaction->regresaTransaccion();
+                        return $res->withJson($addPrecio);
+                    }
+                }else{
+                    $add->state = $this->model->transaction->regresaTransaccion();
+                    return $res->withJson($add);
+                }
+            }
+        });
+
         $this->post('add/',function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();
@@ -191,10 +228,9 @@ use App\Lib\Auth,
                 'prod_unidad_medida_id' => $parsedBody['prod_unidad_medida_id'],
                 'prod_categoria_id' => $parsedBody['prod_categoria_id'],
                 'prod_area_id' => $parsedBody['prod_area_id'],
-                'nombre' => $parsedBody['nombre'],
+                'clave' => $parsedBody['clave'],
                 'descripcion' => $parsedBody['descripcion'],
-                'codigo' => $parsedBody['codigo'],
-                'marca' => $parsedBody['marca'],
+                'medida' => $parsedBody['medida'],
                 'minimo' => $parsedBody['minimo'],
                 'venta_kilo' => $parsedBody['venta_kilo'],
                 'clave_sat' => $parsedBody['clave_sat'],
@@ -215,13 +251,12 @@ use App\Lib\Auth,
                     if($addRangos->response){
                         if($data['venta_kilo'] == 1){
                             $dataKilo = [
-                                'prod_unidad_medida_id' => 2,
+                                'prod_unidad_medida_id' => 3,
                                 'prod_categoria_id' => $data['prod_categoria_id'],
                                 'prod_area_id' => $data['prod_area_id'],
-                                'nombre' => 'Kilo de '.$data['nombre'],
-                                'descripcion' => 'Kilo de '.$data['nombre'],
-                                'codigo' => $parsedBody['codigo_kilo'],
-                                'marca' => $data['marca'],
+                                'descripcion' => 'KILO DE '.$data['nombre'],
+                                'clave' => $parsedBody['clave_kilo'],
+                                'medida' => $data['medida'],
                                 'es_kilo' => 1,
                                 'clave_sat' => $parsedBody['clave_sat'],
                             ];
@@ -305,37 +340,20 @@ use App\Lib\Auth,
                 'prod_unidad_medida_id' => $parsedBody['prod_unidad_medida_id'],
                 'prod_categoria_id' => $parsedBody['prod_categoria_id'],
                 'prod_area_id' => $parsedBody['prod_area_id'],
-                'nombre' => $parsedBody['nombre'],
+                'clave' => $parsedBody['clave'],
                 'descripcion' => $parsedBody['descripcion'],
-                'codigo' => $parsedBody['codigo'],
-                'marca' => $parsedBody['marca'],
+                'medida' => $parsedBody['medida'],
                 'minimo' => $parsedBody['minimo'],
                 'venta_kilo' => $parsedBody['venta_kilo'],
                 'es_kilo' => 0,
-                'menudeo' => $parsedBody['menudeo'],
-                'medio' => $parsedBody['medio'],
-                'mayoreo' => $parsedBody['mayoreo'],
                 'clave_sat' => $parsedBody['clave_sat'],
+                'status' => 1
             ];
 
             foreach($prod as $field => $value) { 
                 if($infoP->$field != $value) { 
                     $prodIgual = false; break; 
                 } 
-            }
-
-            $infoPrecio = $this->model->producto->getPrecios($args['id'])->result;
-            $precio = [
-                'menudeo' => $parsedBody['precio_menudeo'],
-                'medio' => $parsedBody['precio_medio'],
-                'mayoreo' => $parsedBody['precio_mayoreo'],
-                'distribuidor' => $parsedBody['precio_distribuidor'],
-            ];
-
-            foreach($precio as $field => $value){
-                if($infoPrecio->$field != $value){
-                    $precioIgual = false; break;
-                }
             }
 
             if($parsedBody['venta_kilo'] != $infoP->venta_kilo){
@@ -377,13 +395,12 @@ use App\Lib\Auth,
                     }else{
                         // agregar producto y prod_kilo
                         $dataKilo = [
-                            'prod_unidad_medida_id' => 2,
+                            'prod_unidad_medida_id' => 3,
                             'prod_categoria_id' => $parsedBody['prod_categoria_id'],
                             'prod_area_id' => $parsedBody['prod_area_id'],
-                            'nombre' => 'Kilo de '.$parsedBody['nombre'],
-                            'descripcion' => 'Kilo de '.$parsedBody['nombre'],
-                            'codigo' => 'PK'.$parsedBody['codigo'],
-                            'marca' => $parsedBody['marca'],
+                            'clave' => $parsedBody['clave_kilo'],
+                            'descripcion' => 'KILO DE '.$parsedBody['descripcion'],
+                            'medida' => $parsedBody['medida'],
                             'es_kilo' => 1,
                             'clave_sat' => $parsedBody['clave_sat'],
                         ];
@@ -393,8 +410,7 @@ use App\Lib\Auth,
                             $prodKilo = [
                                 'producto_id' => $kilo_id,
                                 'producto_origen' => $args['id'],
-                                'cantidad' => $parsedBody['cant_kilo'],
-                                'precio' => $parsedBody['precio_kilo']
+                                'cantidad' => $parsedBody['cant_kilo']
                             ];
                             $kilo = $this->model->producto->add($prodKilo, 'prod_kilo');
                             if(!$kilo->response){
@@ -583,21 +599,19 @@ use App\Lib\Auth,
             $sheet->getColumnDimension('J')->setAutoSize(true);
             $sheet->getColumnDimension('K')->setAutoSize(true);
             $sheet->getColumnDimension('L')->setAutoSize(true);
-            $sheet->getColumnDimension('M')->setAutoSize(true);
            
             $sheet->setCellValue("A1", 'Categoría');
             $sheet->setCellValue("B1", 'Subcategoría');
             $sheet->setCellValue("C1", 'Área');
-            $sheet->setCellValue("D1", 'Nombre');
+            $sheet->setCellValue("D1", 'Clave');
             $sheet->setCellValue("E1", 'Descripción');
-            $sheet->setCellValue("F1", 'Unidad de Medida (1->Pieza, 3->Metro)');
-            $sheet->setCellValue("G1", 'Código');
-            $sheet->setCellValue("H1", 'Marca');
-            $sheet->setCellValue("I1", 'Mínimo');
-            $sheet->setCellValue("J1", 'Clave SAT');
-            $sheet->setCellValue("K1", 'Venta por kilo (0->No, 1->Si)');
-            $sheet->setCellValue("L1", 'Venta por kilo (Cantidad)');
-            $sheet->setCellValue("M1", 'Venta por kilo (Código)');
+            $sheet->setCellValue("F1", 'Medida');
+            $sheet->setCellValue("G1", 'Stock Mínimo');
+            $sheet->setCellValue("H1", 'Unidad de Medida (1->Pieza, 2->Metro)');
+            $sheet->setCellValue("I1", 'Clave SAT');
+            $sheet->setCellValue("J1", 'Venta por kilo (0->No, 1->Si)');
+            $sheet->setCellValue("K1", 'Venta por kilo (Cantidad)');
+            $sheet->setCellValue("L1", 'Venta por kilo (Clave)');
             $sheet->setTitle('Hoja 1');
 
             $writer = new Xlsx($spreadsheet);
@@ -678,33 +692,32 @@ use App\Lib\Auth,
                 }
 
                 $subcat = $hojaActual->getCell("B$fila")->getValue();
-                $existe = $this->model->producto->getByName('prod_categoria', 'nombre', $subcat);
-                if(is_object($existe->result) && $existe->result->prod_categoria_id == $catId){
-                    $subId = $existe->result->id;
+                $existeSub = $this->model->producto->getByName('prod_categoria', 'nombre', $subcat);
+                if(is_object($existeSub->result) && $existeSub->result->prod_categoria_id == $catId){
+                    $subId = $existeSub->result->id;
                 }else{
-                    $data = ['prod_categoria_id' => $catId,'nombre' => $subcat];
+                    $data = ['prod_categoria_id' => $catId, 'nombre' => $subcat];
                     $subId = $this->model->producto->add($data, 'prod_categoria')->result;
                 }
 
                 $area = $hojaActual->getCell("C$fila")->getValue();
-                $existe = $this->model->producto->getByName('prod_area', 'nombre', $area);
-                if(is_object($existe->result)){
-                    $areaId = $existe->result->id;
+                $existeArea = $this->model->producto->getByName('prod_area', 'nombre', $area);
+                if(is_object($existeArea->result)){
+                    $areaId = $existeArea->result->id;
                 }else{
                     $data = ['nombre' => $area];
                     $areaId = $this->model->producto->add($data, 'prod_area')->result;
                 }
                 $data = [  
                     'prod_categoria_id' => $subId,
-                    'prod_unidad_medida_id' => $hojaActual->getCell("F$fila")->getValue(),
+                    'prod_unidad_medida_id' => $hojaActual->getCell("H$fila")->getValue(),
                     'prod_area_id' => $areaId,
-                    'nombre' => $hojaActual->getCell("D$fila")->getValue(),
+                    'clave' => $hojaActual->getCell("D$fila")->getValue(),
                     'descripcion' => $hojaActual->getCell("E$fila")->getValue(),
-                    'codigo' => $hojaActual->getCell("G$fila")->getValue(),
-                    'marca' => $hojaActual->getCell("H$fila")->getValue(),
-                    'minimo' => $hojaActual->getCell("I$fila")->getValue(),
-                    'venta_kilo' => $hojaActual->getCell("K$fila")->getValue(),
-                    'clave_sat' => $hojaActual->getCell("J$fila")->getValue(),
+                    'medida' => $hojaActual->getCell("F$fila")->getValue(),
+                    'minimo' => $hojaActual->getCell("G$fila")->getValue(),
+                    'clave_sat' => $hojaActual->getCell("I$fila")->getValue(),
+                    'venta_kilo' => $hojaActual->getCell("J$fila")->getValue(),
                 ];
                 $addProd = $this->model->producto->add($data, 'producto');
                 if($addProd->response){
@@ -723,17 +736,16 @@ use App\Lib\Auth,
                             $addRango = $this->model->producto->add($dataRango, 'prod_rango');
                         }
                     }
-                    if($hojaActual->getCell("K$fila")->getValue() == 1){
+                    if($hojaActual->getCell("J$fila")->getValue() == 1){
                         $dataKilo = [
                             'prod_categoria_id' => $subId,
-                            'prod_unidad_medida_id' => 2,
+                            'prod_unidad_medida_id' => 3,
                             'prod_area_id' => $areaId,
-                            'nombre' => 'Kilo de '.$hojaActual->getCell("D$fila")->getValue(),
-                            'descripcion' => 'Kilo de '.$hojaActual->getCell("E$fila")->getValue(),
-                            'codigo' => $hojaActual->getCell("M$fila")->getValue(),
-                            'marca' => $hojaActual->getCell("H$fila")->getValue(),
+                            'clave' => $hojaActual->getCell("L$fila")->getValue(),
+                            'descripcion' => 'KILO DE '.$hojaActual->getCell("E$fila")->getValue(),
+                            'medida' => $hojaActual->getCell("F$fila")->getValue(),
                             'es_kilo' => 1,
-                            'clave_sat' => $hojaActual->getCell("J$fila")->getValue(),
+                            'clave_sat' => $hojaActual->getCell("I$fila")->getValue(),
                         ];
                         $prod_kilo = $this->model->producto->add($dataKilo, 'producto');
                         if($prod_kilo->response){
@@ -741,7 +753,7 @@ use App\Lib\Auth,
                             $prodKilo = [
                                 'producto_id' => $kilo_id,
                                 'producto_origen' => $prod_origen,
-                                'cantidad' => $hojaActual->getCell("L$fila")->getValue()
+                                'cantidad' => $hojaActual->getCell("K$fila")->getValue()
                             ];
                             $kilo = $this->model->producto->add($prodKilo, 'prod_kilo');
                             if($kilo->response){

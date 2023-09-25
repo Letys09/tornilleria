@@ -56,14 +56,15 @@
                                 <table id="tbl-producto" class="table">
                                     <thead class="table-light">
                                         <tr class="text-center">
-                                            <th>Nombre</th>
-                                            <th>Código</th>
+                                            <th>Clave</th>
+                                            <th>Descripcion</th>
+                                            <th>Medida</th>
+                                            <th>Código de barras</th>
                                             <th>Categoría</th>
                                             <th>Subcategoría</th>
                                             <th>Stock Mínimo</th>
                                             <th>Existencia</th>
                                             <th>En minimo</th>
-                                            <th>Marca</th>
                                             <th>Acciones</th>
                                         </tr>
                                     </thead>
@@ -97,26 +98,28 @@
 
                                             <div class="mb-1 mt-1 form-group row">
                                                 <div class="col-sm-4">
-                                                    <label class="form-label fw-bolder fs-5" for="prod-nombre">Nombre *</label>
-                                                    <input type="text" class="form-control" id="prod-nombre">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-clave">Clave</label>
+                                                    <input type="text" class="form-control" id="prod-clave">    
                                                 </div>
+                                                <div class="col-sm-8">
+                                                    <label class="form-label fw-bolder fs-5" for="prod-descripcion">Descripción</label>
+                                                    <input type="text" class="form-control" id="prod-descripcion">
+                                                </div>
+                                            </div>
+                                            <div class="mb-1 mt-1 form-group row">
                                                 <div class="col-sm-4">
-                                                    <label class="form-label fw-bolder fs-5" for="prod-codigo">Código</label>
+                                                    <label class="form-label fw-bolder fs-5" for="prod-medida">Medida</label>
+                                                    <input type="text" class="form-control" id="prod-medida">
+                                                </div>
+                                                <div class="col-sm-8">
+                                                    <label class="form-label fw-bolder fs-5" for="codigo_barras">Código de Barras</label>
                                                     <div class="input-group">
                                                         <div class="input-group-text">
                                                             <span><i class="fas fa-barcode"></i></span>
                                                         </div>
-                                                        <input type="text" class="form-control" id="prod-codigo">
+                                                        <input type="text" class="form-control" id="codigo_barras" readonly>
                                                     </div>
-                                                </div>
-                                                <div class="col-sm-4">
-                                                    <label class="form-label fw-bolder fs-5" for="prod-marca">Marca</label>
-                                                    <input type="text" class="form-control" id="prod-marca">
-                                                </div>
-                                            </div>
-                                            <div class="col-sm">
-                                                <label class="form-label fw-bolder fs-5" for="prod-descripcion">Descripción</label>
-                                                <input type="text" class="form-control" id="prod-descripcion">
+                                                </div>                                                
                                             </div>
                                                     
                                             <div class="mb-1 mt-1 form-group row">
@@ -149,68 +152,6 @@
                                                     <input type="text" class="form-control" id="prod-clave_sat">
                                                 </div>                            
                                             </div>
-                                            <!-- <div class="mb-1 mt-1 rangos">
-                                                <label class="form-label fw-bolder fs-5" for="prod-stock">Rangos de Precios</label>
-                                                <table id="tbl-rangos" class="table">
-                                                    <thead class="table-light">
-                                                        <tr class="text-center">
-                                                            <th>Tipo</th>
-                                                            <th>Hasta</th>
-                                                            <th>Precio</th>
-                                                        </tr>
-                                                    </thead>
-                                                    <tbody>
-                                                        <tr>
-                                                            <td>Menudeo</td>
-                                                            <td><input type="text" class="form-control text-end" id="prod-menudeo" placeholder="0"></td>
-                                                            <td>
-                                                                <div class="input-group">
-                                                                    <div class="input-group-text">
-                                                                        <small>$</small>
-                                                                    </div>
-                                                                    <input type="text" class="form-control text-end" id="prod-precio_menudeo" placeholder="0.00">
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Medio mayoreo</td>
-                                                            <td><input type="text" class="form-control text-end" id="prod-medio" placeholder="0"></td>
-                                                            <td>
-                                                                <div class="input-group">
-                                                                    <div class="input-group-text">
-                                                                        <small>$</small>
-                                                                    </div>
-                                                                    <input type="text" class="form-control text-end" id="prod-precio_medio" placeholder="0.00">
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Mayoreo</td>
-                                                            <td><input type="text" class="form-control text-end" id="prod-mayoreo" placeholder="0"></td>
-                                                            <td>
-                                                                <div class="input-group">
-                                                                    <div class="input-group-text">
-                                                                        <small>$</small>
-                                                                    </div>
-                                                                    <input type="text" class="form-control text-end" id="prod-precio_mayoreo" placeholder="0.00">
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                        <tr>
-                                                            <td>Distribuidor</td>
-                                                            <td><input type="text" class="form-control text-end" id="distribuidor" placeholder="0"></td>
-                                                            <td>
-                                                                <div class="input-group">
-                                                                    <div class="input-group-text">
-                                                                        <small>$</small>
-                                                                    </div>
-                                                                    <input type="text" class="form-control text-end" id="prod-precio_distribuidor" placeholder="0.00">
-                                                                </div>
-                                                            </td>
-                                                        </tr>
-                                                    </tbody>
-                                                </table>
-                                            </div> -->
                                             <div class="mb-1 mt-1 form-group row">
                                                 <div class="col-sm-4">
                                                     <label class="form-label fw-bolder fs-5" for="prod-cant_kilo">Venta por kilo <small>(Cantidad)</small></label> 
@@ -222,8 +163,8 @@
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-4">
-                                                    <label class="form-label fw-bolder fs-5" for="prod-codigo_kilo">Venta por kilo <small>(Código)</small></label> 
-                                                    <input type="number" class="form-control" id="prod-codigo_kilo" placeholder="Código" disabled>
+                                                    <label class="form-label fw-bolder fs-5" for="prod-clave_kilo">Venta por kilo <small>(Clave)</small></label> 
+                                                    <input type="text" class="form-control" id="prod-clave_kilo" placeholder="Código" disabled>
                                                 </div>
                                             </div>
                                         </div>
@@ -462,13 +403,13 @@
                                                     <div class="" id="inventario">
                                                         <div class="alert instrucciones p-1 text" role="alert">
                                                             <p>
-                                                                Este módulo es para dar de alta de forma masiva los productos, contenidos en un Excel con el layout siguiente:
-                                                                <br><center><b>Categoría, Subcategoría, Área, Nombre, Descripción, Unidad de Medida, Código, Marca, Mínimo, Clave SAT, Venta por kilo, Venta por kilo (Cantidad), Venta por kilo (Código).</b></center> <br>
-                                                                * Columna F -> Unidad de Medida, debe colocar solo uno de los siguientes números: <b>1</b> indicará que el producto se vende por pieza, <b>3</b> indicará que el producto se vende por metro.<br>
-                                                                * Columna G -> Código, ningún código de producto debe estar repetido, en caso de que alguno se repita el sistema solo dará de alta los productos anteriores al del código repetido.
-                                                                * Columna K -> Venta por kilo, para indicar que el producto se vende por kilo colocar 1 en caso de que no colocar 0. <br>
-                                                                * Columna L -> Venta por kilo (Cantidad), si en la columna K especificó que el producto se vende por kilo (1), en esta columna debe indicar el número de piezas que conforman un kilo del producto. <br>
-                                                                * Columna M -> Venta por kilo (Código), si en la columna K especificó que el producto se vende por kilo (1), en esta columna debe indicar el código utilizado para vender el producto por kilo.<br>
+                                                                Este módulo es para dar de alta de forma masiva los productos contenidos en un Excel con el layout siguiente:
+                                                                <br><center><b>Categoría, Subcategoría, Área, Clave, Descripción, Medida, Stock Mínimo, Unidad de Medida, Clave SAT, Venta por kilo, Venta por kilo (Cantidad), Venta por kilo (Clave).</b></center> <br>
+                                                                * Columna D -> Clave, ninguna clave de producto debe estar repetida, en caso de que alguna se repita el sistema solo dará de alta los productos anteriores al de la clave repetida.<br>
+                                                                * Columna H -> Unidad de Medida, debe colocar solo uno de los siguientes números: <b>1</b> indicará que el producto se vende por pieza, <b>2</b> indicará que el producto se vende por metro.<br>
+                                                                * Columna J -> Venta por kilo, para indicar que el producto se vende por kilo colocar 1 en caso de que no colocar 0. <br>
+                                                                * Columna K -> Venta por kilo (Cantidad), si en la columna J especificó que el producto se vende por kilo (1), en esta columna debe indicar el número de piezas que conforman un kilo del producto. <br>
+                                                                * Columna L -> Venta por kilo (Código), si en la columna J especificó que el producto se vende por kilo (1), en esta columna debe indicar la clave utilizada para vender el producto por kilo.<br>
                                                                 * Al indicar que el producto se vende por kilo el sistema agregará de manera automática un producto con unidad de medida <b>kilo</b>.
                                                                 <br>
                                                                 Antes de continuar verifique que el Excel que está seleccionando cumple con ese layout, de lo contrario no se podrán agregar los productos. <br>Si requiere descargar el formato del layout, lo puede hacer desde 
@@ -608,10 +549,10 @@
             $('#kilo').change(function(){
                 if($(this).is(':checked')){
                     $('#prod-cant_kilo').attr('disabled', false).prop('disabled', false).focus()
-                    $('#prod-codigo_kilo').attr('disabled', false).prop('disabled', false)
+                    $('#prod-clave_kilo').attr('disabled', false).prop('disabled', false)
                 }else{
                     $('#prod-cant_kilo').attr('disabled', true).prop('disabled', true).val('')
-                    $('#prod-codigo_kilo').attr('disabled', true).prop('disabled', true).val('')
+                    $('#prod-clave_kilo').attr('disabled', true).prop('disabled', true).val('')
                 }
             })
 
@@ -620,23 +561,32 @@
                     $('#tbl-sucursales tbody').empty()
                     prod_id = $(this).data('id')
                     producto = $(this).data('producto')
-                    $.get(apiUrl+'producto/getStockSuc/'+prod_id, function(resp){
+                    $.get(apiUrl+'prod_stock/getStockSuc/'+prod_id, function(resp){
                         elem =  $('#tbl-sucursales tbody')
                         if(resp){
-                            if(resp.msg){
+                            if(resp.length == 0){
                                 tr = $('<tr></tr>')
                                 tr.append('<td colspan="3" class="text-center">No se han registrado entradas del producto en otras sucursales</td>')
                                 elem.append(tr)
                             }else{
+                                contador = 0;
                                 $.each(resp, function(index, item){
                                     if(item.id != <?= $_SESSION['sucursal_id'] ?>){
-                                        tr = $('<tr></tr>')
-                                        tr.append('<td>'+item.nombre+'</td>')
-                                        tr.append('<td class="text-center">'+item.stock+'</td>')
-                                        tr.append('<td class="text-center">'+item.date+'</td>')
-                                        elem.append(tr)
+                                        if(item.stock){
+                                            tr = $('<tr></tr>')
+                                            tr.append('<td>'+item.nombre+'</td>')
+                                            tr.append('<td class="text-center">'+item.stock+'</td>')
+                                            tr.append('<td class="text-center">'+item.date+'</td>')
+                                            elem.append(tr)
+                                        }
+                                        contador++
                                     }
                                 })
+                                if(contador == 0){
+                                    tr = $('<tr></tr>')
+                                    tr.append('<td colspan="3" class="text-center">No se han registrado entradas del producto en otras sucursales</td>')
+                                    elem.append(tr)
+                                }
                             }
                         }
                     },'json');
@@ -688,8 +638,8 @@
                 $('#tbl-producto').on('click', '.btnBaja', function(){
                     prod_id = $(this).data('id')
                     tr = $(this).closest('tr')
-                    name = $(tr).find('td:eq(0)').text()
-                    stock = $(tr).find('td:eq(5)').text()
+                    name = $(tr).find('td:eq(1)').text()
+                    stock = $(tr).find('td:eq(6)').text()
                     $('#frm-baja h4').html('baja de inventario')
                     $('#nameP').val(name)
                     $('#existencia').val(stock)
@@ -754,9 +704,11 @@
             <?php if(in_array(MOD_ADD, $permisos)) :  ?>
                 $('#btnAdd').click(function(){
                     clear()
-                    $.get(apiUrl+'producto/getCodigo', function(data){
-                       $('#prod-codigo').val(parseInt(data.id)+1)
-                    }, 'json')
+                    $.post(apiUrl+'producto/addCorto/', function(resp){
+                        $('#prod-clave').val(resp.clave)
+                        $('#prod_id').val(resp.clave)
+                        $('#codigo_barras').val('*'+resp.clave+'*')
+                    })
 
                     categorias('categoria'); areas('prod-prod_area_id'); unidades();
                     $('.subcategoria').addClass('hidden')
@@ -776,14 +728,12 @@
                         $.each(data, function(index, elem){
                             $('#prod-'+index).val(elem)
                         })
+                        $('#codigo_barras').val('*'+data.clave+'*')
 
-                        $.each(data.precios, function(index, elem){
-                            $('#prod-precio_'+index).val(elem)
-                        })
                         if(data.venta_kilo == 1){
                             $('#kilo').prop('checked', true)
                             $('#prod-cant_kilo').val(data.kilo.cantidad).attr('disabled', false).prop('disabled', false)
-                            $('#prod-codigo_kilo').val(data.kilo.codigo).attr('disabled', false).prop('disabled', false)
+                            $('#prod-clave_kilo').val(data.kilo.clave).attr('disabled', false).prop('disabled', false)
                         }
                         unidades(data.prod_unidad_medida_id);
                         $('#categoria').val(data.categoria).trigger('change')
@@ -794,6 +744,11 @@
                     $('#frm-producto').modal('show')
                 })
             <?php endif; ?>
+
+            $('#prod-clave').focusout(function(){
+                val = $(this).val();
+                $('#codigo_barras').val('*'+val+'*')
+            })
 
             $('#btnSave').click(function(){
                 id = $('#prod_id').val()
@@ -810,14 +765,14 @@
                     error('categoria', 'Este campo es obligatorio')
                 }else if(data['prod_categoria_id'] == ''){
                     error('prod-prod_categoria_id', 'Este campo es obligatorio')
-                }else if(data['nombre'] == ''){
-                    error('prod-nombre', 'Este campo es obligatorio')
-                }else if(data['nombre'].length < 3){
-                    error('prod-nombre', 'El nombre debe contener al menos 3 caracteres')
+                }else if(data['descripcion'] == ''){
+                    error('prod-descripcion', 'Este campo es obligatorio')
+                }else if(data['descripcion'].length < 3){
+                    error('prod-descripcion', 'La descripción debe contener al menos 3 caracteres')
                 }else if(data['venta_kilo'] == 1 && data['cant_kilo'] == ''){
                     error('prod-cant_kilo', 'Este campo es obligatorio')
-                }else if(data['venta_kilo'] == 1 && data['codigo_kilo'] == ''){
-                    error('prod-codigo_kilo', 'Este campo es obligatorio')
+                }else if(data['venta_kilo'] == 1 && data['clave_kilo'] == ''){
+                    error('prod-clave_kilo', 'Este campo es obligatorio')
                 }else if(data['minimo'] == ''){
                     error('prod-minimo', 'Este campo es obligatorio')
                 }else{
@@ -856,7 +811,7 @@
                     prod_id = $(this).data('id')
                     tr = $(this).closest('tr')
                     name = $(tr).find('td:eq(0)').text()
-                    $.get(apiUrl+'producto/getStockSuc/'+prod_id, function(resp){
+                    $.get(apiUrl+'prod_stock/getStockSuc/'+prod_id, function(resp){
                         if(resp){
                             if(resp.msg){
                                 $('.confirmacion').removeClass('hidden')
@@ -866,7 +821,7 @@
                             }else{
                                 elem =  $('#tbl-info tbody')
                                 $.each(resp, function(index, item){
-                                    if(item.id != <?= $_SESSION['sucursal_id'] ?>){
+                                    if(item.stock){
                                         tr = $('<tr></tr>')
                                         tr.append('<td>'+item.nombre+'</td>')
                                         tr.append('<td class="text-center">'+item.stock+'</td>')
@@ -1113,14 +1068,15 @@
                             type: 'GET',
                         },
                         columns: [
-                            {data: 'nombre'},
-                            {data: 'codigo'},
+                            {data: 'clave'},
+                            {data: 'descripcion'},
+                            {data: 'medida'},
+                            {data: 'codigo_barras'},
                             {data: 'categoria'},
                             {data: 'subcategoria'},
                             {data: 'minimo'},
                             {data: 'stock'},
                             {data: 'enMinimo'},
-                            {data: 'marca'},
                             {data: ''}
                         ],
                         columnDefs: [
@@ -1133,12 +1089,12 @@
                                     if(full['minimo'] != 'N/A' && full['stock'] != 'N/A' && full['enMinimo'] != 'N/A'){
                                         acciones = '<div class="text-center">'+
                                             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnEdit" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
                                                     feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
                                             <?php if(in_array(MOD_DEL, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDel" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDel" data-id="'+id+'" data-name="'+full['descripcion']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
                                                     feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>' +
                                             <?php endif; ?>
@@ -1148,11 +1104,11 @@
                                                 '</a>' +
                                                 '<div class="dropdown-menu dropdown-menu-end" style="min-width: 5rem; text-align:center; ">' +
                                                     <?php if(in_array(MOD_PROD_SUC, $permisos)) : ?>
-                                                        '<button type="button" class="btn btn-outline-warning btn-sm btnVer" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Ver en Sucursales" style="margin-right:4px;">'+
+                                                        '<button type="button" class="btn btn-outline-warning btn-sm btnVer" data-id="'+id+'" data-producto="'+full['descripcion']+'" data-toggle="tooltip" title="Ver en Sucursales" style="margin-right:4px;">'+
                                                             feather.icons['eye'].toSvg({ class: 'font-small-4 me-20' })+
                                                         '</button>'+
                                                     <?php endif; ?>
-                                                    '<button type="button" class="btn btn-outline-success btn-sm btnlistadoP" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Precios" style="margin-right:4px;">'+ 
+                                                    '<button type="button" class="btn btn-outline-success btn-sm btnlistadoP" data-id="'+id+'" data-producto="'+full['descripcion']+'" data-toggle="tooltip" title="Precios" style="margin-right:4px;">'+ 
                                                         feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' }) +
                                                     '</button>'+
                                                     <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
@@ -1165,7 +1121,7 @@
                                         '</div>'
                                     }else if(full['minimo'] == 'N/A' && full['stock'] == 'N/A' && full['enMinimo'] == 'N/A'){
                                         acciones = '<div class="text-center">'+
-                                            '<button type="button" class="btn btn-outline-success btn-sm btnlistadoP" data-id="'+id+'" data-producto="'+full['nombre']+'" data-toggle="tooltip" title="Precios" style="margin-right:4px;">'+ 
+                                            '<button type="button" class="btn btn-outline-success btn-sm btnlistadoP" data-id="'+id+'" data-producto="'+full['descripcion']+'" data-toggle="tooltip" title="Precios" style="margin-right:4px;">'+ 
                                                 feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' }) +
                                             '</button>'+
                                         '</div>'
@@ -1176,7 +1132,7 @@
                                 }
                             },
                             {
-                                targets: 4,
+                                targets: 6,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-center">' +
@@ -1186,7 +1142,7 @@
                                 }
                             },
                             {
-                                targets: 5,
+                                targets: 7,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-center">' +
@@ -1196,7 +1152,7 @@
                                 }
                             },
                             {
-                                visible: false, targets: [6]
+                                visible: false, targets: [8]
                             }
                         ],
                         createdRow: function(row, data, dataIndex) {
