@@ -79,14 +79,14 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.nombre, $this->tableRango.prod_precio_id as id, $this->tableRango.menudeo, $this->tableRango.medio, $this->tableRango.mayoreo, $this->tablePrecio.menudeo as precio_menudeo, $this->tablePrecio.medio as precio_medio, $this->tablePrecio.mayoreo as precio_mayoreo, $this->tablePrecio.distribuidor as precio_distribuidor")
+			->select("$this->table.descripcion, medida, $this->tableRango.prod_precio_id as id, $this->tableRango.menudeo, $this->tableRango.medio, $this->tableRango.mayoreo, $this->tablePrecio.menudeo as precio_menudeo, $this->tablePrecio.medio as precio_medio, $this->tablePrecio.mayoreo as precio_mayoreo, $this->tablePrecio.distribuidor as precio_distribuidor")
 			->innerJoin("$this->tableRango ON $this->tableRango.producto_id = $this->table.id")
 			->innerJoin("$this->tablePrecio ON $this->tablePrecio.id = $this->tableRango.prod_precio_id")
 			->where($sub)
 			->where($area)
 			->where("$this->table.status", 1)
 			->where("$this->tableRango.sucursal_id", $_SESSION['sucursal_id'])
-			->orderBy("$this->table.nombre ASC")
+			->orderBy("$this->table.descripcion ASC")
 			->fetchAll();
 		return $this->response;
 	}
@@ -139,7 +139,8 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.id, clave, sub.nombre as sub, cat.nombre as cat, descripcion, medida, minimo, es_kilo")
+			// ->select("$this->table.id, clave, sub.nombre as sub, cat.nombre as cat, descripcion, medida, minimo, es_kilo")
+			->select("$this->table.id, clave, prod_area.nombre as area, descripcion, medida, minimo, es_kilo")
 			->innerJoin("prod_categoria sub ON sub.id = $this->table.prod_categoria_id")
 			->innerJoin("prod_categoria cat ON cat.id = sub.prod_categoria_id")
 			// ->where("$this->table.es_kilo != 1")

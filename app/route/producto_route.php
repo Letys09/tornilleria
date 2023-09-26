@@ -65,8 +65,9 @@ use App\Lib\Auth,
 					"descripcion" => $producto->descripcion,
 					"medida" => $producto->medida,
 					"codigo_barras" => '*'.$producto->clave.'*',
-					"categoria" => $producto->cat,
-					"subcategoria" => $producto->sub,
+					// "categoria" => $producto->cat,
+					// "subcategoria" => $producto->sub,
+                    "area" => $producto->area,
 					"minimo" => $stockMin,
 					"stock" => $stock,
 					"enMinimo" => $minimo,
@@ -631,29 +632,30 @@ use App\Lib\Auth,
             $sheet->getColumnDimension('F')->setAutoSize(true);
            
             $sheet->setCellValue("A1", 'ID');
-            $sheet->setCellValue("B1", 'Nombre');
-            $sheet->setCellValue("C1", 'Menudeo (Hasta)');
-            $sheet->setCellValue("D1", 'Precio Menudeo');
-            $sheet->setCellValue("E1", 'Medio-Mayoreo (Hasta)');
-            $sheet->setCellValue("F1", 'Precio Medio-Mayoreo');
-            $sheet->setCellValue("G1", 'Mayoreo (Hasta)');
-            $sheet->setCellValue("H1", 'Precio Mayoreo');
-            $sheet->setCellValue("I1", 'Precio Distribuidor');
+            $sheet->setCellValue("B1", 'Descripción');
+            $sheet->setCellValue("C1", 'Medida');
+            $sheet->setCellValue("D1", 'Menudeo (Hasta)');
+            $sheet->setCellValue("E1", 'Precio Menudeo');
+            $sheet->setCellValue("F1", 'Medio-Mayoreo (Hasta)');
+            $sheet->setCellValue("G1", 'Precio Medio-Mayoreo');
+            $sheet->setCellValue("H1", 'Mayoreo (Hasta)');
+            $sheet->setCellValue("I1", 'Precio Mayoreo');
+            $sheet->setCellValue("J1", 'Precio Distribuidor');
             $sheet->setTitle('Hoja 1');
             $fila = 2;
 
             $prods = $this->model->producto->getAll($args['cat'], $args['sub'], $args['area'])->result;
-
             foreach($prods as $prod){
                 $sheet->setCellValue("A$fila", $prod->id);
-                $sheet->setCellValue("B$fila", $prod->nombre);
-                $sheet->setCellValue("C$fila", $prod->menudeo);
-                $sheet->setCellValue("D$fila", $prod->precio_menudeo);
-                $sheet->setCellValue("E$fila", $prod->medio);
-                $sheet->setCellValue("F$fila", $prod->precio_medio);
-                $sheet->setCellValue("G$fila", $prod->mayoreo);
-                $sheet->setCellValue("H$fila", $prod->precio_mayoreo);
-                $sheet->setCellValue("I$fila", $prod->precio_distribuidor);
+                $sheet->setCellValue("B$fila", $prod->descripcion);
+                $sheet->setCellValue("C$fila", $prod->medida);
+                $sheet->setCellValue("D$fila", $prod->menudeo);
+                $sheet->setCellValue("E$fila", $prod->precio_menudeo);
+                $sheet->setCellValue("F$fila", $prod->medio);
+                $sheet->setCellValue("G$fila", $prod->precio_medio);
+                $sheet->setCellValue("H$fila", $prod->mayoreo);
+                $sheet->setCellValue("I$fila", $prod->precio_mayoreo);
+                $sheet->setCellValue("J$fila", $prod->precio_distribuidor);
                 $fila++;
             }
 
@@ -829,17 +831,17 @@ use App\Lib\Auth,
                 $precio_id = $hojaActual->getCell("A$fila")->getValue();
                 $id_rango = $this->model->producto->getByName('prod_rango', 'prod_precio_id', $precio_id)->result->id;
                 $rango = [
-                    'menudeo' => $hojaActual->getCell("C$fila")->getValue(),
-                    'medio' => $hojaActual->getCell("E$fila")->getValue(),
-                    'mayoreo' => $hojaActual->getCell("G$fila")->getValue(),   
+                    'menudeo' => $hojaActual->getCell("D$fila")->getValue(),
+                    'medio' => $hojaActual->getCell("F$fila")->getValue(),
+                    'mayoreo' => $hojaActual->getCell("H$fila")->getValue(),   
                     'actualiza' => $fecha,
                 ];
                 $edit = $this->model->producto->edit('prod_rango', 'id', $rango, $precio_id);
                 $precio = [  
-                    'menudeo' => $hojaActual->getCell("D$fila")->getValue(),
-                    'medio' => $hojaActual->getCell("F$fila")->getValue(),
-                    'mayoreo' => $hojaActual->getCell("H$fila")->getValue(),
-                    'distribuidor' => $hojaActual->getCell("I$fila")->getValue(),
+                    'menudeo' => $hojaActual->getCell("E$fila")->getValue(),
+                    'medio' => $hojaActual->getCell("G$fila")->getValue(),
+                    'mayoreo' => $hojaActual->getCell("I$fila")->getValue(),
+                    'distribuidor' => $hojaActual->getCell("J$fila")->getValue(),
                     'actualiza' => $fecha,
                 ];
                 $edit = $this->model->producto->edit('prod_precio', 'id', $precio, $precio_id);

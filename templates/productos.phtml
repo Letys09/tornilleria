@@ -57,11 +57,12 @@
                                     <thead class="table-light">
                                         <tr class="text-center">
                                             <th>Clave</th>
-                                            <th>Descripcion</th>
+                                            <th>Descripción</th>
                                             <th>Medida</th>
                                             <th>Código de barras</th>
-                                            <th>Categoría</th>
-                                            <th>Subcategoría</th>
+                                            <!-- <th>Categoría</th>
+                                            <th>Subcategoría</th> -->
+                                            <th>Área</th>
                                             <th>Stock Mínimo</th>
                                             <th>Existencia</th>
                                             <th>En minimo</th>
@@ -1072,8 +1073,9 @@
                             {data: 'descripcion'},
                             {data: 'medida'},
                             {data: 'codigo_barras'},
-                            {data: 'categoria'},
-                            {data: 'subcategoria'},
+                            // {data: 'categoria'},
+                            // {data: 'subcategoria'},
+                            {data: 'area'},
                             {data: 'minimo'},
                             {data: 'stock'},
                             {data: 'enMinimo'},
@@ -1132,7 +1134,7 @@
                                 }
                             },
                             {
-                                targets: 6,
+                                targets: 5,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-center">' +
@@ -1142,7 +1144,7 @@
                                 }
                             },
                             {
-                                targets: 7,
+                                targets: 6,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-center">' +
@@ -1152,7 +1154,7 @@
                                 }
                             },
                             {
-                                visible: false, targets: [8]
+                                visible: false, targets: [7]
                             }
                         ],
                         createdRow: function(row, data, dataIndex) {
@@ -1183,7 +1185,7 @@
                                 });
 
                             this.api()
-                                .columns(6)
+                                .columns(7)
                                 .every(function () {
                                 var column = this;
                                 
@@ -1192,7 +1194,7 @@
                                     )
                                     .prependTo('#tbl-producto_length')
                                     .on('change', function () {
-                                        $('#tbl-producto').DataTable().column(6).search(
+                                        $('#tbl-producto').DataTable().column(7).search(
                                             $('#enStock').val()
                                         ).draw();
                                     });
