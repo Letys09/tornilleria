@@ -99,22 +99,10 @@ use App\Lib\Auth,
             return $res->withJson($prod);
         });
 
-        $this->get('getCat', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getCat()->result);
-        });
-
-        $this->get('getSub/{cat}', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getSubC($args['cat'])->result);
-        });
-
         $this->get('getArea', function($req, $res, $args){
             return $res->withJson($this->model->producto->getArea());
         });
-
-        $this->get('getAllSub', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getAllSub()->result);
-        });
-
+        
         $this->post('rangos', function($req, $res, $args){
             $this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();

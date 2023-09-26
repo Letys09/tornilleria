@@ -159,17 +159,6 @@ class ProductoModel {
 		return $this->response->SetResponse(true);
 	}
 
-    public function getCat(){
-        $this->response->result = $this->db
-            ->from("$this->tableCat")
-            ->select(null)
-            ->select('id, nombre')
-            ->where('prod_categoria_id IS NULL')
-            ->where("status", 1)
-            ->fetchAll();
-        return $this->response;
-    }
-
 	public function getByName($table, $column, $param){
 		$this->response->result = $this->db
 			->from($table)
@@ -180,33 +169,11 @@ class ProductoModel {
 		return $this->response->SetResponse(true);
 	}
 
-    public function getSubC($cat){
-        $this->response->result = $this->db
-            ->from("$this->tableCat")
-            ->select(null)
-            ->select('id, nombre')
-            ->where('prod_categoria_id', $cat)
-            ->where("status", 1)
-            ->fetchAll();
-        return $this->response;
-    }
-
     public function getArea(){
         $this->response->result = $this->db
             ->from("$this->tableArea")
             ->select(null)
             ->select('id, nombre')
-            ->where("status", 1)
-            ->fetchAll();
-        return $this->response;
-    }
-
-	public function getAllSub(){
-        $this->response->result = $this->db
-            ->from("$this->tableCat")
-            ->select(null)
-            ->select('id, nombre')
-            ->where('prod_categoria_id IS NOT NULL')
             ->where("status", 1)
             ->fetchAll();
         return $this->response;

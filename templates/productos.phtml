@@ -180,6 +180,20 @@
                                 </div>
                             </div>
 
+                            <div id="frm-barcode" class="modal fade" data-backdrop="static" data-keyboard="false" tabindex="-1">
+                                <div class="modal-dialog">
+                                    <div class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase">código de barras</h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal text-center">
+                                            <img id="barcode">
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+
                             <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-sucursales" >
                                 <div class="modal-dialog modal-lg">
                                     <form class="modal-content pt-0">
@@ -526,6 +540,7 @@
     </div>
     <?php include 'footer.phtml'; ?>
     <script src="<?= URL_ROOT ?>/app-assets/plugin/dropzone-master/dist/dropzone.js"></script>
+	<script src="<?= URL_ROOT ?>/app-assets/plugin/jsBarcode/JsBarcode.all.min.js"></script>
 
     <script>
         $(function(){
@@ -539,7 +554,7 @@
                 $('#prod-prod_categoria_id').empty();
                 $('#prod-prod_categoria_id').append('<option value="0" selected disabled>Seleccione una opción</option>');
                 cat = $(this).val()
-                $.get(apiUrl+'producto/getSub/'+cat, function(data){
+                $.get(apiUrl+'prod_categoria/getSub/'+cat, function(data){
                     $.each(data, function(index, elem){
                         $('#prod-prod_categoria_id').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
                     })
@@ -790,7 +805,6 @@
                             }
                         }, 'json')
                     }else{
-                        console.log(data)
                         $.post(apiUrl+'producto/edit/'+id, data, function(resp){
                             if(resp.response){
                                 toastr["success"]("¡Listo!", "Se editó la información del producto.")
@@ -806,12 +820,30 @@
                 }
             })
 
+            $('#tbl-producto').on('click', '.btnCodigo', function(){
+                tr = $(this).closest('tr')
+                codigo = '*'+$(tr).find('td:eq(0)').text()+'*'
+                $("#barcode").JsBarcode(codigo, {
+					width: 2,
+					height: 90,
+					displayValue:true,
+					textAlign:"center",
+					textPosition:"bottom",
+					textMargin: 2,
+					fontSize: 20,
+					background:"#ffffff",
+					lineColor:"#000000",
+					margin: 10,
+				})
+				$('#frm-barcode').modal('show')
+            })
+
             <?php if(in_array(MOD_DEL, $permisos)) : ?>
                 $('#tbl-producto').on('click', '.btnDel', function(){
                     $('#tbl-info tbody').empty()
                     prod_id = $(this).data('id')
                     tr = $(this).closest('tr')
-                    name = $(tr).find('td:eq(0)').text()
+                    name = $(tr).find('td:eq(1)').text()
                     $.get(apiUrl+'prod_stock/getStockSuc/'+prod_id, function(resp){
                         if(resp){
                             if(resp.msg){
@@ -889,7 +921,6 @@
                 });
 
                 Dropzone.forElement("#layout").on("success", function(file, resp, formData) {
-                    console.log(resp)
                     if(resp.response){
                         toastr["success"]("¡Listo!", "Se realizó la carga del inventario.")
                         $('#frm-masiva').modal('hide')
@@ -918,7 +949,7 @@
                     cat = $(this).val()
                     $('#precios-sub').append('<option value="" selected disabled>Seleccione una opción</option>')
                     $('#precios-sub').append('<option value="0" selected>Todas</option>')
-                    $.get(apiUrl+'producto/getSub/'+cat, function(data){
+                    $.get(apiUrl+'prod_categoria/getSub/'+cat, function(data){
                         $.each(data, function(index, elem){
                             $('#precios-sub').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
                         })
@@ -973,7 +1004,6 @@
                 });
 
                 Dropzone.forElement("#layout_precios").on("success", function(file, resp, formData) {
-                    console.log(resp)
                     if(resp.response){
                         toastr["success"]("¡Listo!", "Se actualizaron los precios de los productos.")
                         $('#frm-precios').modal('hide')
@@ -1002,7 +1032,7 @@
                 }else{
                     $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
                 }
-                $.get(apiUrl+'producto/getCat', function(data){
+                $.get(apiUrl+'prod_categoria/getCat', function(data){
                     $.each(data, function(index, item){
                         $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
                     })
@@ -1105,6 +1135,9 @@
                                                     feather.icons['more-vertical'].toSvg({ class: 'font-small-4' }) +
                                                 '</a>' +
                                                 '<div class="dropdown-menu dropdown-menu-end" style="min-width: 5rem; text-align:center; ">' +
+                                                    '<button type="button" class="btn btn-outline-new-info btn-sm btnCodigo" data-id="'+id+'" data-toggle="tooltip" title="Código de Barras" style="margin-right:4px;">'+
+                                                       '<i class="fas fa-barcode"></i>'+
+                                                    '</button>'+
                                                     <?php if(in_array(MOD_PROD_SUC, $permisos)) : ?>
                                                         '<button type="button" class="btn btn-outline-warning btn-sm btnVer" data-id="'+id+'" data-producto="'+full['descripcion']+'" data-toggle="tooltip" title="Ver en Sucursales" style="margin-right:4px;">'+
                                                             feather.icons['eye'].toSvg({ class: 'font-small-4 me-20' })+
