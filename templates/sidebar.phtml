@@ -1,13 +1,10 @@
-<div class="main-menu menu-fixed menu-light menu-accordion menu-shadow" data-scroll-to-active="true">
+<div class="main-menu menu-fixed menu-light menu-accordion menu-shadow menu-expanded" data-scroll-to-active="true">
     <div class="navbar-header">
         <ul class="nav navbar-nav flex-row">
             <li class="nav-item me-auto"><a class="navbar-brand" href="<?= URL_ROOT ?>/temp/index.html">
-                <span class="brand-logo">
-                <a href="usuarios"><img src="<?= URL_ROOT ?>/app-assets/images/logo/logo-light.png" alt="" height="30"></a>
-                </span>
-                <span class="brand-text"><strong><?= $_SESSION['sucursal_nombre'] ?></strong></span></a></li>
-            <li class="nav-item nav-toggle"><a class="nav-link modern-nav-toggle pe-0" data-bs-toggle="collapse"><i class="d-block d-xl-none text-primary toggle-icon font-medium-4" data-feather="x"></i><i class="d-none d-xl-block collapse-toggle-icon font-medium-4  text-primary" data-feather="disc" data-ticon="disc"></i></a></li>
-        </ul>
+                <span class="brand-text"><strong><?= $_SESSION['sucursal_nombre'] ?></strong></span></a>
+            </li>
+         </ul>
         <div class="user-profile">
             <div class="profile-img">
                 <?php if($_SESSION['foto']) : ?>
@@ -22,7 +19,7 @@
 				<a href="<?= URL_ROOT ?>/usuario/logout" class="" data-toggle="tooltip" title="Cerrar Sesión"><i class="me-50" data-feather="power"></i></a>
 			</div>
 		</div>
-    </div><br><br><br><br><br><br><br><br><hr>
+    </div><br><br><br><br><br><br><br><hr>
     <div class="shadow-bottom"></div>
         <div class="main-menu-content">
             <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
