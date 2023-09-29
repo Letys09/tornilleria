@@ -23,10 +23,7 @@ return [
         // Configuración de mi DNS data base
         
         'connectionString' => [
-            //'dns'  => 'mysql:host=localhost;dbname=alertave_connect;charset=utf8',
-            //'user' => 'alertave_connect',
-            //'pass' => 'JsmS0G~2V9yL'
-            'dns'  => 'mysql:host=localhost;dbname=base_inventario;charset=utf8',
+            'dns'  => 'mysql:host=localhost;dbname=tornilleria;charset=utf8',
             'user' => 'root',
             'pass' => ''        
         ]
