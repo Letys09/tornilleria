@@ -1,17 +1,17 @@
 .pace-progress{
-	background-color: #492d77 !important;
+	background-color: #462f77 !important;
 }
 
 .main-menu.menu-light .navigation > li.active > a {
 	background: #ffff;
-	color: #492d77;
+	color: #462f77;
 	font-weight: 400;
 	border-radius: 4px;
 	box-shadow: 0 0 10px 1px rgba(94, 93, 93, 0.7);
 }
 
 .main-menu.menu-light .navigation > li:hover > a {
-	color: #492d77;
+	color: #462f77;
 	font-weight: 400;
 	border-radius: 4px;
 }
@@ -23,13 +23,13 @@
   }
 
 .main-menu.menu-light .navigation > li ul li:hover a {
-	color: #492d77;
+	color: #462f77;
 	font-weight: 400;
 	border-radius: 4px;
 }
 
 .dropdown-menu > a:hover{
-	color: #492d77;
+	color: #462f77;
 	font-weight: 400;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .titleIcon{
-	color: #492d77 !important;
+	color: #462f77 !important;
 	font-size: x-large;
 }
 .dashIcon{
@@ -66,7 +66,7 @@
 }
 
 #btnLogin:hover{
-	background-color: #392268;
+	background-color: #462f77;
 }
 
 #btnGenerate{
@@ -91,7 +91,7 @@
 
 #bienvenida > h2{
 	font-size: xx-large;
-	color: #492d77;
+	color: #462f77;
 }
 
 #Forgotmesssage{
@@ -154,7 +154,7 @@ input[type="search"]{
 .page-item.active .page-link {
 	z-index: 3;
 	border-radius: 5rem;
-	background-color: #492d77;
+	background-color: #462f77;
 	color: #fff !important;
 	font-weight: 600;
   }
@@ -176,10 +176,6 @@ input[type="search"]{
 
 .label{
 	font-size: 1rem !important;
-}
-
-.card-footer, .card-header {
-	padding: 0 !important;
 }
 
 .feather-16{
@@ -260,7 +256,7 @@ input[type="search"]{
 }
 
 #btnGenerate:hover{
-	background-color: #492d77 !important;
+	background-color: #462f77 !important;
 }
 
 .modalAsig{
@@ -462,7 +458,7 @@ div.card-header.link{
 }
 
 .busPrecios{
-	color: #492d77 !important;
+	color: #462f77 !important;
 	/* text-shadow: 2px 2px rgb(157, 97, 216); */
 	font-size: x-large;
 }
@@ -474,4 +470,17 @@ div.card-header.link{
 
 .cerrarSuc{
 	color: red;
+}
+
+.productos-precios-container{
+	gap: 1rem;
+}
+
+.card-header{
+	background-color: #e6e3e3;
+	padding: 0.75rem;
+}
+
+input:disabled{
+	cursor: not-allowed;
 }
