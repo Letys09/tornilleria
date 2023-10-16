@@ -181,7 +181,7 @@
                                         <div class="modal-body">
                                             <div class="form-group">
                                                 <div class="col-sm-12">
-                                                    <label for="descripcion-nuevo-perfil" class="col-sm-3 control-label input-sm"><h5>Tipo de usuario</h5></label>
+                                                    <label for="descripcion-nuevo-perfil" class="col-sm-3 control-label input-sm"><h5></h5></label>
                                                     <input type="text" id="descripcion-nuevo-perfil" class="form-control input-sm" placeholder="Agregue el nombre del nuevo tipo de usuario">
                                                 </div>
                                             </div>
@@ -392,7 +392,6 @@
                 });
 
                 $('#btnTypeUser').click(function() {   
-                    $('#frm-type-user .tooltip-error').remove();
                     $.ajax({
                         url: apiUrl+'usuario/getTypeUser',
                         type: 'get',
@@ -441,11 +440,11 @@
                 $('#btnSaveNewPerfil').click(function(){
                     $('.alert').remove();
                     err = $('<div class="alert alert-blink-danger"></div>');
-                    data = { descripcion: sinDiacriticos($.trim($('#descripcion-nuevo-perfil').val())) };
+                    data = { nombre: sinDiacriticos($.trim($('#descripcion-nuevo-perfil').val())) };
                     btn = $(this);
                     btn.addClass('disabled');
-                    if(data.descripcion.length < 3){
-                        $(err).append('Debe ingresar un nombre de mas de tres caracteres.');
+                    if(data.nombre.length < 3){
+                        $(err).append('Debe ingresar un nombre de al menos 3 caracteres.');
                         $('#descripcion-nuevo-perfil').parent().append(err);
                         $('#descripcion-nuevo-perfil').focus();
                         btn.removeClass('disabled');
@@ -458,6 +457,7 @@
                             dataType: "json",
                             success: function(resp){
                                 if(resp.response){
+                                    data['id'] = resp.result
                                     step1('#tbl-TypeUser');
                                     addTypeUserRow(data, resp.result);
                                     step2('#tbl-TypeUser');
@@ -480,12 +480,13 @@
                     id = $(this).parents("td").data('id')
                     $('#id_type_user').val(id)
                     $('#frm-type-user-acciones h4').html('editar tipo de usuario')
+                    $('#frm-type-user-acciones h5').html('Tipo de usuario');
+                    $('#frm-type-user-acciones input').show();
                     nom = tr.find('td:eq(0)').text()
                     $('#frm-type-user-acciones').modal('show')
                     $("#btnUpdatePerfil").show() 
                     $("#btnSaveNewPerfil").hide() 
                     $("#btnDelPerfil").hide()  
-                    $('#frm-type-user').modal('hide')
                     $('#descripcion-nuevo-perfil').val(nom)
                 });
 
@@ -493,7 +494,7 @@
                     btn = $(this);
                     btn.addClass('disabled');
                     id = $('#id_type_user').val();
-                    data = { nombre: sinDiacriticos($('#descripcion-nuevo-perfil').val()) };
+                    data = { id: id, nombre: sinDiacriticos($('#descripcion-nuevo-perfil').val()) };
                     if(data.nombre.length < 3){
                         error('descripcion-nuevo-perfil', 'Debe ingresar un nombre de mas de tres caracteres')
                         btn.removeClass('disabled');
@@ -614,6 +615,7 @@
             <?php if(in_array(MOD_EDIT, $permisos)) :  ?>
                 $('#tbl-usuarios').on('click', '.btnEdit', function(e){
                     e.preventDefault()
+                    $.blockUI()
                     clear('edit')
                     id = $(this).data('id');
                     $.get(apiUrl+'usuario/get/'+id, function(resp){
@@ -627,6 +629,7 @@
                     $('#frm-usuario h4').html('editar usuario');
                     $('#user-id').val(id);
                     $('#frm-usuario').modal('show');
+                    $.unblockUI()
                 });
             <?php endif; ?>
 
@@ -635,6 +638,7 @@
             });
 
             $('#btnSave').on('click', function(){
+                $.blockUI()
                 btn = $(this);
                 btn.addClass('disabled');
                 id = $('#user_id').val()
@@ -648,24 +652,31 @@
                 if(data.usuario_tipo_id == 0 || data.usuario_tipo_id == null){
                     error('user-usuario_tipo_id', 'Seleccione el tipo de usuario')
                     btn.removeClass('disabled');
+                    $.unblockUI()
                 }else if(data.nombre.length == 0 || data.nombre.length < 3){
                     error('user-nombre', 'El nombre debe contener al menos 3 caracteres')
                     btn.removeClass('disabled');
+                    $.unblockUI()
                 }else if(data.apellidos.length == 0 || data.apellidos.length < 3){
                     error('user-apellidos', 'Este campo debe contener al menos 3 caracteres')
                     btn.removeClass('disabled');
+                    $.unblockUI()
                 }else if(data.email.length == 0 || data.email.length < 4){
                     error('user-email', 'Debe ingresar un correo electrónico válido.')
                     btn.removeClass('disabled');
+                    $.unblockUI()
                 }else if(id == 0 && (data.celular.length == 0 || data.celular.length < 10)){
                     error('user-celular', 'Debe ingresar un número de celular.')
                     btn.removeClass('disabled');
+                    $.unblockUI()
                 }else if(data.username.length == 0 || data.username.length < 3){
                     error('user-username', 'Este campo debe contener al menos 3 caracteres, es el username con el que ingresará al sistema.')
                     btn.removeClass('disabled');
+                    $.unblockUI()
                 }else if(id == 0 && (data.contrasena.length == 0 || data.contrasena.length < 7)){
                     error('user-contraseña', 'Debe ingresar una contraseña de al menos 7 carácteres.')
                     btn.removeClass('disabled');
+                    $.unblockUI()
                 }else{
                     btn.addClass('disabled');
                     if(id == 0){
@@ -679,6 +690,7 @@
                             }else{
                                 toastr["error"]("¡Ocurrió un problema!", "No pudimos agregar al usuario.")
                             }
+                            $.unblockUI()
                         },'json');
                     }else{
                         $.post(apiUrl+'usuario/edit/1/'+id, data, function(resp){
@@ -690,6 +702,7 @@
                                 if(resp == 'Debe seleccionar un tipo de usuario'){ toastr["warning"]("Verifique el tipo de usuario!", resp); }
                                 else{ toastr["warning"]("No hay cambios!", resp); }
                             }
+                            $.unblockUI()
                         },'json');
                     }
                     btn.removeClass('disabled');
@@ -811,6 +824,7 @@
             
             <?php if(in_array(MOD_ADD, $permisos) || in_array(MOD_EDIT, $permisos) ) :  ?>
                 $('#tbl-usuarios').on('click', '.btnFoto', function(){
+                    $.blockUI()
                     id = $(this).data('id');
                     name = $(this).data('name');
                     $('#frm-user-foto h4').html(name);
@@ -823,6 +837,7 @@
                         }
                     });
                     $('#frm-user-foto').modal('show');
+                    $.unblockUI()
                 });
 
                 $('#btnFoto').click(function(event) { $('#imagen').trigger('click'); });
@@ -884,11 +899,14 @@
             }
 
             function addTypeUserRow(info) {
+                console.log(info)
                 tr = $('<tr></tr>');
                 tda = $('<td data-id="'+info.id+'" data-fe="' + info.nombre + '"></td>');
                 tda.append('<button type="button" class="btn btn-outline-new-info btn-sm btnEditTypeUser" data-toggle="tooltip" title="Editar">'+feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+'</button> ');
                 tda.append('<button type="button" class="btn btn-outline-dark btn-sm btnPermTypeUser" data-toggle="tooltip" title="Permisos">'+feather.icons['lock'].toSvg({ class: 'font-small-4 me-20' })+'</button> ');
-                tda.append('<button type="button" class="btn btn-outline-danger btn-sm btnDelTypeUser" data-toggle="tooltip" title="Desactivar">'+feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+'</button>');
+                if(info.id != 1){
+                    tda.append('<button type="button" class="btn btn-outline-danger btn-sm btnDelTypeUser" data-toggle="tooltip" title="Desactivar">'+feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+'</button>');
+                }
                 tr.append('<td>' + info.nombre + '</td>');
                 tr.append(tda); 
                 $('#tbl-TypeUser').append(tr);
@@ -1024,11 +1042,6 @@
                                 visible: false, targets: [4]
                             }
                         ],
-                        createdRow: function(row, data, dataIndex) {
-                            if(data.iniciar == 0){                        
-                                $(row).addClass('sistemaBloqueado');                                
-                            }
-                        },
                         order: [[3, 'asc'],[1, 'asc']], 
                         dom:
                             '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
@@ -1040,7 +1053,7 @@
                             '<"col-sm-12 col-md-6"p>' +
                             '>',
                         language: {
-                            url:'../spanish.json'
+                            url:'<?= URL_ROOT ?>/spanish.json'
                         },
                         initComplete: function () {
                             var label = $('<label for="cuantos">Mostrar</label>').appendTo('#tbl-usuarios_length');
@@ -1124,7 +1137,7 @@
                     scrollY: '600px',
                     scrollX: true,
                     paging:  false,
-                    languaje: '../spanish.json',
+                    languaje: '<?= URL_ROOT ?>/spanish.json',
                     dom:     'Rlfrtip',
                     "columnDefs": [{"width": "350px", "orderable": false, "targets": [0] }],
                     "oColReorder": { "iFixedColumns": 1 },
