@@ -42,7 +42,7 @@
                                         <th>Correo</th>
                                         <th>Teléfono</th>
                                         <th>Descuento</th>
-                                        <th>Saldo Disponible</th>
+                                        <!-- <th>Saldo Disponible</th> -->
                                         <th>Acciones</th>
                                     </tr>
                                 </thead>
@@ -321,7 +321,7 @@
                             {data: 'correo'},
                             {data: 'telefono'},
                             {data: 'descuento'},
-                            {data: 'saldo'},
+                            // {data: 'saldo'},
                             {data: ''}
                         ],
                         columnDefs: [
@@ -331,7 +331,7 @@
                                 orderable: false,
                                 render: function (data, type, full, meta) {
                                     id = full['id']
-                                    mostrar = full['saldo'].replace('$ ', '') == 0.00 && full['id'] != 1 ? '' : 'hidden'
+                                    // mostrar = full['saldo'].replace('$ ', '') == 0.00 && full['id'] != 1 ? '' : 'hidden'
                                     return (
                                         '<div class="text-center">' +
                                             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
@@ -340,7 +340,7 @@
                                                 '</button>'+
                                             <?php endif; ?>
                                             <?php if(in_array(MOD_DEL, $permisos)) : ?>
-                                                '<button type="button" id="btnDel" class="btn btn-outline-danger btn-sm '+mostrar+'" data-id="'+id+'" data-name="'+full['nombre']+' '+full['apellidos']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
+                                                '<button type="button" id="btnDel" class="btn btn-outline-danger btn-sm" data-id="'+id+'" data-name="'+full['nombre']+' '+full['apellidos']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
                                                     feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>' +
                                             <?php endif; ?>
