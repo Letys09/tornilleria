@@ -50,13 +50,13 @@
   background-color: rgba(115, 103, 240, 0.12); }
 
 .slider-primary .noUi-connect {
-  background: #462f77 !important; }
+  background: #000066 !important; }
 
 .slider-primary.noUi-connect {
-  background: #462f77 !important; }
+  background: #000066 !important; }
 
 .slider-primary .noUi-handle {
-  border-color: #462f77 !important; }
+  border-color: #000066 !important; }
 
 .slider-secondary {
   background-color: rgba(130, 134, 139, 0.12); }

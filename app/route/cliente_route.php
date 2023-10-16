@@ -35,6 +35,11 @@ use App\Lib\Auth,
 			exit(0);
 		});
 
+        $this->get('getCli', function($req, $res, $args){
+            $clientes = $this->model->cliente->getCli()->result;
+            return $res->withJson($clientes);
+        });
+
         $this->get('regimen', function($req, $res, $args){
             return $res->withJson($this->model->cliente->regimen()->result);
         });

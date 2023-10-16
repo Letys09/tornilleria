@@ -35,13 +35,9 @@
                                 <div class="w-100 d-lg-flex align-items-center justify-content-center">
                                     <?php if(isset($_SESSION['sucursal_nombre'])) : ?>
                                         <div>
-                                            <h1 class="text-center mb-5"><?= strtoupper($_SESSION['sucursal_nombre']) ?></h2>
-                                            <?php if(isset($_SESSION['sucursal_nombre']) && $_SESSION['sucursal_id'] == 1) : ?>
+                                            <h1 class="text-center mb-5 fw-bolder"><?= strtoupper($_SESSION['sucursal_nombre']) ?></h2>
+                                            <?php if(isset($_SESSION['sucursal_nombre'])) : ?>
                                                 <img class="img-portada" width="100%" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Imagen portada">
-                                            <?php elseif(isset($_SESSION['sucursal_nombre']) && $_SESSION['sucursal_id'] == 2) : ?> 
-                                                <img class="img-portada" width="100%" src="<?= URL_ROOT ?>/app-assets/images/logo/fondo-torni.jpg" alt="Imagen portada">
-                                            <?php elseif(isset($_SESSION['sucursal_nombre']) && $_SESSION['sucursal_id'] == 3) : ?> 
-                                                <img class="img-portada" width="100%" src="<?= URL_ROOT ?>/app-assets/images/logo/TORNILLOS1.jpg" alt="Imagen portada">
                                             <?php endif; ?> 
                                         </div>
                                     <?php endif; ?>
@@ -53,11 +49,11 @@
                                     <p class="card-text mb-2"></p>
                                     <form class="auth-login-form mt-2" id="formLogin">
                                         <div class="mb-1">
-                                            <div class="text-center" id="bienvenida">
+                                            <div class="text-center bienvenida">
                                                 <h2>¡BIENVENIDO!</h2>
                                                 <br>
                                                 <?php if(!isset($_SESSION['sucursal_id'])) : ?>
-                                                    <img class="" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Logo"/>
+                                                    <img class="img_login" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Logo"/>
                                                 <?php endif; ?>
                                             </div>
                                             <br><hr>
@@ -94,8 +90,8 @@
 
                                     <form class="auth-login-form mt-2" id="formForgot">
                                         <div class="mb-1">
-                                            <div id="Forgotmesssage">
-                                                <h3 class="text-uppercase">restablecer contraseña</h3>
+                                            <div class="bienvenida">
+                                                <h2 class="text-uppercase">restablecer contraseña</h2>
                                                 <br>
                                                 <img class="img-fluid" src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" alt="Logo"/>
                                             </div>
@@ -173,7 +169,7 @@
                         blockPage();
                         $.post($apiUrl+'usuario/login', {sucursal: sucursal, user: usuario, contrasena: pass}, function(resp) {
                             if(resp.response){
-                                window.location.href = $apiUrl+'principal'; 
+                                window.location.href = $apiUrl+'venta'; 
                             }else{
                                 toastr["error"]("Verifique sus datos!", resp.message);
                                 $.unblockUI();

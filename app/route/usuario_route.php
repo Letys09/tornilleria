@@ -95,7 +95,6 @@ use Slim\Http\UploadedFile;
 				$this->model->usuario->edit($new, $infoUser->id, 'usuario');
 
 				$usuario->msg = 'Enviamos una nueva contraseña a '.$infoUser->email.' <br> Si no encuentra el mensaje, verifique su bandeja de correo no deseado o spam';
-
 			}else{
 				$usuario->msg = 'No encontramos al usuario con el username ingresado';
 			}
@@ -388,13 +387,14 @@ use Slim\Http\UploadedFile;
 			$this->model->transaction->iniciaTransaccion();
 			$parsedBody = $req->getParsedBody();
 			$nombre = $parsedBody['nombre'];
+			$data = ['nombre' => $nombre];
 
 			$existe = $this->model->usuario->findPerfil($nombre);
 			if(!$existe->response){
 				$existe->state = $this->model->transaction->regresaTransaccion();
 				return $res->withJson($existe);
 			}else{
-				$addProfile = $this->model->usuario->createProfile($parsedBody);
+				$addProfile = $this->model->usuario->createProfile($data);
 				if($addProfile->response){
 					$addProfile->state = $this->model->transaction->confirmaTransaccion();
 				}else{

@@ -1,17 +1,17 @@
 .pace-progress{
-	background-color: #462f77 !important;
+	background-color: #000066 !important;
 }
 
 .main-menu.menu-light .navigation > li.active > a {
 	background: #ffff;
-	color: #462f77;
+	color: #000066;
 	font-weight: 400;
 	border-radius: 4px;
 	box-shadow: 0 0 10px 1px rgba(94, 93, 93, 0.7);
 }
 
 .main-menu.menu-light .navigation > li:hover > a {
-	color: #462f77;
+	color: #000066;
 	font-weight: 400;
 	border-radius: 4px;
 }
@@ -23,13 +23,13 @@
   }
 
 .main-menu.menu-light .navigation > li ul li:hover a {
-	color: #462f77;
+	color: #000066;
 	font-weight: 400;
 	border-radius: 4px;
 }
 
 .dropdown-menu > a:hover{
-	color: #462f77;
+	color: #000066;
 	font-weight: 400;
 }
 
@@ -46,7 +46,7 @@
 }
 
 .titleIcon{
-	color: #462f77 !important;
+	color: #000066 !important;
 	font-size: x-large;
 }
 .dashIcon{
@@ -66,7 +66,7 @@
 }
 
 #btnLogin:hover{
-	background-color: #462f77;
+	background-color: #000066;
 }
 
 #btnGenerate{
@@ -80,54 +80,49 @@
 	color:rgb(255, 255, 255) !important;
 }
 
+.alert-danger{
+	background-color: #ea5455 !important;
+}
+
 .datosLogin{
 	background-color: #c01923 !important;
 	color:rgb(255, 255, 255) !important;
 }
 
-#bienvenida{
+.bienvenida{
 	text-align: center;
 }
 
-#bienvenida > h2{
+.bienvenida > h2{
 	font-size: xx-large;
-	color: #462f77;
+	color: #000066;
 }
-
-#Forgotmesssage{
-	text-align: center; 
-}
-
-#Forgotmesssage > h3{
-	color: #3376af;
-}
-
 
 #recuperarPass{
 	text-align: right;
 	margin-top: 5px;
 }
 
-.btn-outline-new-info {
-	border: 1px solid #3172aa !important;
+.btn-outline-new-info, .btn-outline-new-info:hover {
+	border: 1px solid #000066 !important;
 	background-color: transparent;
-	color: #3172aa;
+	color: #000066;
 }
 
-.btn-outline-new-warning {
+.btn-outline-new-warning, .btn-outline-new-warning:hover {
 	border: 1px solid #e4661e !important;
 	background-color: transparent;
 	color: #e4661e;
 }
 
-.btn-outline-new-success {
+.btn-outline-new-success, .btn-outline-new-success:hover {
 	border: 1px solid #0abc36 !important;
 	background-color: transparent;
 	color: #0abc36;
 }
 
-.btn-new-info {
-	background-color: #3172aa !important;
+.btn-new-info, .btn-new-info:hover {
+	background-color: #000066 !important;
 	color: white;
 }
 
@@ -154,7 +149,7 @@ input[type="search"]{
 .page-item.active .page-link {
 	z-index: 3;
 	border-radius: 5rem;
-	background-color: #462f77;
+	background-color: #000066;
 	color: #fff !important;
 	font-weight: 600;
   }
@@ -256,7 +251,7 @@ input[type="search"]{
 }
 
 #btnGenerate:hover{
-	background-color: #462f77 !important;
+	background-color: #000066 !important;
 }
 
 .modalAsig{
@@ -458,7 +453,7 @@ div.card-header.link{
 }
 
 .busPrecios{
-	color: #462f77 !important;
+	color: #000066 !important;
 	/* text-shadow: 2px 2px rgb(157, 97, 216); */
 	font-size: x-large;
 }
@@ -472,15 +467,60 @@ div.card-header.link{
 	color: red;
 }
 
-.productos-precios-container{
+.separar{
 	gap: 1rem;
 }
 
 .card-header{
-	background-color: #e6e3e3;
+	background-color: #f7f7f7c0;
+	padding: 0.2rem;
+}
+
+.deshabilitado{
+	cursor: not-allowed;
+}
+
+.img_login{
+	max-width: 100%;
+}
+
+.card-header-venta{
+	background-color: #e8e5e5;
 	padding: 0.75rem;
 }
 
-input:disabled{
-	cursor: not-allowed;
+.ticket{
+	width: 234px;
+	border: 1px solid rgb(102, 101, 101);
+	padding: 10px !important;
+}
+
+.img-ticket{
+	width: 100%;
+}
+
+/* th, tr{
+	border: 1px solid black;
+} */
+
+.align{
+	font-size: small;
+	text-align: center;
+}
+.Desc{
+	text-align: start;
+}
+.End{
+	text-align: end;
+}
+.cantEnd{
+	text-align: end;
+}
+.Sub{
+	font-style: italic;
+}
+
+.condiciones{
+	text-align: justify;
+	font-size: small;
 }

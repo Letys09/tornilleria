@@ -331,7 +331,7 @@
                                 orderable: false,
                                 render: function (data, type, full, meta) {
                                     id = full['id']
-                                    mostrar = full['saldo'].replace('$ ', '') == 0.00 ? '' : 'hidden'
+                                    mostrar = full['saldo'].replace('$ ', '') == 0.00 && full['id'] != 1 ? '' : 'hidden'
                                     return (
                                         '<div class="text-center">' +
                                             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
@@ -360,7 +360,7 @@
                             '<"col-sm-12 col-md-6"p>' +
                             '>',
                         language: {
-                            url:'../spanish.json'
+                            url:'<?= URL_ROOT ?>/spanish.json'
                         },
                     });
                 }
