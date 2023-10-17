@@ -65,6 +65,80 @@ use Slim\Http\UploadedFile;
 			return $res->withRedirect('../login');
 		});
 
+		//login app
+		$this->post('login/app', function($req, $res, $args){
+			$parsedBody = $req->getParsedBody();
+			
+			$sucursal_id = $parsedBody['sucursal'];
+			$user = $parsedBody['user'];
+			$contrasena = $parsedBody['contrasena'];
+			
+			date_default_timezone_set('America/Mexico_City');
+			$date = date("Y-m-d H:i:s");
+
+			$cerrarSucursal = "0";
+			$inventarioFisico = "0";
+
+			$usuario = $this->model->usuario->login($user, $contrasena);
+			if($usuario->response){
+				$infoUser = $usuario->result;
+
+				$acciones = $this->model->usuario->getPermisos($infoUser->id, 1);
+				$array = json_decode(json_encode($acciones), true);
+				$arraySuc = $array[0]['acciones'];
+				$arrayProd = $array[1]['acciones'];
+				foreach($arraySuc as $item){
+					if($item['nombre']=='Cerrar Sucursal'){
+						$cerrarSucursal = "1";
+					}
+				}
+				foreach($arrayProd as $item){
+					if($item['nombre']=='Inventario Fisico'){
+						$inventarioFisico = "1";
+					}
+				}
+				// print_r($cerrarSucursal.' | '.$inventarioFisico);
+				// exit;
+
+				$infoSuc = $this->model->sucursal->get($sucursal_id)->result;
+				
+				$browser = $_SERVER['HTTP_USER_AGENT'];
+				$ipAddr = $_SERVER['REMOTE_ADDR'];
+
+				$token = $this->model->seg_sesion->crearToken($infoUser->id);
+					
+				$data = [
+					'usuario_id' => $infoUser->id,
+					'ip_address' => $ipAddr,
+					'user_agent' => $browser,
+					'token' 	 => $token,
+					'iniciada'   => $date,
+				];
+				$sesion = $this->model->seg_sesion->add($data);
+				$acceso = [ 'acceso' => $date ];
+				$edit = $this->model->usuario->edit($acceso, $infoUser->id, 'usuario');
+				if($sesion->response){
+					$seg_log = $this->model->seg_log->addByApp('Inicio de sesión App', 'usuario', $infoUser->id, 1, $infoUser->id, $sesion->result);
+				}
+			}else{
+				$usuario->result="";
+				return $res->withJson($usuario->setResponse(false, 'Datos incorrectos'));
+			}
+			$usuario->result="";
+			return $res->withJson($usuario->setResponse(true, 'Bienvenido,'.$infoUser->id.','.$infoUser->nombre.','.$sucursal_id.','.$infoSuc->nombre.','.$infoUser->typeUser.','.$sesion->result.','.$cerrarSucursal.','.$inventarioFisico));
+		});
+
+		//logout app
+		$this->post('logout/app', function($req, $res, $args) use ($app) {
+			$parsedBody = $req->getParsedBody();
+			$sesion_id = $parsedBody['sesion_id'];
+			$id_user = $parsedBody['id_user'];
+			$logout = $this->model->seg_sesion->logoutApp($sesion_id);
+			$logout->result="";
+			$seg_log = $this->model->seg_log->addByApp('Cierre de sesión App', 'usuario', $id_user, 1, $id_user, $sesion_id);
+			return $res->withJson($logout->setResponse(true, 'Hasta pronto'));
+		});
+
 		$this->get('get/{id}', function ($req, $res, $args) {
 			return $res->withJson($this->model->usuario->get($args['id']));
 		});
@@ -87,7 +161,7 @@ use Slim\Http\UploadedFile;
 				
 				$contenido = '<h3><strong>Hola '.$nombre.'</strong></h3>';
 				$contenido .= 'Su contraseña provisional es '.$newPass.'.<br>';
-				$contenido .= 'Puede cambiar su contraseña una vez que inicie ssión en '.URL_ROOT;
+				$contenido .= 'Puede cambiar su contraseña una vez que inicie sesión en '.URL_ROOT;
 				$contenido .= '<br><br><br>...............................................................................<br>';
 				$contenido .="Este correo fue enviado desde una cuenta no monitoreada. Por favor no responda este correo.";
 				$this->model->usuario->sendEmail($infoUser->email, 'Recuperación de contraseña', $contenido);

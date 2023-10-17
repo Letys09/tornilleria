@@ -50,6 +50,33 @@
 			return $this->response;
 		}
 
+		public function addByApp($descripcion, $tabla, $registro, $mostrar=0, $user, $sesion){
+			$data = array(
+				'usuario_id ' => intval($user), 
+				'seg_session_id ' => intval($sesion), 
+				'fecha' => date('Y-m-d H:i:s'), 
+				'descripcion' => $descripcion, 
+				'tabla' => $tabla, 
+				'registro' => $registro, 
+				'mostrar' => $mostrar);
+			try {
+				$this->response->result = $this->db
+					->insertInto($this->table, $data)
+					->execute();
+
+				if($this->response->result != 0){
+					$this->response->SetResponse(true, 'id_seg_log del registro: '.$this->response->result);
+				}
+				else { $this->response->SetResponse(false, 'No se inserto el registro en el log'); }
+
+			} catch(\PDOException $ex) {
+				$this->response->errors = $ex;
+				$this->response->SetResponse(false, 'catch: add model seg_log');
+			}
+
+			return $this->response;
+		}
+
 
 		public function getLog($from, $to){
 			$result = $this->db

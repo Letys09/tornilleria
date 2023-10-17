@@ -37,5 +37,24 @@ class ProdDetInvModel {
 		return $this->response;
 	}
 
+	// Modificar prod_det_inventario
+	public function edit($data, $prod_inventario_id) {
+		date_default_timezone_set('America/Mexico_City');
+		try{
+			$this->response->result = $this->db
+				->update($this->table, $data)
+				->where('prod_inventario_id', $prod_inventario_id)
+				->execute();
+			if($this->response->result!=0) { 
+				$this->response->SetResponse(true, "Check inventario actualizado"); 
+			}else { 
+				$this->response->SetResponse(false, 'No se edito'); 
+			}
+		} catch(\PDOException $ex) {
+			$this->response->errors = $ex;
+			$this->response->SetResponse(false, "catch: Edit model $this->table");
+		}
+		return $this->response;
+	}
 }
 ?>

@@ -81,6 +81,10 @@ use App\Lib\Auth,
 			exit(0);
 		});
 
+        $this->get('getAllProds', function($req, $res, $args){
+            $productos = $this->model->producto->getAllProds();
+        });
+
         $this->get('getUnidades', function($req, $res, $args){
             return $res->withJson($this->model->producto->getUnidades()->result);
         });
@@ -103,7 +107,7 @@ use App\Lib\Auth,
             return $res->withJson($this->model->producto->getArea());
         });
         
-        $this->post('rangos', function($req, $res, $args){
+        $this->post('editRangos', function($req, $res, $args){
             $this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();
             $prod_id = $parsedBody['prod_rangos_id'];
@@ -167,6 +171,23 @@ use App\Lib\Auth,
                 $edit->state = $this->model->transaction->confirmaTransaccion();
             }
             return $res->withJson($edit);
+        });
+
+        $this->get('getPrecioByCant/{prod_id}/{cant}', function($req, $res, $args){
+            $cant = $args['cant']; 
+            $rangos = $this->model->producto->getRangos($_SESSION['sucursal_id'], $args['prod_id'])->result;
+            switch ($cant) {
+                case $cant <= $rangos->menudeo:
+                    $precio = $rangos->precio_menudeo; break;
+                case $cant > $rangos->menudeo && $cant <= $rangos->medio:
+                    $precio = $rangos->precio_medio; break;
+                case $cant > $rangos->medio && $cant <= $rangos->mayoreo:
+                    $precio = $rangos->precio_mayoreo; break;
+                case $cant > $rangos->mayoreo:
+                    $precio = $rangos->precio_distribuidor; break;
+                default: $precio = 0; break;
+            }
+            return $res->withJson($precio);
         });
 
         $this->post('addCorto/', function($req, $res, $args){
@@ -481,6 +502,10 @@ use App\Lib\Auth,
                     }
                 }else{
                     $editProd->state = $this->model->transaction->regresaTransaccion();
+                    if($editProd->errors->errorInfo[0] == 23000) {
+                        $editProd->error = 23000;
+                        return $res->withJson($editProd->SetResponse(false, 'El código de producto ya existe'));
+                    }
                     return $res->withJson($editProd->setResponse(false, 'No se editó la información general del producto'));
                 }
             }
@@ -843,6 +868,54 @@ use App\Lib\Auth,
             $seg_log = $this->model->seg_log->add('Edita rangos de precios con layout', 'prod_precio', $precio_id, 1);
             $edit->state = $this->model->transaction->confirmaTransaccion();	
             return $response->withJson($edit);		
+		});
+
+        // Obtener todos los productos app
+		$this->post('getAllApp/', function($req, $res, $arg) {
+            $parsedBody = $req->getParsedBody();
+            $pagina = $parsedBody['pagina'];
+            $limite = $parsedBody['limite'];
+            $sucursal = $parsedBody['sucursal'];
+            $busqueda = isset($parsedBody['busqueda']) ? $parsedBody['busqueda'] : null;
+            $resultado = $this->model->producto->getAllApp($pagina, $limite, $busqueda)->result;
+            foreach($resultado as $item){
+                $resp = $this->model->prod_inventario->getCheckInventario($sucursal, $item->id);
+                if($resp->response){
+                    $item->check_inventario = $resp->result->check_inventario;
+                }else{
+                    $item->check_inventario = '1';
+                }
+            }
+			return $res->withJson($resultado);
+		});
+
+        // Obtener producto por clave
+        $this->post('getProductoByCode/', function ($req, $res, $args) {
+            $parsedBody = $req->getParsedBody();
+            $clave = $parsedBody['clave'];
+            $sucursal = $parsedBody['sucursal'];
+			$prod = $this->model->producto->getProductoByCode($clave);
+            if($prod->response){
+                $resp = $this->model->prod_inventario->getCheckInventario($sucursal, $prod->result->id);
+                if($resp->response){
+                    $prod->result->check = $resp->result->check_inventario;
+                }else{
+                    $prod->result->check = '1';
+                }
+                $stock = $this->model->prod_stock->getStock($sucursal, $prod->result->id);
+                if($stock->response){
+                    if(is_object($stock->result)){
+                        $prod->result->stock = $stock->result->final;
+                    }else{
+                        $prod->result->stock = '0.00';
+                    }
+                }else{
+                    $prod->result->stock = '0.00';
+                }
+            }else{
+                $prod->result->check = "3";
+            }
+            return $res->withJson($prod);
 		});
 
 	});

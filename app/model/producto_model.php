@@ -39,7 +39,7 @@ class ProductoModel {
 			->from("$this->table")
 			->select(null)
 			->select("id, clave, descripcion, medida")
-			->where("CONCAT_WS(' ', $this->table.nombre, $this->table.descripcion, $this->table.clave, $this->table.marca) LIKE '%$param%'")
+			->where("CONCAT_WS(' ', $this->table.descripcion, $this->table.clave, $this->table.medida) LIKE '%$param%'")
 			->where("$this->table.es_kilo",0)
 			->where("status", 1)
 			->fetchAll();
@@ -150,6 +150,25 @@ class ProductoModel {
 		return $this->response->SetResponse(true);
 	}
 
+	public function getAllProds() {
+	// 	if($busqueda != '_') { $busqueda = array_reduce(array_filter(explode(' ', $busqueda), function($bus) { return strlen($bus) > 0; }), function($imp, $bus) { return $imp .= "+".str_replace('/', '_', $bus)."* "; }); }
+	// 	if($stock_min==null) { $stock_min = -1; }
+
+		$tbl_name = "temporal_tbl_".time()."_".random_int(0, 999999);
+		$this->response->result = $this->db->getPdo()->query("CALL tbl_busqueda('$tbl_name');")->fetchAll();
+		$this->response->filtered = count($this->db->getPdo()->query("CALL tbl_busqueda('$tbl_name');")->fetchAll());
+
+		$this->response->total =  $this->db->getPdo()->query(
+			"SELECT COUNT(*) AS total
+				FROM $this->table
+				WHERE 
+					".($stock_min!=null? "(CASE WHEN $this->table.es_paquete=0 THEN stock ELSE (SELECT MAX(prod.stock DIV cantidad) FROM det_paquete LEFT JOIN producto prod ON det_paquete.producto_id = prod.id WHERE producto_paquete_id = $this->table.id) END > $stock_min OR CASE  WHEN $this->table.es_paquete=0 THEN stock ELSE (SELECT MAX(prod.stock DIV cantidad) FROM det_paquete LEFT JOIN producto prod ON det_paquete.producto_id = prod.id WHERE producto_paquete_id = $this->table.id) END IS NULL)": "TRUE")." AND
+					status = 1;"
+		)->fetch()->total;
+
+		return $this->response->SetResponse(true);
+	}
+
 	public function getUnidades(){
 		$this->response->result = $this->db
 			->from("prod_unidad_medida")
@@ -185,6 +204,37 @@ class ProductoModel {
 			->where('status', 2)
 			->fetch();
 		return $this->response->SetResponse(true);
+	}
+
+	// Obtener todos los productos app
+	public function getAllApp($pagina, $limite, $busqueda) {
+		$inicial = $pagina * $limite;
+		$busqueda = $busqueda==null ? "_" : $busqueda;
+		$resultado = $this->db
+			->from($this->table)
+			->select(null)->select("$this->table.id, $this->table.clave, $this->table.descripcion, $this->table.medida")
+			->where("CONCAT_WS(' ', $this->table.clave, $this->table.descripcion, $this->table.medida) LIKE '%$busqueda%'")
+			->where("$this->table.es_kilo", 0)
+			->where("$this->table.status", 1)
+			->limit("$inicial, $limite")
+			->orderBy("$this->table.descripcion ASC")
+			->fetchAll();
+		$this->response->result = $resultado;
+		return $this->response->SetResponse(true);
+	}
+
+	public function getProductoByCode($clave){
+		$this->response->result = $this->db
+			->from($this->table)
+			->where("$this->table.clave", $clave)
+			->where("$this->table.status", "1")
+			->fetch();
+		if($this->response->result) { 
+			$this->response->SetResponse(true);
+		}else {
+			$this->response->SetResponse(false, 'No existe el registro con esa clave');
+		}
+		return $this->response;
 	}
 
 	public function add($data, $table){

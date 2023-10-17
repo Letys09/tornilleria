@@ -148,5 +148,14 @@ class SegSesionModel {
     
             return $this->response;
         }
+
+		public function logoutApp($sesion) {
+			date_default_timezone_set('America/Mexico_City');
+			$data = [
+				'finalizada' => date('Y-m-d H:i:s'),
+			];
+			$this->response = $this->edit($data, $sesion);    
+            return $this->response;
+        }
 	}
 ?>
