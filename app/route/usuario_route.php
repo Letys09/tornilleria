@@ -510,7 +510,7 @@ use Slim\Http\UploadedFile;
 
 			$delProfile = $this->model->usuario->updateTypeUser($args['id'], $parsedBody);
 			if($delProfile->response){
-				$seg_log = $this->model->seg_log->add('Elimina tipo de usuario', $args['id'], '3');
+				$seg_log = $this->model->seg_log->add('Elimina tipo de usuario', 'usuario_tipo', $args['id'], '');
 				if($seg_log->response){
 					$seg_log->state = $this->model->transaction->confirmaTransaccion();
 				}else{
