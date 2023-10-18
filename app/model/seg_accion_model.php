@@ -57,6 +57,17 @@
 			return $this->response->SetResponse(true);
 		}
 
+		public function getByName($name) {
+			$this->response->result = $this->db
+				->from($this->table)
+				->where('nombre', $name)
+				->where('status',1)
+				->fetch();
+
+			if($this->response->result)	return $this->response->SetResponse(true);
+			else	return $this->response->SetResponse(false, 'no existe el registro');
+		}
+
 		public function add($data) {
 			try {
 				$this->response->result = $this->db

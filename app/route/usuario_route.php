@@ -83,22 +83,22 @@ use Slim\Http\UploadedFile;
 			if($usuario->response){
 				$infoUser = $usuario->result;
 
-				$acciones = $this->model->usuario->getPermisos($infoUser->id, 1);
-				$array = json_decode(json_encode($acciones), true);
-				$arraySuc = $array[0]['acciones'];
-				$arrayProd = $array[1]['acciones'];
-				foreach($arraySuc as $item){
-					if($item['nombre']=='Cerrar Sucursal'){
-						$cerrarSucursal = "1";
-					}
+				$idPermisoCerrarSuc = $this->model->seg_accion->getByName('Cerrar sucursal')->result->id;
+				$idPermisoInvFis = $this->model->seg_accion->getByName('Inventario Fisico')->result->id;
+
+				$permisoInvFis = $this->model->seg_permiso->getPermiso($infoUser->id, $idPermisoInvFis);
+				if($permisoInvFis->response){
+					$inventarioFisico = "1";
+				}else{
+					$inventarioFisico = "0";
 				}
-				foreach($arrayProd as $item){
-					if($item['nombre']=='Inventario Fisico'){
-						$inventarioFisico = "1";
-					}
+
+				$permisoCerrarSuc = $this->model->seg_permiso->getPermiso($infoUser->id, $idPermisoCerrarSuc);
+				if($permisoCerrarSuc->response){
+					$cerrarSucursal = "1";
+				}else{
+					$cerrarSucursal = "0";
 				}
-				// print_r($cerrarSucursal.' | '.$inventarioFisico);
-				// exit;
 
 				$infoSuc = $this->model->sucursal->get($sucursal_id)->result;
 				

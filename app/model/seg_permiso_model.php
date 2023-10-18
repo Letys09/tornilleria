@@ -55,6 +55,19 @@
 			return $this->response->SetResponse(true);
 		}
 
+		public function getPermiso($usuario_id, $idAccion) {
+			$this->response->result = $this->db
+				->from($this->table)
+				->where('usuario_id', $usuario_id)
+				->where('seg_accion_id', $idAccion)
+				->fetch();
+			if($this->response->result){
+				return $this->response->SetResponse(true);
+			}else{
+				return $this->response->SetResponse(false, 'no existe el registro');
+			}
+		}
+
 		public function getAll() {
 			$this->response->result = $this->db
 				->from($this->table)

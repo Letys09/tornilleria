@@ -896,22 +896,48 @@ use App\Lib\Auth,
             $sucursal = $parsedBody['sucursal'];
 			$prod = $this->model->producto->getProductoByCode($clave);
             if($prod->response){
-                $resp = $this->model->prod_inventario->getCheckInventario($sucursal, $prod->result->id);
+                $info = $prod->result;
+                $idProd = $prod->result->id;
+                $resp = $this->model->prod_inventario->getCheckInventario($sucursal, $idProd);
                 if($resp->response){
-                    $prod->result->check = $resp->result->check_inventario;
+                    $info->check = $resp->result->check_inventario;
                 }else{
-                    $prod->result->check = '1';
+                    $info->check = '1';
                 }
-                $stock = $this->model->prod_stock->getStock($sucursal, $prod->result->id);
-                if($stock->response){
-                    if(is_object($stock->result)){
-                        $prod->result->stock = $stock->result->final;
+                if($info->es_kilo=="1"){
+                    $cantidadPorKilo = $this->model->producto->getKiloBy($idProd, 'producto_id');
+                    if($cantidadPorKilo->response){
+                        $cantidadKilo = $cantidadPorKilo->result->cantidad;
+                        $idProdOrigen = $cantidadPorKilo->result->producto_origen;
+                        $info->cantidadPorKilo = $cantidadKilo;
+                        $stock = $this->model->prod_stock->getStock($sucursal, $idProdOrigen);
+                        if($stock->response){
+                            if(is_object($stock->result)){
+                                $info->stock = $stock->result->final;
+                            }else{
+                                $info->stock = '0.00';
+                            }
+                        }else{
+                            $info->stock = '0.00';
+                        }
                     }else{
-                        $prod->result->stock = '0.00';
+                        $info->cantidadPorKilo = "0";
                     }
                 }else{
-                    $prod->result->stock = '0.00';
+                    $info->cantidadPorKilo = "0";
+                
+                    $stock = $this->model->prod_stock->getStock($sucursal, $idProd);
+                    if($stock->response){
+                        if(is_object($stock->result)){
+                            $info->stock = $stock->result->final;
+                        }else{
+                            $info->stock = '0.00';
+                        }
+                    }else{
+                        $info->stock = '0.00';
+                    }
                 }
+                $prod->result = $info;
             }else{
                 $prod->result->check = "3";
             }
