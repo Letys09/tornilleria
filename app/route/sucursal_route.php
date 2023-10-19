@@ -38,6 +38,14 @@ use App\Lib\Auth,
             return $res->withJson($this->model->sucursal->getAll()->result);
         });
 
+        $this->get('getIdentificador', function($req, $res, $args){
+            $ultimo = $this->model->sucursal->getIdentificador()->result->identificador;
+            $num = ord($ultimo);
+            $sig = $num+1;
+            $siguiente = chr($sig);            
+            return $res->withJson($siguiente);
+        });
+
 		$this->post('add/',function($req,$res,$args){
 			$this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();
