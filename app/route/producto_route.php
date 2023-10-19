@@ -938,8 +938,6 @@ use App\Lib\Auth,
                     }
                 }
                 $prod->result = $info;
-            }else{
-                $prod->result->check = "3";
             }
             return $res->withJson($prod);
 		});
