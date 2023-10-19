@@ -55,6 +55,10 @@
                                     </div>
                                     <div class="modal-body flex-grow-1 form-horizontal">
                                         <div class="mb-1">
+                                            <label class="form-label fw-bolder fs-5" for="suc-identificador">Identificador</label>
+                                            <input type="text" class="form-control" id="suc-identificador" minlength="4" />
+                                        </div>
+                                        <div class="mb-1">
                                             <label class="form-label fw-bolder fs-5" for="suc-nombre">Nombre de Sucursal</label>
                                             <input type="text" class="form-control" id="suc-nombre" minlength="4" />
                                         </div>
@@ -167,8 +171,7 @@
             <?php if(in_array(MOD_ADD, $permisos)) :  ?>
                 $('#btnAdd').click(function(){
                     clear()
-                    // $('#frm-sucursal').removeClass('modal-info')
-                    // $('#frm-sucursal').addClass('modal-success')
+                    getIdentificador()
                     $('#frm-sucursal h4').html('agregar sucursal')
                     $('#frm-sucursal').modal('show')
                 })
@@ -249,6 +252,12 @@
                     $('#'+ide).val('')
                 })
                 $('#suc-id').val(0)
+            }
+
+            function getIdentificador(){
+                $.get(apiUrl+'sucursal/getIdentificador', function(ident){
+                    $('#suc-identificador').val(ident)
+                })
             }
 
             function getItems(tbl){

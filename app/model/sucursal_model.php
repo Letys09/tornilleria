@@ -52,6 +52,17 @@ class SucursalModel {
 		return $this->response->setResponse(true);
 	}
 
+	public function getIdentificador(){
+		$this->response->result = $this->db
+			->from($this->table)
+			->select(null)
+			->select("identificador")
+			->where("status", 1)
+			->orderBy("id DESC")
+			->fetch();
+		return $this->response->SetResponse(true);
+	}
+
 	public function add($data){
 
 		$SQL = $this->db
