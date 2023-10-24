@@ -351,7 +351,7 @@
                                         <div class="modal-footer">
                                             <div class="buttonsEnd">
                                                 <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Salir</button>
-                                                <button type="button" class="btn btn-danger me-1" id="btnBajaP">Dar de Baja</button>
+                                                <button type="button" class="btn btn-danger me-1" id="btnAjustar">Guardar</button>
                                                 <input  type="hidden" id="prod_id_baja" value="0">
                                             </div>
                                         </div>
@@ -635,7 +635,7 @@
                     rangos[ide] = $(item).val()
                 })
 
-                $.post(apiUrl+'producto/rangos', rangos, function(resp){
+                $.post(apiUrl+'producto/editRangos', rangos, function(resp){
                     if(resp.response){
                         toastr["success"]("¡Listo!", "Se actualizaron los precios por rango del producto.")
                         $('#frm-listadoP').modal('hide')
@@ -651,12 +651,12 @@
             })
 
             <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
-                $('#tbl-producto').on('click', '.btnBaja', function(){
+                $('#tbl-producto').on('click', '.btnAjuste', function(){
                     prod_id = $(this).data('id')
                     tr = $(this).closest('tr')
-                    name = $(tr).find('td:eq(1)').text()
+                    name = '('+$(tr).find('td:eq(0)').text()+') '+$(tr).find('td:eq(1)').text()
                     stock = $(tr).find('td:eq(6)').text()
-                    $('#frm-baja h4').html('baja de inventario')
+                    $('#frm-baja h4').html('ajuste de inventario')
                     $('#nameP').val(name)
                     $('#existencia').val(stock)
                     $('#baja-cantidad').val(stock)
@@ -668,13 +668,13 @@
                         $('#baja-motivo').prop('disabled', true).attr('disabled', 'disabled')
                         $('#baja-cantidad').prop('disabled', true).attr('disabled', 'disabled')
                         $('#baja-comentarios').prop('disabled', true).attr('disabled', 'disabled')
-                        $('#btnBajaP').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#btnAjustar').prop('disabled', true).attr('disabled', 'disabled')
                     }else{
                         $('#baja-fecha').prop('disabled', false).attr('disabled', false)
                         $('#baja-motivo').prop('disabled', false).attr('disabled', false)
                         $('#baja-cantidad').prop('disabled', false).attr('disabled', false)
                         $('#baja-comentarios').prop('disabled', false).attr('disabled', false)
-                        $('#btnBajaP').prop('disabled', false).attr('disabled', false)
+                        $('#btnAjustar').prop('disabled', false).attr('disabled', false)
                     }
                     $('#frm-baja').modal('show')
                 })
@@ -691,7 +691,7 @@
                     }
                 })
 
-                $('#btnBajaP').click(function(){
+                $('#btnAjustar').click(function(){
                     data = {}
                     $.each($('#frm-baja input, #frm-baja textarea, #frm-baja select'), function(index, elem){
                         if(!$(elem).hasClass('empty')){
@@ -701,10 +701,12 @@
                     })
                     if(data.fecha == ''){
                         error('baja-fecha', 'Este campo es requerido')
+                    }else if(data.motivo == 0 || data.motivo == null){
+                        error('baja-motivo', 'Este campo es requerido, seleccione una opción')
                     }else if(data.comentarios == ''){
                         error('baja-comentarios', 'Este campo es requerido')
                     }else{
-                        $.post(apiUrl+'producto/baja/', data, function(resp){
+                        $.post(apiUrl+'producto/ajuste/', data, function(resp){
                             if(resp.response){
                                 toastr["success"]("¡Listo!", "Se dio de baja el inventario del producto.")
                                 $('#frm-baja').modal('hide')
@@ -735,6 +737,7 @@
 
             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
                 $('#tbl-producto').on('click', '.btnEdit', function(){
+                    $.blockUI()
                     $('#kilo').prop('checked', false)
                     categorias('categoria'); areas('prod-prod_area_id'); clear(); 
                     $('#frm-producto h4').html('editar producto')
@@ -755,9 +758,9 @@
                         $('#categoria').val(data.categoria).trigger('change')
                         $('#prod-prod_categoria_id').val(data.prod_categoria_id)
                         $('#distribuidor').val(parseInt(data.mayoreo)+1)
-
+                        $('#frm-producto').modal('show')
+                        $.unblockUI()
                     },'json')
-                    $('#frm-producto').modal('show')
                 })
             <?php endif; ?>
 
@@ -812,6 +815,8 @@
                                 $('#frm-producto').modal('hide')
                             }else if(resp.code){
                                 toastr["info"]("No hay cambios!", resp.msg); 
+                            }else if(resp.error){
+                                toastr["warning"]("¡Verifique la información!", resp.message)
                             }else{
                                 toastr["error"]("¡Ocurrió un problema!", "No pudimos editar la información del producto.")
                             }
@@ -845,27 +850,25 @@
                     tr = $(this).closest('tr')
                     name = $(tr).find('td:eq(1)').text()
                     $.get(apiUrl+'prod_stock/getStockSuc/'+prod_id, function(resp){
-                        if(resp){
-                            if(resp.msg){
-                                $('.confirmacion').removeClass('hidden')
-                                $('.confirmacion strong').html(name)
-                                $('.imposible').addClass('hidden')
-                                $('.buttonsEnd').removeClass('hidden')
-                            }else{
-                                elem =  $('#tbl-info tbody')
-                                $.each(resp, function(index, item){
-                                    if(item.stock){
-                                        tr = $('<tr></tr>')
-                                        tr.append('<td>'+item.nombre+'</td>')
-                                        tr.append('<td class="text-center">'+item.stock+'</td>')
-                                        elem.append(tr)
-                                    }
-                                })
-                                $('.buttonsEnd').addClass('hidden')
-                                $('.confirmacion').addClass('hidden')
-                                $('.imposible strong').html(name)
-                                $('.imposible').removeClass('hidden')
-                            }
+                        if(resp.length != 0){
+                            elem =  $('#tbl-info tbody')
+                            $.each(resp, function(index, item){
+                                if(item.stock){
+                                    tr = $('<tr></tr>')
+                                    tr.append('<td>'+item.nombre+'</td>')
+                                    tr.append('<td class="text-center">'+item.stock+'</td>')
+                                    elem.append(tr)
+                                }
+                            })
+                            $('.buttonsEnd').addClass('hidden')
+                            $('.confirmacion').addClass('hidden')
+                            $('.imposible strong').html(name)
+                            $('.imposible').removeClass('hidden')
+                        }else{
+                            $('.confirmacion').removeClass('hidden')
+                            $('.confirmacion strong').html(name)
+                            $('.imposible').addClass('hidden')
+                            $('.buttonsEnd').removeClass('hidden')
                         }
                     },'json');
                     $('#prod_id_del').val(prod_id)
@@ -928,17 +931,24 @@
                     }else{
                         if(resp.error == 23000) toastr["error"]("¡Código repetido!", resp.message)
                         else toastr["error"]("¡Ocurrió un error inesperado!", 'No se pudo completar la carga de productos.')
+                        $('#frm-masiva').modal('hide')
+                        getItems('tbl-producto')
                     }
                 });
 
                 $('#btnCargar').on('click', function(e){
                     e.preventDefault();
+                    btn = $(this)
+                    btn.attr('disabled', 'disabled').prop('disabled', 'disabled')
                     if(Dropzone.forElement("#layout").files.length == 0){
                         error('layout', 'Debe agregar un archivo con el inventario.');
+                        btn.attr('disabled', false).prop('disabled', false)
                     }else{
+                        $.blockUI()
                         Dropzone.forElement("#layout").processQueue();
                         setTimeout(() => {
                         }, 15000);
+                        $.unblockUI()
                     }
                 });
             <?php endif; ?>
@@ -1131,7 +1141,7 @@
                                                 '</button>' +
                                             <?php endif; ?>
                                             '<div class="btn-group">' +
-                                                '<a class="btn btn-sm dropdown-toggle hide-arrow" data-bs-toggle="dropdown">' +
+                                                '<a class="btn btn-sm btn-outline-dark dropdown-toggle hide-arrow" data-bs-toggle="dropdown">' +
                                                     feather.icons['more-vertical'].toSvg({ class: 'font-small-4' }) +
                                                 '</a>' +
                                                 '<div class="dropdown-menu dropdown-menu-end" style="min-width: 5rem; text-align:center; ">' +
@@ -1147,7 +1157,7 @@
                                                         feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' }) +
                                                     '</button>'+
                                                     <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
-                                                        '<button type="button" class="btn btn-outline-dark btn-sm btnBaja" data-id="'+id+'" data-toggle="tooltip" title="Baja Inventario" style="margin-right:4px;">'+
+                                                        '<button type="button" class="btn btn-outline-dark btn-sm btnAjuste" data-id="'+id+'" data-toggle="tooltip" title="Ajuste Inventario" style="margin-right:4px;">'+
                                                             feather.icons['download'].toSvg({ class: 'font-small-4 me-20' })+
                                                         '</button>'+
                                                     <?php endif; ?>
@@ -1164,6 +1174,17 @@
                                     return (
                                         acciones
                                     );
+                                }
+                            },
+                            {
+                                targets: 1,
+                                width: '20%',
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column">' +
+                                        full['descripcion'] +
+                                    '</div>';
+                                    return salida;
                                 }
                             },
                             {
@@ -1206,7 +1227,7 @@
                             '<"col-sm-12 col-md-6"p>' +
                             '>',
                         language: {
-                            url:'../spanish.json'
+                            url:'<?= URL_ROOT ?>/spanish.json'
                         },
                         initComplete: function () {
                             var label = $('<label for="cuantos">Mostrar</label>').appendTo('#tbl-producto_length');
@@ -1241,9 +1262,6 @@
                                         select.append('<option value="' + d + '" class="text-capitalize">' + d + '</option>');
                                     });
                                 });
-
-                            $("#statusU option[value='Mínimo']").attr("selected", true);
-                            $("#statusU").change();
 
                             $('#tbl-producto_length label:eq(1)').addClass('hidden');
                         }

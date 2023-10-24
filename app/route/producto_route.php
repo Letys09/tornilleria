@@ -72,6 +72,7 @@ use App\Lib\Auth,
 					"stock" => $stock,
 					"enMinimo" => $minimo,
 					"data_id" => $producto->id,
+                    "es_kilo" => $producto->es_kilo,
 				);
 			}
 
@@ -81,8 +82,29 @@ use App\Lib\Auth,
 			exit(0);
 		});
 
-        $this->get('getAllProds', function($req, $res, $args){
-            $productos = $this->model->producto->getAllProds();
+        $this->get('getAllProds/{bus}', function($req, $res, $args){
+            $productos = $this->model->producto->getAllProds($args['bus'], $_SESSION['sucursal_id'], 0, 10);
+            foreach($productos->result as $producto) {
+                $stock = $producto->es_kilo ? 'N/A' : $producto->cantidad;
+                $data[] = array(
+					"id" => $producto->id,
+					"stock" => $stock,
+					"clave" => $producto->clave,
+					"descripcion" => $producto->descripcion,
+					"medida" => $producto->medida,
+					"codigo_barras" => '*'.$producto->clave.'*',
+                    "area" => '',
+                    "minimo" => '',
+                    "enMinimo" => '',
+					"data_id" => $producto->id,
+                    "es_kilo" => $producto->es_kilo,
+				);
+			}
+
+            echo json_encode(array(
+				'data' => $data
+			));
+			exit(0);
         });
 
         $this->get('getUnidades', function($req, $res, $args){
@@ -938,6 +960,8 @@ use App\Lib\Auth,
                     }
                 }
                 $prod->result = $info;
+            }else{
+                $prod->result->check = "3";
             }
             return $res->withJson($prod);
 		});
