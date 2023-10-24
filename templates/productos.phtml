@@ -118,7 +118,7 @@
                                                         <div class="input-group-text">
                                                             <span><i class="fas fa-barcode"></i></span>
                                                         </div>
-                                                        <input type="text" class="form-control" id="codigo_barras" readonly>
+                                                        <input type="text" class="form-control deshabilitado" id="codigo_barras" readonly>
                                                     </div>
                                                 </div>                                                
                                             </div>
@@ -130,12 +130,12 @@
                                                         <div class="input-group-text">
                                                             <span>$</span>
                                                         </div>
-                                                        <input type="text" class="form-control text-end" id="prod-costo" placeholder="0.00" disabled>
+                                                        <input type="text" class="form-control text-end deshabilitado" id="prod-costo" placeholder="0.00" disabled>
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-4">
                                                     <label class="form-label fw-bolder fs-5" for="prod-stock">Stock</label>
-                                                    <input type="text" class="form-control text-end" id="prod-stock" placeholder="0" disabled>
+                                                    <input type="text" class="form-control text-end deshabilitado" id="prod-stock" placeholder="0" disabled>
                                                 </div>
                                                 <div class="col-sm-4">
                                                     <label class="form-label fw-bolder fs-5" for="prod-minimo">Stock Mínimo</label>
@@ -158,14 +158,14 @@
                                                     <label class="form-label fw-bolder fs-5" for="prod-cant_kilo">Venta por kilo <small>(Cantidad)</small></label> 
                                                     <div class="input-group mb-3">
                                                         <div class="input-group-text">
-                                                            <input class="form-check-input mt-0" type="checkbox" id="kilo">
+                                                            <input class="form-check-input mt-0" type="checkbox" data-toggle="tooltip" title="Si, se vende por kilo" id="kilo">
                                                         </div>
-                                                        <input type="number" class="form-control" id="prod-cant_kilo" placeholder="Cantidad" disabled>
+                                                        <input type="number" class="form-control deshabilitado" id="prod-cant_kilo" placeholder="Cantidad" disabled>
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-4">
                                                     <label class="form-label fw-bolder fs-5" for="prod-clave_kilo">Venta por kilo <small>(Clave)</small></label> 
-                                                    <input type="text" class="form-control" id="prod-clave_kilo" placeholder="Código" disabled>
+                                                    <input type="text" class="form-control deshabilitado" id="prod-clave_kilo" placeholder="Código" disabled>
                                                 </div>
                                             </div>
                                         </div>
@@ -564,11 +564,11 @@
 
             $('#kilo').change(function(){
                 if($(this).is(':checked')){
-                    $('#prod-cant_kilo').attr('disabled', false).prop('disabled', false).focus()
-                    $('#prod-clave_kilo').attr('disabled', false).prop('disabled', false)
+                    $('#prod-cant_kilo').removeClass('deshabilitado').attr('disabled', false).prop('disabled', false).focus()
+                    $('#prod-clave_kilo').removeClass('deshabilitado').attr('disabled', false).prop('disabled', false)
                 }else{
-                    $('#prod-cant_kilo').attr('disabled', true).prop('disabled', true).val('')
-                    $('#prod-clave_kilo').attr('disabled', true).prop('disabled', true).val('')
+                    $('#prod-cant_kilo').addClass('deshabilitado').attr('disabled', true).prop('disabled', true).val('')
+                    $('#prod-clave_kilo').addClass('deshabilitado').attr('disabled', true).prop('disabled', true).val('')
                 }
             })
 
