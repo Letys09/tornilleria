@@ -34,7 +34,7 @@ class StockModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("tipo, inicial, cantidad, final, DATE_FORMAT(fecha, '%d-%m-%Y') as fecha, CAST(fecha AS TIME) as hora, motivo, origen_tipo, origen_id, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario")
+			->select("$this->table.id, tipo, inicial, cantidad, final, DATE_FORMAT(fecha, '%d-%m-%Y') as fecha, CAST(fecha AS TIME) as hora, motivo, origen_tipo, origen_id, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario")
 			->where("$this->table.sucursal_id", $_SESSION['sucursal_id'])
 			->where("producto_id", $id)
 			->where("DATE_FORMAT(fecha, '%Y-%m-%d') BETWEEN '$desde' AND '$hasta'")

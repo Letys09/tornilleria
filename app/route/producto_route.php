@@ -378,8 +378,7 @@ use App\Lib\Auth,
                 'minimo' => $parsedBody['minimo'],
                 'venta_kilo' => $parsedBody['venta_kilo'],
                 'es_kilo' => 0,
-                'clave_sat' => $parsedBody['clave_sat'],
-                'status' => 1
+                'clave_sat' => $parsedBody['clave_sat']
             ];
 
             foreach($prod as $field => $value) { 
@@ -464,8 +463,9 @@ use App\Lib\Auth,
                     $dataCompartida = [
                         'prod_categoria_id' => $parsedBody['prod_categoria_id'],
                         'prod_area_id' => $parsedBody['prod_area_id'],
-                        'marca' => $parsedBody['marca'],
+                        'medida' => $parsedBody['medida'],
                         'clave_sat' => $parsedBody['clave_sat'],
+                        'clave' => $parsedBody['clave_kilo']
                     ];
 
                     foreach($dataCompartida as $field => $value){
@@ -476,7 +476,6 @@ use App\Lib\Auth,
 
                     $dataKilo = [
                         'cantidad' => $parsedBody['cant_kilo'],
-                        'precio' => $parsedBody['precio_kilo'],
                     ];
 
                     foreach($dataKilo as $field => $value){
@@ -891,6 +890,44 @@ use App\Lib\Auth,
             $edit->state = $this->model->transaction->confirmaTransaccion();	
             return $response->withJson($edit);		
 		});
+
+        $this->get('exportar/minimos', function($req, $res, $args){
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->getColumnDimension('A')->setAutoSize(true);
+            $sheet->getColumnDimension('B')->setAutoSize(true);
+            $sheet->getColumnDimension('C')->setAutoSize(true);
+            $sheet->getColumnDimension('D')->setAutoSize(true);
+            $sheet->getColumnDimension('E')->setAutoSize(true);
+           
+            $sheet->setCellValue("A1", 'Clave');
+            $sheet->setCellValue("B1", 'Descripción');
+            $sheet->setCellValue("C1", 'Medida');
+            $sheet->setCellValue("D1", 'Mínimo requerido');
+            $sheet->setCellValue("E1", 'Stock disponible');
+            $sheet->setTitle('Hoja 1');
+            $fila = 2;
+
+            $productos = $this->model->producto->getProductos()->result;
+            foreach($productos as $producto){
+                $info = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto->id)->result;
+                if(is_object($info)) $stock = $info->final;
+                else $stock = 0;
+                if($stock < $producto->minimo){
+                    $sheet->setCellValue("A$fila", $producto->clave);
+                    $sheet->setCellValue("B$fila", $producto->descripcion);
+                    $sheet->setCellValue("C$fila", $producto->medida);
+                    $sheet->setCellValue("D$fila", $producto->minimo);
+                    $sheet->setCellValue("E$fila", $stock);
+                    $fila++;
+                }
+            }
+
+            $writer = new Xlsx($spreadsheet);
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header("Content-Disposition: attachment; filename=\"Prods_Stock_Minimo.xlsx\"");
+            $writer->save('php://output');
+        });
 
         // Obtener todos los productos app
 		$this->post('getAllApp/', function($req, $res, $arg) {

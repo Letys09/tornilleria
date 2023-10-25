@@ -8,6 +8,7 @@
     define('MOD_MODIF_M',   19);
     define('MOD_PROD_SUC',  23);
     define('MOD_PROD_BAJA', 27);
+    define('MOD_EXP_MIN',   37);
 
     if(!in_array(MOD_VER, $permisos)) {
 		header('Location: '.URL_ROOT.'/403');
@@ -50,6 +51,11 @@
                                             <i class="fas fa-dollar-sign"></i>&nbsp;&nbsp;<span>Modificación Precios</span>
                                         </button>
                                     <?php endif; ?>
+                                    <?php if(in_array(MOD_EXP_MIN, $permisos)) : ?>
+                                        <button type="button "id="btnExportar" class="btn btn-success buttonModal">
+                                            <i class="fas fa-file-excel"></i>&nbsp;&nbsp;<span>Stock Mínimo</span>
+                                        </button>
+                                    <?php endif; ?>
                                 </div>
                             </div>
                             <div class="card-datatable table-responsive pt-0">
@@ -60,8 +66,6 @@
                                             <th>Descripción</th>
                                             <th>Medida</th>
                                             <th>Código de barras</th>
-                                            <!-- <th>Categoría</th>
-                                            <th>Subcategoría</th> -->
                                             <th>Área</th>
                                             <th>Stock Mínimo</th>
                                             <th>Existencia</th>
@@ -550,7 +554,13 @@
 
             getItems('tbl-producto')
 
+            $('#btnExportar').click(function(e){
+                e.preventDefault
+                window.open(apiUrl+'producto/exportar/minimos', '_blank')
+            })
+
             $('#categoria').change(function(){
+                $.blockUI()
                 $('#prod-prod_categoria_id').empty();
                 $('#prod-prod_categoria_id').append('<option value="0" selected disabled>Seleccione una opción</option>');
                 cat = $(this).val()
@@ -558,22 +568,27 @@
                     $.each(data, function(index, elem){
                         $('#prod-prod_categoria_id').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
                     })
+                    $.unblockUI()
                 }, 'json')
                 $('.subcategoria').removeClass('hidden')
             })
 
             $('#kilo').change(function(){
+                $.blockUI()
                 if($(this).is(':checked')){
                     $('#prod-cant_kilo').removeClass('deshabilitado').attr('disabled', false).prop('disabled', false).focus()
                     $('#prod-clave_kilo').removeClass('deshabilitado').attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                 }else{
                     $('#prod-cant_kilo').addClass('deshabilitado').attr('disabled', true).prop('disabled', true).val('')
                     $('#prod-clave_kilo').addClass('deshabilitado').attr('disabled', true).prop('disabled', true).val('')
+                    $.unblockUI()
                 }
             })
 
             <?php if(in_array(MOD_PROD_SUC, $permisos)) : ?>
                 $('#tbl-producto').on('click', '.btnVer', function(){
+                    $.blockUI()
                     $('#tbl-sucursales tbody').empty()
                     prod_id = $(this).data('id')
                     producto = $(this).data('producto')
@@ -608,10 +623,12 @@
                     },'json');
                     $('#frm-sucursales h4').html('stock de "'+producto+'" en otras sucursales')
                     $('#frm-sucursales').modal('show')
+                    $.unblockUI()
                 })
             <?php endif; ?>
 
             $('#tbl-producto').on('click', '.btnlistadoP', function(){
+                $.blockUI()
                 prod_id = $(this).data('id')
                 producto = $(this).data('producto')
                 $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
@@ -625,10 +642,13 @@
                 $('#frm-listadoP h4').html('rangos de precios "'+producto+'"')
                 $('#btnSaveRangos').removeClass('disabled').attr('disabled', false)
                 $('#frm-listadoP').modal('show')
+                $.unblockUI()
             })
 
             $('#btnSaveRangos').click(function(){
-                $(this).addClass('disabled').attr('disabled', true)
+                $.blockUI()
+                btn = $(this)
+                btn.addClass('disabled').attr('disabled', true).prop('disabled', true)
                 rangos = {}
                 $.each($('#frm-listadoP input'), function(index, item){
                     ide = $(item).attr('id').replace('rango-', '')
@@ -646,7 +666,8 @@
                         }else
                         toastr["error"]("¡Ocurrió un problema!", "No pudimos actualizar los precios por rango del producto.")
                     }
-                    $(this).removeClass('disabled').attr('disabled', false)
+                    btn.removeClass('disabled').attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                 },'json')
             })
 
@@ -692,6 +713,9 @@
                 })
 
                 $('#btnAjustar').click(function(){
+                    $.blockUI()
+                    btn = $(this)
+                    btn.attr('disabled', true).prop('disabled', true)
                     data = {}
                     $.each($('#frm-baja input, #frm-baja textarea, #frm-baja select'), function(index, elem){
                         if(!$(elem).hasClass('empty')){
@@ -701,10 +725,16 @@
                     })
                     if(data.fecha == ''){
                         error('baja-fecha', 'Este campo es requerido')
+                        btn.attr('disabled', false).prop('disabled', false)
+                        $.unblockUI()
                     }else if(data.motivo == 0 || data.motivo == null){
                         error('baja-motivo', 'Este campo es requerido, seleccione una opción')
+                        btn.attr('disabled', false).prop('disabled', false)
+                        $.unblockUI()
                     }else if(data.comentarios == ''){
                         error('baja-comentarios', 'Este campo es requerido')
+                        btn.attr('disabled', false).prop('disabled', false)
+                        $.unblockUI()
                     }else{
                         $.post(apiUrl+'producto/ajuste/', data, function(resp){
                             if(resp.response){
@@ -714,6 +744,8 @@
                             }else{
                                 toastr["error"]("¡Ocurrió un problema!", "No pudimos dar de baja el inventario del producto.")
                             }
+                            btn.attr('disabled', false).prop('disabled', false)
+                            $.unblockUI()
                         },'json')
                     }
                 })
@@ -721,6 +753,7 @@
 
             <?php if(in_array(MOD_ADD, $permisos)) :  ?>
                 $('#btnAdd').click(function(){
+                    $.blockUI()
                     clear()
                     $.post(apiUrl+'producto/addCorto/', function(resp){
                         $('#prod-clave').val(resp.clave)
@@ -730,8 +763,11 @@
 
                     categorias('categoria'); areas('prod-prod_area_id'); unidades();
                     $('.subcategoria').addClass('hidden')
+                    $('#prod-cant_kilo').attr('disabled', true).prop('disabled', true).addClass('deshabilitado')
+                    $('#prod-clave_kilo').attr('disabled', true).prop('disabled', true).addClass('deshabilitado')
                     $('#frm-producto h4').html('agregar producto')
                     $('#frm-producto').modal('show')
+                    $.unblockUI()
                 })
             <?php endif; ?>
 
@@ -751,13 +787,12 @@
 
                         if(data.venta_kilo == 1){
                             $('#kilo').prop('checked', true)
-                            $('#prod-cant_kilo').val(data.kilo.cantidad).attr('disabled', false).prop('disabled', false)
-                            $('#prod-clave_kilo').val(data.kilo.clave).attr('disabled', false).prop('disabled', false)
+                            $('#prod-cant_kilo').val(data.kilo.cantidad).attr('disabled', false).prop('disabled', false).removeClass('deshabilitado')
+                            $('#prod-clave_kilo').val(data.kilo.clave).attr('disabled', false).prop('disabled', false).removeClass('deshabilitado')
                         }
                         unidades(data.prod_unidad_medida_id);
                         $('#categoria').val(data.categoria).trigger('change')
                         $('#prod-prod_categoria_id').val(data.prod_categoria_id)
-                        $('#distribuidor').val(parseInt(data.mayoreo)+1)
                         $('#frm-producto').modal('show')
                         $.unblockUI()
                     },'json')
@@ -769,7 +804,10 @@
                 $('#codigo_barras').val('*'+val+'*')
             })
 
-            $('#btnSave').click(function(){
+            $('#btnSave').click(function(){                    
+                $.blockUI()
+                btn = $(this)
+                btn.attr('disabled', true).prop('disabled', true)
                 id = $('#prod_id').val()
                 data = {}
                 $.each($('#frm-producto input, #frm-producto select'), function(index, elem) {
@@ -782,18 +820,32 @@
 
                 if($('#categoria').val() == 0 || $('#categoria').val() == null){
                     error('categoria', 'Este campo es obligatorio')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                 }else if(data['prod_categoria_id'] == ''){
                     error('prod-prod_categoria_id', 'Este campo es obligatorio')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                 }else if(data['descripcion'] == ''){
                     error('prod-descripcion', 'Este campo es obligatorio')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                 }else if(data['descripcion'].length < 3){
                     error('prod-descripcion', 'La descripción debe contener al menos 3 caracteres')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                 }else if(data['venta_kilo'] == 1 && data['cant_kilo'] == ''){
                     error('prod-cant_kilo', 'Este campo es obligatorio')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                 }else if(data['venta_kilo'] == 1 && data['clave_kilo'] == ''){
                     error('prod-clave_kilo', 'Este campo es obligatorio')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                 }else if(data['minimo'] == ''){
                     error('prod-minimo', 'Este campo es obligatorio')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                 }else{
                     if(id == 0){
                         $.post(apiUrl+'producto/add/', data, function(resp){
@@ -806,6 +858,8 @@
                             }else{
                                 toastr["error"]("¡Ocurrió un problema!", "No pudimos agregar el producto.")
                             }
+                            btn.attr('disabled', false).prop('disabled', false)
+                            $.unblockUI()
                         }, 'json')
                     }else{
                         $.post(apiUrl+'producto/edit/'+id, data, function(resp){
@@ -813,12 +867,20 @@
                                 toastr["success"]("¡Listo!", "Se editó la información del producto.")
                                 getItems('tbl-producto')
                                 $('#frm-producto').modal('hide')
+                                btn.attr('disabled', false).prop('disabled', false)
+                                $.unblockUI()
                             }else if(resp.code){
                                 toastr["info"]("No hay cambios!", resp.msg); 
+                                btn.attr('disabled', false).prop('disabled', false)
+                                $.unblockUI()
                             }else if(resp.error){
                                 toastr["warning"]("¡Verifique la información!", resp.message)
+                                btn.attr('disabled', false).prop('disabled', false)
+                                $.unblockUI()
                             }else{
                                 toastr["error"]("¡Ocurrió un problema!", "No pudimos editar la información del producto.")
+                                btn.attr('disabled', false).prop('disabled', false)
+                                $.unblockUI()
                             }
                         }, 'json')
                     }
@@ -845,6 +907,9 @@
 
             <?php if(in_array(MOD_DEL, $permisos)) : ?>
                 $('#tbl-producto').on('click', '.btnDel', function(){
+                    btn = $(this)
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
                     $('#tbl-info tbody').empty()
                     prod_id = $(this).data('id')
                     tr = $(this).closest('tr')
@@ -864,11 +929,13 @@
                             $('.confirmacion').addClass('hidden')
                             $('.imposible strong').html(name)
                             $('.imposible').removeClass('hidden')
+                            $.unblockUI()
                         }else{
                             $('.confirmacion').removeClass('hidden')
                             $('.confirmacion strong').html(name)
                             $('.imposible').addClass('hidden')
                             $('.buttonsEnd').removeClass('hidden')
+                            $.unblockUI()
                         }
                     },'json');
                     $('#prod_id_del').val(prod_id)
@@ -876,14 +943,17 @@
                 })
 
                 $('#btnEliminar').click(function(){
+                    $.unblockUI()
                     id = $('#prod_id_del').val()
                     $.post(apiUrl+'producto/del/'+id, function(resp){
                         if(resp.response){
                             toastr["success"]("¡Listo!", "Se eliminó el producto.")
                             getItems('tbl-producto')
-                            $('#frm-del').modal('hide')
+                            $('#frm-del').modal('hide')                        
+                            $.unblockUI()
                         }else{
                             toastr["error"]("¡Ocurrió un problema!", "No pudimos eliminar el producto.")
+                            $.unblockUI()
                         }
                     },'json')
                 })
@@ -938,6 +1008,7 @@
 
                 $('#btnCargar').on('click', function(e){
                     e.preventDefault();
+                    $.blockUI()
                     btn = $(this)
                     btn.attr('disabled', 'disabled').prop('disabled', 'disabled')
                     if(Dropzone.forElement("#layout").files.length == 0){
@@ -955,6 +1026,7 @@
 
             <?php if(in_array(MOD_MODIF_M, $permisos)): ?>
                 $('#precios-cat').change(function(){
+                    $.blockUI()
                     $('#precios-sub').empty()
                     cat = $(this).val()
                     $('#precios-sub').append('<option value="" selected disabled>Seleccione una opción</option>')
@@ -965,6 +1037,7 @@
                         })
                     }, 'json')
                     $('.preciosSub').removeClass('hidden')
+                    $.unblockUI()
                 })
 
                 $('#btnModifPre').click(function(){
@@ -1035,33 +1108,41 @@
             <?php endif; ?>
 
             function categorias(elem){
+                $.unblockUI()
                 $('#'+elem).empty();
                 if(elem == 'precios-cat'){
                     $('#'+elem).append('<option value="" selected disabled>Seleccione una opción</option>')
                     $('#'+elem).append('<option value="0">Todas</option>')
+                    $.unblockUI()
                 }else{
                     $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
+                    $.unblockUI()
                 }
                 $.get(apiUrl+'prod_categoria/getCat', function(data){
                     $.each(data, function(index, item){
                         $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
                     })
+                    $.unblockUI()
                 }, 'json')
             }
 
             function areas(elem){
+                $.blockUI()
                 $('#'+elem).empty();
                 if(elem == 'precios-area'){
                     $('#'+elem).append('<option value="" disabled>Seleccione una opción</option>')
                     $('#'+elem).append('<option value="0" selected>Todas</option>')
+                    $.unblockUI()
                 }else{
                     $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
+                    $.unblockUI()
                 }
                 $.get(apiUrl+'producto/getArea', function(resp) {
                     if(resp.result.length > 0) {
                         $.each(resp.result, function(index, item) {
                             $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
                         });
+                        $.unblockUI()
                     }
                 }, 'json');
             }
@@ -1075,6 +1156,7 @@
                 $('#prod-menudeo_d').val(1)
                 $('#prod-prod_categoria_id').empty();
                 $('#categoria').empty();
+                $('#kilo').prop('checked', false)
             }
 
             function unidades(value=0){

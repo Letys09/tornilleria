@@ -452,7 +452,7 @@ div.card-header.link{
     margin: 0 auto
 }
 
-.busPrecios{
+.busPrecios, .nuevaVenta{
 	color: #000066 !important;
 	/* text-shadow: 2px 2px rgb(157, 97, 216); */
 	font-size: x-large;
@@ -523,4 +523,8 @@ div.card-header.link{
 .condiciones{
 	text-align: justify;
 	font-size: small;
+}
+
+.filtroFechas{
+	text-align: -moz-right;
 }

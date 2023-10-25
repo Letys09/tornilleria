@@ -150,19 +150,15 @@ class ProductoModel {
 		return $this->response->SetResponse(true);
 	}
 
-	public function getAllProds() {
-	// 	if($busqueda != '_') { $busqueda = array_reduce(array_filter(explode(' ', $busqueda), function($bus) { return strlen($bus) > 0; }), function($imp, $bus) { return $imp .= "+".str_replace('/', '_', $bus)."* "; }); }
-	// 	if($stock_min==null) { $stock_min = -1; }
-
+	public function getAllProds($bus, $sucursal, $inicial, $limite) {
 		$tbl_name = "temporal_tbl_".time()."_".random_int(0, 999999);
-		$this->response->result = $this->db->getPdo()->query("CALL tbl_busqueda('$tbl_name');")->fetchAll();
-		$this->response->filtered = count($this->db->getPdo()->query("CALL tbl_busqueda('$tbl_name');")->fetchAll());
+		$this->response->result = $this->db->getPdo()->query("CALL tbl_busqueda('$bus', $sucursal, $inicial, $limite, '$tbl_name');")->fetchAll();
+		$this->response->filtered = count($this->db->getPdo()->query("CALL tbl_busqueda('$bus', $sucursal, 0, 10000, '$tbl_name');")->fetchAll());
 
 		$this->response->total =  $this->db->getPdo()->query(
 			"SELECT COUNT(*) AS total
 				FROM $this->table
 				WHERE 
-					".($stock_min!=null? "(CASE WHEN $this->table.es_paquete=0 THEN stock ELSE (SELECT MAX(prod.stock DIV cantidad) FROM det_paquete LEFT JOIN producto prod ON det_paquete.producto_id = prod.id WHERE producto_paquete_id = $this->table.id) END > $stock_min OR CASE  WHEN $this->table.es_paquete=0 THEN stock ELSE (SELECT MAX(prod.stock DIV cantidad) FROM det_paquete LEFT JOIN producto prod ON det_paquete.producto_id = prod.id WHERE producto_paquete_id = $this->table.id) END IS NULL)": "TRUE")." AND
 					status = 1;"
 		)->fetch()->total;
 
@@ -203,6 +199,18 @@ class ProductoModel {
 			->from($this->table)
 			->where('status', 2)
 			->fetch();
+		return $this->response->SetResponse(true);
+	}
+
+	public function getProductos(){
+		$this->response->result = $this->db
+			->from($this->table)
+			->select(null)
+			->select("id, clave, descripcion, medida, minimo")
+			->where("es_kilo", 0)
+			->where("status", 1)
+			->orderBy('clave')
+			->fetchAll();
 		return $this->response->SetResponse(true);
 	}
 
