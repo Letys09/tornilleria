@@ -8,14 +8,17 @@
     $icono = '';
     // echo($vista);
     switch ($vista) {
-        case 'Principal': $vista = strtoupper($_SESSION['sucursal_nombre']); break;
+        case 'Venta': $icono = 'fas fa-shopping-cart'; $vista = 'Venta'; break;
         case 'Usuarios': $icono = 'fas fa-user'; break;
         case 'Sucursales': $icono = 'fas fa-store'; break;
         case 'Productos': $icono = 'fas fa-boxes'; $vista = 'Inventario / Precios'; break;
         case 'Kardex': $icono = 'fas fa-list'; break;
         case 'Prod_entrada': $icono = 'fas fa-upload'; $vista = 'Entrada de Productos'; break;
         case 'Clientes': $icono = 'fas fa-handshake'; break;
-        case 'Ventas': $icono = 'fas fa-hand-holding-usd'; $vista = 'Nueva Venta'; break;
+        case 'Ventas': $icono = 'fas fa-file-invoice-dollar'; $vista = 'Ventas a crédito'; break;
+        case 'Ventas del día': $icono = 'fas fa-calendar-day'; break;
+        case 'Inventario': $icono = 'fas fa-clipboard-list'; $vista = 'Inventario Físico'; break;
+        case 'Clasificacion': $icono = 'fas fa-network-wired'; $vista = 'Clasificación'; break;
     }
 ?> 
 
@@ -76,6 +79,11 @@
                 </ul>
             </div>
             <ul class="nav navbar-nav align-items-center ms-auto">
+                <?php if($vista != 'Venta') : ?>
+                    <li>
+                        <a class="nav-link" href="<?= URL_ROOT ?>/venta/cliente"><i class="fas fa-shopping-cart nuevaVenta" data-toggle="tooltip" title="Nueva Venta"></i></a>
+                    </li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <?php endif; ?>
                 <li>
                     <a class="nav-link"><i class="fas fa-search-dollar busPrecios" data-toggle="tooltip" title="Buscar Precios"></i></a>
                 </li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;

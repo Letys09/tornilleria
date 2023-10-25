@@ -564,7 +564,7 @@
                 $('#prod-prod_categoria_id').empty();
                 $('#prod-prod_categoria_id').append('<option value="0" selected disabled>Seleccione una opción</option>');
                 cat = $(this).val()
-                $.get(apiUrl+'prod_categoria/getSub/'+cat, function(data){
+                $.get(apiUrl+'prod_clasificacion/getSubcategorias/'+cat, function(data){
                     $.each(data, function(index, elem){
                         $('#prod-prod_categoria_id').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
                     })
@@ -1031,7 +1031,7 @@
                     cat = $(this).val()
                     $('#precios-sub').append('<option value="" selected disabled>Seleccione una opción</option>')
                     $('#precios-sub').append('<option value="0" selected>Todas</option>')
-                    $.get(apiUrl+'prod_categoria/getSub/'+cat, function(data){
+                    $.get(apiUrl+'prod_clasificacion/getSubcategorias/'+cat, function(data){
                         $.each(data, function(index, elem){
                             $('#precios-sub').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
                         })
@@ -1118,7 +1118,7 @@
                     $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
                     $.unblockUI()
                 }
-                $.get(apiUrl+'prod_categoria/getCat', function(data){
+                $.get(apiUrl+'prod_clasificacion/getCategorias', function(data){
                     $.each(data, function(index, item){
                         $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
                     })

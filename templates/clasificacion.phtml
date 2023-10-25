@@ -1,0 +1,468 @@
+<?php 
+	include 'header.phtml';
+    define('MOD_VER',	    10);
+
+    if(!in_array(MOD_VER, $permisos)) {
+		header('Location: '.URL_ROOT.'/403');
+		exit;
+	} 
+?>
+
+<link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.css">
+
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+    <div class="app-content content ">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body">
+                <section class="clasificacion">
+                    <div class="areas">
+                        <table id="tbl-area" class="table table-hover table-sm">
+							<thead>
+								<tr>
+									<th class="fw-bolder fs-5">áreas</th>
+										<th class="text-center"><button type="button" class="btn btn-new-info btn-sm" data-toggle="tooltip" title="Crear" id="btnNewArea"><i class="fas fa-plus"></i></button></th>
+									</tr>
+								<tr>
+									<th></th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+							<tfoot class="hidden">
+								<tr>
+									<td>
+										<input class="form-control form-control-sm" id="area-nombre">
+									</td>
+									<td class="text-center"><button type="button" class="btn btn-sm btn-success" data-toggle="tooltip" title="Confirmar" id="btnAddRowArea"><i class="fas fa-check"></i></button></td>
+								</tr>
+							</tfoot>
+						</table>
+						<div class="text-center">
+							<button type="button" class="btn btn-new-info btn-sm m-1 hidden" data-toggle="tooltip" title="Guardar" id="btnSaveArea"><i class="fas fa-save"></i> Guardar</button>
+						</div>
+                    </div>
+                    <div class="categorias">
+                        <table id="tbl-categoria" class="table table-hover table-sm">
+							<thead>
+								<tr>
+									<th class="fw-bolder fs-5">categorías</th>
+										<th class="text-center"><button type="button" class="btn btn-new-info btn-sm" data-toggle="tooltip" title="Crear" id="btnNewCat"><i class="fas fa-plus"></i></button></th>
+									</tr>
+								<tr>
+									<th></th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+							<tfoot class="hidden">
+								<tr>
+									<td>
+										<input class="form-control form-control-sm" id="categoria-nombre">
+									</td>
+									<td class="text-center"><button type="button" class="btn btn-sm btn-success" data-toggle="tooltip" title="Confirmar" id="btnAddRowCat"><i class="fas fa-check"></i></button></td>
+								</tr>
+							</tfoot>
+						</table>
+						<div class="text-center">
+							<button type="button" class="btn btn-new-info btn-sm m-1 hidden" data-toggle="tooltip" title="Guardar" id="btnSaveCat"><i class="fas fa-save"></i> Guardar</button>
+                            <input type="hidden" id="catSeleccionada" value="0">
+                        </div>
+                    </div>
+                    <div class="subcategorias">
+                        <table id="tbl-subcategoria" class="table table-hover table-sm">
+							<thead>
+								<tr>
+									<th class="fw-bolder fs-5">subcategorías</th>
+										<th class="text-center"><button type="button" class="btn btn-new-info btn-sm" data-toggle="tooltip" title="Crear" id="btnNewSubcat"><i class="fas fa-plus"></i></button></th>
+									</tr>
+								<tr>
+									<th></th>
+									<th></th>
+								</tr>
+							</thead>
+							<tbody></tbody>
+							<tfoot class="hidden">
+								<tr>
+									<td>
+										<input class="form-control form-control-sm" id="subcategoria-nombre">
+									</td>
+									<td class="text-center"><button type="button" class="btn btn-sm btn-success" data-toggle="tooltip" title="Confirmar" id="btnAddRowSubcat"><i class="fas fa-check"></i></button></td>
+								</tr>
+							</tfoot>
+						</table>
+						<div class="text-center">
+							<button type="button" class="btn btn-new-info btn-sm m-1 hidden" data-toggle="tooltip" title="Guardar" id="btnSaveSubcat"><i class="fas fa-save"></i> Guardar</button>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <script src="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.min.js"></script>
+    <?php include 'footer.phtml'; ?>
+
+    <script>
+        $(function(){
+            var apiUrl = '<?= URL_ROOT ?>/';
+
+            getAreas()
+            getCategorias()
+
+            // areas
+            $('#btnNewArea').click(function(){
+				$('#tbl-area tfoot').removeClass('hidden')
+				$('#btnSaveArea').removeClass('hidden')
+				$('#area-nombre').focus()
+			});
+
+            $('#btnAddRowArea').click(function(){
+				existe = false
+				nombre = $.trim($('#area-nombre').val())
+				$.each($('#tbl-area tbody tr'), function (index, elem) { 
+					if($(elem).find('.nombre').text() == nombre) existe = true;
+				})
+                if(nombre != ''){
+                    if(!existe){
+                        addRowNueva({nombre: nombre}, 'tbl-area')
+                    }else{
+                        error('area-nombre', 'Esta área ya existe')
+                    }
+                }else{
+                    error('area-nombre', 'Este campo es obligatorio')
+                }
+			});
+
+            $('#btnSaveArea').click(function(){
+                $.blockUI()
+				areas = []
+				$.each($('#tbl-area tbody tr'), function(index, elem) {
+					if($(elem).hasClass('nueva')){
+						areas.push($(elem).find('.nombre').text())
+					}
+				});
+				if(areas.length == 0){
+					toastr["error"]("¡Error!", "Debe agregar al menos una área nueva.")							
+				}else{
+					$.post(apiUrl+"prod_clasificacion/add/area", { areas: areas },
+						function (resp) {
+							if(resp.response){
+								$('#tbl-area tbody').empty()
+								if(areas.length > 1 ) toastr["success"]("¡Listo!", "Se registraron las áreas de manera exitosa");
+								else toastr["success"]("¡Listo!", "Se registró la área de manera exitosa")
+								$('#btnSaveArea').addClass('hidden')
+								$('#tbl-area tfoot').addClass('hidden')
+								cleanTable('tbl-area')
+								getAreas()
+                                getCategorias()
+                                $.unblockUI()
+							}else{
+                                toastr["error"]("¡Error!", "No se pudo realizar el registro");							
+                                $.unblockUI()
+							}
+						},"json"
+					);
+				}
+			});
+
+            $('body').on('click', '.delArea', function(e){
+                e.preventDefault()
+                tr = $(this).closest('tr')
+                id = $(tr).data('id')
+                area = $(tr).data('nombre')
+                swal({
+					title: "Eliminar",
+					text: "¿Seguro que deseas eliminar el área "+area+"?",
+					type: "warning",
+					showCancelButton: true,
+					cancelButtonText: "Cancelar",
+					confirmButtonColor: "#DD6B55",
+					confirmButtonText: "¡Eliminar!",
+					closeOnConfirm: false 
+				},function(){
+                    $.post(apiUrl+'prod_clasificacion/del/area/'+id, function(resp){
+                        if(resp.response){
+							swal("¡Hecho!",	"Se eliminó el área", "success");
+							getAreas()
+						}else{
+							toastr["error"]("¡Ocurrió un problema!", "No pudimos eliminar el área.")
+						}
+                    },'json')
+				});
+            })
+
+            //categorias
+            $('#btnNewCat').click(function(){
+                $('.noData').remove()
+                $('body .bg-light-success').removeClass('bg-light-success')
+				$('#tbl-categoria tfoot').removeClass('hidden');
+				$('#btnSaveCat').removeClass('hidden');
+				$('#categoria-nombre').focus();
+				$('#tbl-subcategoria tbody').empty().append('<tr class="noData"><td>Seleccione una categoría del lado izquierdo</td></tr>')
+			});
+
+            $('#btnAddRowCat').click(function(){
+				existe = false
+				nombre = $.trim($('#categoria-nombre').val());
+				$.each($('#tbl-categoria tbody tr'), function (index, elem) { 
+					if($(elem).find('.nombre').text() == nombre) existe = true;
+				});
+                if(nombre != ''){
+                    if(!existe){
+                        addRowNueva({nombre: nombre}, 'tbl-categoria')
+                    }else{
+                        error('categoria-nombre', 'Esta categoría ya existe')
+                    }
+                }else{
+                    error('categoria-nombre', 'Este campo es obligatorio')
+                }
+			});
+
+            $('#btnSaveCat').click(function(){
+                $.blockUI()
+				categorias = [];
+				$.each($('#tbl-categoria tbody tr'), function(index, elem) {
+					if($(elem).hasClass('nueva')){
+						categorias.push($(elem).find('.nombre').text());
+					}
+				});
+				if(categorias.length == 0){
+					toastr["error"]("¡Error!", "Debe agregar al menos una área nueva.");							
+				}else{
+					$.post(apiUrl+"prod_clasificacion/add/categoria", { categorias: categorias },
+						function (resp) {
+							if(resp.response){
+								$('#tbl-categoria tbody').empty();
+								if(categorias.length > 1 ) toastr["success"]("¡Listo!", "Se registraron las categorías de manera exitosa");	
+								else toastr["success"]("¡Listo!", "Se registró la categoría de manera exitosa");
+								$('#btnSaveCat').addClass('hidden');
+								$('#tbl-categoria tfoot').addClass('hidden');
+								cleanTable('tbl-categoria');
+								getCategorias();
+                                $.unblockUI()
+							}else{
+                                toastr["error"]("¡Error!", "No se pudo realizar el registro");							
+                                $.unblockUI()
+							}
+						},"json"
+					);
+				}
+			});
+
+            $('body').on('click', '.delCat', function(e){
+                e.preventDefault()
+                tr = $(this).closest('tr')
+                id = $(tr).data('id')
+                area = $(tr).data('nombre')
+                swal({
+					title: "Eliminar",
+					text: "¿Seguro que deseas eliminar la categoría "+area+"?",
+					type: "warning",
+					showCancelButton: true,
+					cancelButtonText: "Cancelar",
+					confirmButtonColor: "#DD6B55",
+					confirmButtonText: "¡Eliminar!",
+					closeOnConfirm: false 
+				},function(){
+                    $.post(apiUrl+'prod_clasificacion/del/categoria/'+id, function(resp){
+                        if(resp.response){
+							swal("¡Hecho!",	"Se eliminó la categoría", "success");
+							getCategorias()
+                            $('#tbl-subcategoria tbody').empty().append('<tr class="noData"><td>Seleccione una categoría del lado izquierdo</td></tr>')
+						}else{
+							toastr["error"]("¡Ocurrió un problema!", "No pudimos eliminar la categoría.")
+						}
+                    },'json')
+				});
+            })
+
+            //subcategorías
+            $('body').on('click', '.rowCat', function(){
+                $.blockUI()
+				tr = $(this)
+				id = tr.data('id')
+				$('#catSeleccionada').val(id)
+				if(id != 0){
+					$('body .bg-light-success').removeClass('bg-light-success')
+					tr.addClass('bg-light-success')
+					$('#tbl-subcategoria tfoot').addClass('hide')
+					$('#btnSaveSubcat').addClass('hide')
+					getSubcategorias(id)
+				}
+            })
+
+            $('#btnNewSubcat').click(function(){
+				$('.noData').remove();
+                categoria = $('#catSeleccionada').val()
+                if(categoria == 0){
+                    toastr['error']('¡Error!', 'Seleccione una categoría del lado izquierdo')
+                    $('#tbl-subcategoria tbody').append('<tr class="noData"><td>Seleccione una categoría del lado izquierdo</td></tr>')
+                }else{
+                    $('#tbl-subcategoria tfoot').removeClass('hidden');
+                    $('#btnSaveSubcat').removeClass('hidden');
+                    $('#subcategoria-nombre').focus();
+                }
+			});
+
+            $('#btnAddRowSubcat').click(function(){
+				existe = false;
+				nombre = $.trim($('#subcategoria-nombre').val());
+				$.each($('#tbl-subcategoria tbody tr'), function (index, elem) { 
+					if($(elem).find('.nombre').text() == nombre) existe = true;
+				});
+                if(nombre != ''){
+                    if(!existe){
+                        addRowNueva({nombre: nombre}, 'tbl-subcategoria');
+                    }else{
+                        error('subcategoria-nombre', 'Esta subcategoría ya existe en la categoría seleccionada')
+                    }
+                }else{
+                    error('subcategoria-nombre', 'Este campo es obligatorio')
+                }
+			});
+
+            $('#btnSaveSubcat').click(function(){
+				subcategorias = []
+                categoria_id = $('#catSeleccionada').val()
+				$.each($('#tbl-subcategoria tbody tr'), function(index, elem) {
+					if($(elem).hasClass('nueva')){
+						subcategorias.push($(elem).find('.nombre').text())
+					}
+				});
+				if(subcategorias.length == 0){
+					toastr["error"]("¡Error!", "Debe agregar al menos una subcategoría nueva.")						
+				}else{
+					$.post(apiUrl+"prod_clasificacion/add/subcategoria", { subcategorias: subcategorias, categoria_id },
+						function (resp) {
+							if(resp.response){
+								$('#tbl-subcategoria tbody').empty()
+								if(subcategorias.length > 1 ) toastr["success"]("¡Listo!", "Se registraron las subcategorías de manera exitosa")	
+								else toastr["success"]("¡Listo!", "Se registró la subcategoría de manera exitosa")
+								$('#btnSaveSubcat').addClass('hidden')
+								$('#tbl-subcategoria tfoot').addClass('hidden')
+								cleanTable('tbl-subcategoria')
+                                getSubcategorias(categoria_id)
+                                $.unblockUI()
+							}else{
+                                toastr["error"]("¡Error!", "No se pudo realizar el registro")							
+                                $.unblockUI()
+							}
+						},"json"
+					);
+				}
+			});
+
+            $('body').on('click', '.delSubcat', function(e){
+                e.preventDefault()
+                tr = $(this).closest('tr')
+                id = $(tr).data('id')
+                subcat = $(tr).data('nombre')
+                categoria_id = $('#catSeleccionada').val()
+                swal({
+					title: "Eliminar",
+					text: "¿Seguro que deseas eliminar la subcategoría "+subcat+"?",
+					type: "warning",
+					showCancelButton: true,
+					cancelButtonText: "Cancelar",
+					confirmButtonColor: "#DD6B55",
+					confirmButtonText: "¡Eliminar!",
+					closeOnConfirm: false 
+				},function(){
+                    $.post(apiUrl+'prod_clasificacion/del/subcategoria/'+id, function(resp){
+                        if(resp.response){
+							swal("¡Hecho!",	"Se eliminó la subcategoría", "success")
+							getSubcategorias(categoria_id)
+						}else{
+							toastr["error"]("¡Ocurrió un problema!", "No pudimos eliminar la subcategoría.")
+						}
+                    },'json')
+				});
+            })
+
+            $('body').on('click', '.btnDelRow', function(e){
+				e.preventDefault();
+				$(this).parents('tr').remove();
+			});
+
+            function addRowNueva(item, tabla){
+				tr = $('<tr class="nueva"></tr>');
+				tr.append('<td class="nombre" data-name="'+item.nombre+'">'+item.nombre+'</td>')
+				tr.append('<td class="text-center"><a href="#" data-toggle="tooltip" title="Eliminar" class="btnDelRow text-danger btn-sm" data-name="'+item.nombre+'"><i class="fas fa-trash"></i></a></td>');
+				$('#'+tabla+' tbody').append(tr);
+				if(tabla == 'tbl-area'){ $('#area-nombre').focus().val('') }
+				else if(tabla == 'tbl-categoria'){ $('#categoria-nombre').focus().val('') }
+				else { $('#subcategoria-nombre').focus().val('') }
+			}
+
+            function cleanTable(tbl) {
+				if($.fn.dataTable.isDataTable('#'+tbl)) {
+					table = $('#'+tbl).DataTable()
+					table.destroy()
+				}
+				$(".noData").remove();
+			}
+
+            function getAreas(){
+                $.blockUI()
+                $('#tbl-area tbody').empty()
+                $.get(apiUrl+'prod_clasificacion/getAreas', function(resp){
+                    if(resp.length != 0){
+                        $.each(resp, function(index, item){
+                            addRow(item, 'tbl-area')
+                        })
+                    }else{
+						$('#tbl-area tbody').append('<tr class="noData"><td>No hay registros</td></tr>')
+                    }
+                    $.unblockUI()
+                },'json')
+            }
+
+            function getCategorias(){
+                $.blockUI()
+                $('#tbl-categoria tbody').empty()
+                $.get(apiUrl+'prod_clasificacion/getCategorias', function(resp){
+                    if(resp.length != 0){
+                        $.each(resp, function(index, item){
+                            addRow(item, 'tbl-categoria')
+                        })
+                    }else{
+						$('#tbl-categoria tbody').append('<tr class="noData"><td>No hay registros</td></tr>')
+                    }
+                    $.unblockUI()
+                },'json')
+				$('#tbl-subcategoria tbody').append('<tr class="noData"><td>Seleccione una categoría del lado izquierdo</td></tr>')
+            }
+
+            function getSubcategorias(id){
+                $.blockUI()
+                $('#tbl-subcategoria tbody').empty()
+                $.get(apiUrl+'prod_clasificacion/getSubcategorias/'+id,
+                    function(resp){
+                        $('#tbl-subcategoria tbody').empty()
+                        cleanTable('tbl-subcategoria')
+                        if(resp.length == 0){
+                            $('#tbl-subcategoria tbody').append('<tr class="noData"><td>No hay subcategorías registradas para la categoría seleccionada</td></tr>')
+                        }else{
+                            $.each(resp, function(index, item){
+                                addRow(item, 'tbl-subcategoria')
+                            })
+                        }
+                        $.unblockUI()
+                    },'json'
+                );
+            }
+
+            function addRow(item, table){
+                button = table == 'tbl-area' ? 'delArea' : (table == 'tbl-categoria' ? 'delCat' : (table == 'tbl-subcategoria' ? 'delSubcat' : ''));
+				clase = table == 'tbl-area' ? 'rowArea' : (table == 'tbl-categoria' ? 'rowCat' : (table == 'tbl-subcategoria' ? 'rowSub' : ''));
+				container = $('#'+table+' tbody');
+				tr = $('<tr data-id="'+item.id+'" data-nombre="'+item.nombre+'" class="'+clase+'"></tr>');
+				tr.append('<td class="nombre">'+item.nombre+'</td>');
+				tr.append('<td class="text-center"><a href="#" data-toggle="tooltip" title="Eliminar" class="'+button+' text-danger"><i class="fas fa-trash-alt"></i></a></td>');
+				tr.appendTo(container);
+            }
+        });
+    </script>
+</html>

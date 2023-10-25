@@ -528,3 +528,25 @@ div.card-header.link{
 .filtroFechas{
 	text-align: -moz-right;
 }
+
+.clasificacion{
+	display: grid;
+	grid-template-columns: repeat(3, 1fr);
+	grid-gap: 20px;
+	grid-auto-rows: minmax(100px, auto);
+}
+
+.areas, .categorias, .subcategorias{
+	grid-column: 1;
+	grid-row: 1;
+}
+
+.categorias{
+	grid-column: 2;
+	grid-row: 1;
+}
+
+.subcategorias{
+	grid-column: 3;
+	grid-row: 1;
+}
