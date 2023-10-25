@@ -1,0 +1,237 @@
+<?php 
+	include 'header.phtml';
+    define('MOV_INV_FISICO',  34);
+
+    if(!in_array(MOV_INV_FISICO, $permisos)) {
+		header('Location: '.URL_ROOT.'/403');
+		exit;
+	} 
+?>    
+
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+    <div class="app-content content ">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body">
+                <section>
+                    <div class="card">
+                        <div class="card-body border-bottom">
+                            <div class="card-body border-bottom filtroFechas">
+                                <div class="col-md-4 col-12">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-text">Del</span>
+                                        <input type="date" id="desde" class="form-control" value="<?= date('Y-m-01') ?>"/>
+                                        <span class="input-group-text">al</span>
+                                        <input type="date" id="hasta" class="form-control" value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>"/>
+                                        <button type="button" class="btn btn-new-info"><i class="fas fa-search"></i> Buscar</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-datatable table-responsive pt-0">
+                                <table id="tbl-inventarios" class="table">
+                                    <thead class="table-light">
+                                        <tr class="text-center">
+                                            <th>ID</th>
+                                            <th>Fecha</th>
+                                            <th>Usuario</th>
+                                            <th>Status</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-detalles">
+                                <div class="modal-dialog modal-xl">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase">detalle de inventario</h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">
+                                            <table class="table table-hover" id="tbl-detalles">
+                                                <thead class="table-light">
+                                                    <tr class="text-center">
+                                                        <th>Clave</th>
+                                                        <th width="30%">Descripción</th>
+                                                        <th>Medida</th>
+                                                        <th>Stock en sistema</th>
+                                                        <th>Stock físico</th>
+                                                        <th>Unidades de diferencia</th>
+                                                        <th>Monto</th>
+                                                        <th></th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody></tbody>
+                                            </table>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-success mb-1 data-submit" id="btnCambiarPrecios">Guardar</button>
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <?php include 'footer.phtml'; ?>
+
+    <script>
+        $(function(){
+            var apiUrl = '<?= URL_ROOT ?>/',
+                desde = $('#desde').val(),
+                hasta = $('#hasta');
+
+            getItems('tbl-inventarios', desde, hasta)
+
+            $('#tbl-inventarios').on('click', '.btnDetalles', function(){
+                id = $(this).data('id')
+                getDetalles(id)
+                $('#frm-detalles').modal('show')
+            })
+
+            $('#tbl-inventarios').on('click', '.btnPrint', function(){
+                id = $.md5(($(this).data('id')).toString())
+                window.open('<?= URL_ROOT ?>/prod_inventario/exportar/'+id, '_blank');              
+            })
+
+            function getDetalles(id){
+                $('tbl-detalles tbody').empty()
+                $.get(apiUrl+'prod_det_inventario/getByInv/'+id, function(resp){
+                    $.each(resp, function(index, item){
+                        data = {
+                            'id': item.id,
+                            'clave': item.clave,
+                            'descripcion': item.descripcion,
+                            'medida': item.medida,
+                            'sistema': item.sistema,
+                            'fisico': item.fisico,
+                            'diferencia': item.diferencia,
+                            'monto': item.monto,
+                        }
+                        addRow(data)
+                    })
+                },'json')
+            }
+
+            function addRow(data){
+                container = $('#tbl-detalles tbody')
+                tr = $('<tr data-id="'+data.id+'"></tr>')
+                tr.append('<td>'+data.clave+'</td>')
+                tr.append('<td>'+data.descripcion+'</td>')
+                tr.append('<td class="text-center">'+data.medida+'</td>')
+                tr.append('<td class="text-end">'+data.sistema+'</td>')
+                tr.append('<td class="text-end">'+data.fisico+'</td>')
+                tr.append('<td class="text-end">'+data.diferencia+'</td>')
+                tr.append('<td class="text-end">$'+data.monto+'</td>')
+                // tr.append('<td class="text-end"><a href="#" data-toggle="tooltip" title="" class="text-danger"><i class="fas fa-trash"></i></a></td>')
+                tr.appendTo(container)
+            }
+
+            function getItems(tbl, desde, hasta){
+                cleanTable(tbl)
+                $('#'+tbl+' tbody').empty()
+                createTable(tbl, desde, hasta)
+            }
+
+            function cleanTable(tbl){
+                if($.fn.dataTable.isDataTable('#'+tbl)){
+                    table = $('#'+tbl).DataTable()
+                    table.destroy()
+                }
+            }
+
+            function createTable(tbl, desde, hasta){
+                if($('#'+tbl).length){
+                    $('#'+tbl).DataTable({
+                        ajax:{
+                            url: apiUrl+'prod_inventario/getAllDataTable/'+desde+'/'+hasta,
+                            type: 'GET',
+                        },
+                        columns: [
+                            {data: 'id'},
+                            {data: 'fecha'},
+                            {data: 'usuario'},
+                            {data: 'status'},
+                            {data: ''}
+                        ],
+                        columnDefs: [
+                            {
+                                targets: -1,
+                                title: 'Acciones',
+                                orderable: false,
+                                render: function (data, type, full, meta) {
+                                    id = full['id']; saldo = full['saldo']; cliente_id = full['cliente_id'];
+                                    return (
+                                        '<div class="text-center">'+
+                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnDetalles" data-id="'+id+'" data-toggle="tooltip" title="Detalles" style="margin-right:4px;">'+
+                                                    feather.icons['list'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                                '<button type="button" class="btn btn-outline-danger btn-sm btnPrint" data-id="'+id+'" data-toggle="tooltip" title="Exportar" style="margin-right:4px;">'+
+                                                    feather.icons['printer'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                        '</div>'
+                                    );
+                                }
+                            },
+                            {
+                                targets: 1,
+                                render: function (data, type, full, meta) {
+                                    var salida =
+                                        '<div class="d-flex flex-column">' +
+                                            '<span >' +
+                                                full['fecha'] +
+                                            '</span>' +
+                                            '<small class="emp_post text-muted">' +
+                                            full['hora'] +
+                                            '</small>' +
+                                        '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 3,
+                                render: function (data, type, full, meta) {
+                                    status = full['status'] == 'Finalizado' ? 'success' : 'danger'
+                                    var salida = 
+                                        '<div class="text-center">'+
+                                            '<span class="badge bg-'+status+' bg-label-'+status+'">' +
+                                                full['status'] +
+                                            '</span>' +
+                                        '</div>';
+                                    return salida;
+                                }
+                            },   
+                            {
+                                visible: false, targets: [0]
+                            }                         
+                        ],
+                        order: [[0, 'desc']], 
+                        dom:
+                            '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
+                            '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
+                            '<"col-sm-12 col-lg-10 ps-xl-75 ps-0"<"dt-action-buttons d-flex align-items-center justify-content-center justify-content-lg-end flex-lg-nowrap flex-wrap"<"me-1"l>>>' +
+                            '>t' +
+                            '<"d-flex justify-content-between mx-2 row mb-1"' +
+                            '<"col-sm-12 col-md-6"i>' +
+                            '<"col-sm-12 col-md-6"p>' +
+                            '>',
+                        language: {
+                            url:'<?= URL_ROOT ?>/spanish.json'
+                        },
+                    });
+                }
+            }
+
+        });
+    </script>
+</html>

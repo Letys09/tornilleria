@@ -8,12 +8,16 @@ use App\Lib\Auth,
         $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : 0;
         $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : 0;
 
-        $this->get('get/{id}', function($req, $res, $args){
+        $this->get('getByInv/{id}', function($req, $res, $args){
+            $detalles = $this->model->prod_det_inventario->get($args['id'])->result;
+            foreach($detalles as $detalle){
+                $info_prod = $this->model->producto->get($detalle->producto_id)->result;
+                $detalle->clave = $info_prod->clave;
+                $detalle->descripcion = $info_prod->descripcion;
+                $detalle->medida = $info_prod->medida;
+            }
 
-        });
-
-        $this->post('add/', function($req, $res, $args){
-            
+            return $res->withJson($detalles);
         });
     });
 ?>

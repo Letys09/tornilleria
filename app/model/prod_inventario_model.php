@@ -29,12 +29,28 @@ class ProdInvModel {
 		return $this->response;
     }
 
-    public function getAllDataTable($desde, $hasta) {
+    public function getByMd5($id){
+        $resultado = $this->db
+            ->from($this->table)
+			->select("DATE_FORMAT(fecha, '%d-%m-%Y') AS date, DATE_FORMAT(fecha, '%d%m%Y') AS date2, CAST(fecha AS TIME) AS hora")
+            ->where("MD5(id)", $id)
+            ->fetch();
+		if($resultado){
+			$this->response->result = $resultado;
+			$this->response->SetResponse(true); 
+		} else {
+			$this->response->SetResponse(false);
+		}
+		return $this->response;
+    }
+
+    public function getAllDataTable($sucursal_id, $desde, $hasta) {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.id, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, DATE_FORMAT(fecha, '%d-%m-%Y') as fecha, CAST(fecha AS TIME) as hora")
+			->select("$this->table.id, estado_inventario, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, DATE_FORMAT(fecha, '%d-%m-%Y') as fecha, CAST(fecha AS TIME) as hora")
             ->where("DATE_FORMAT(fecha, '%Y-%m-%d') BETWEEN '$desde' AND '$hasta'")
+			->where("$this->table.sucursal_id", $sucursal_id)
 			->where("$this->table.status", 1)
 			->fetchAll(); 
 					

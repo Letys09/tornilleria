@@ -2,6 +2,13 @@
 use App\Lib\Auth,
     App\Lib\Response;
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
     date_default_timezone_set('America/Mexico_City');
 
     $app->group('/prod_inventario/', function() use ($app){
@@ -15,15 +22,17 @@ use App\Lib\Auth,
 		});
 
         $this->get('getAllDataTable/{desde}/{hasta}', function($req, $res, $args){
-			$inventarios = $this->model->prod_inventario->getAllDataTable($args['desde'], $args['hasta']);
+			$inventarios = $this->model->prod_inventario->getAllDataTable($_SESSION['sucursal_id'], $args['desde'], $args['hasta'])->result;
 
 			$data = [];
-			foreach($inventarios->result as $inventario) {
+			foreach($inventarios as $inventario) {
+                $estado = $inventario->estado_inventario == 1 ? 'Finalizado' : 'En curso';
                 $data[] = array(
 					"id" => $inventario->id,
 					"usuario" => $inventario->usuario,
 					"fecha" => $inventario->fecha,
-					"hora" => $inventario->hora
+					"hora" => $inventario->hora,
+					"status" => $estado,
 				);
 			}
 
@@ -169,6 +178,53 @@ use App\Lib\Auth,
                 $inventario->state = $this->model->transaction->regresaTransaccion();
                 return $res->withJson($inventario->setResponse(false, 'Ocurrio algo extraño, Vuelve a intentar'));
             }
+        });
+
+        $this->get('exportar/{id}', function($req, $res, $args){
+            $inventario = $this->model->prod_inventario->getByMd5($args['id'])->result;
+
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->mergeCells("A1:G1");
+            $sheet->getStyle("A1:G2")->getFont()->setBold(true);
+            $sheet->getStyle("A1:G2")->getAlignment()->setHorizontal('center');
+            $sheet->getColumnDimension('A')->setAutoSize(true);
+            $sheet->getColumnDimension('B')->setAutoSize(true);
+            $sheet->getColumnDimension('C')->setAutoSize(true);
+            $sheet->getColumnDimension('D')->setAutoSize(true);
+            $sheet->getColumnDimension('E')->setAutoSize(true);
+            $sheet->getColumnDimension('F')->setAutoSize(true);
+            $sheet->getColumnDimension('G')->setAutoSize(true);
+           
+            $sheet->setCellValue("A1", 'INVENTARIO FÍSICO DEL '.$inventario->date.' A LAS '.$inventario->hora);
+            $sheet->setCellValue("A2", 'Clave');
+            $sheet->setCellValue("B2", 'Descripción');
+            $sheet->setCellValue("C2", 'Medida');
+            $sheet->setCellValue("D2", 'Stock en sistema');
+            $sheet->setCellValue("E2", 'Stock Físico');
+            $sheet->setCellValue("F2", 'Unidades de diferencia');
+            $sheet->setCellValue("G2", 'Monto');
+            $sheet->setTitle('Hoja 1');
+            $fila = 3;
+
+			$detalles = $this->model->prod_det_inventario->get($inventario->id)->result;
+
+            foreach($detalles as $detalle){
+                $info_prod = $this->model->producto->get($detalle->producto_id)->result;
+                $sheet->setCellValue("A$fila", $info_prod->clave);
+                $sheet->setCellValue("B$fila", $info_prod->descripcion);
+                $sheet->setCellValue("C$fila", $info_prod->medida);
+                $sheet->setCellValue("D$fila", $detalle->sistema);
+                $sheet->setCellValue("E$fila", $detalle->fisico);
+                $sheet->setCellValue("F$fila", $detalle->diferencia);
+                $sheet->setCellValue("G$fila", $detalle->monto);
+                $fila++;
+            }
+
+            $writer = new Xlsx($spreadsheet);
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header("Content-Disposition: attachment; filename=\"Inventario_".$inventario->date2.".xlsx\"");
+            $writer->save('php://output');
         });
     });
 ?>
