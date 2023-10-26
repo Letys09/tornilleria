@@ -68,7 +68,7 @@ use Slim\Http\UploadedFile;
 						$seg_log = $this->model->seg_log->add('Inicio de sesión', 'usuario', $infoUser->id, 1);
 					}
 				}else{
-					$usuario = ['response' => false, 'message' => 'Ya existe una sesión activa con este usuario.'];
+					$usuario = ['response' => false, 'message' => 'Ya existe una sesión activa con este usuario en otro dispositivo.'];
 				}
 			}
 			return $res->withJson($usuario);
@@ -576,43 +576,54 @@ use Slim\Http\UploadedFile;
 					$this->response->SetResponse(false, 'Debe ingresar el Switch Code de otro colaborador.');
 				}else{
 					if(!isset($_SESSION)) { session_start(); }
+					$continuar = true;
 
-					if(isset($_SESSION['usuario'])){
-						$userId = $_SESSION['usuario_id'];
-						$this->model->seg_log->add('Cierra Sesion SwitchCode', 'usuario', $userId, 1);
-						$data = [
-							'status' => 0,
-							'finalizada' => date('Y-m-d H:i:s'),
-						];
-						$this->model->seg_sesion->edit($data, $_SESSION['logID']);
+					$sesion_activa = $this->model->seg_sesion->getSessionAct($user->id);
+					if($sesion_activa->response){
+						$continuar = false;
+						$sesion_id = $sesion_activa->result->id;
+						$logout = $this->model->seg_sesion->logoutRemoto($sesion_id);
+						if($logout->response){
+							$continuar = true;
+						}
 					}
+					if($continuar){
+						if(isset($_SESSION['usuario'])){
+							$userId = $_SESSION['usuario_id'];
+							$this->model->seg_log->add('Cierra Sesion SwitchCode', 'usuario', $userId, 1);
+							$data = [
+								'status' => 0,
+								'finalizada' => date('Y-m-d H:i:s'),
+							];
+							$this->model->seg_sesion->edit($data, $_SESSION['logID']);
+						}
 
-					$ultimo = ['acceso' => date('Y-m-d H:i:s')];
-					$this->model->usuario->edit($ultimo, $user->id, 'usuario');
-					$newModulos = array();
-					$newModulos = $this->model->usuario->getPermisos($user->id);
-					$this->model->usuario->addSessionLogin($user, $newModulos);
+						$ultimo = ['acceso' => date('Y-m-d H:i:s')];
+						$this->model->usuario->edit($ultimo, $user->id, 'usuario');
+						$newModulos = array();
+						$newModulos = $this->model->usuario->getPermisos($user->id);
+						$this->model->usuario->addSessionLogin($user, $newModulos);
 
-					// $foto="data/foto/".md5($user->id).".jpg";
-					// $user->foto = file_exists($foto);
+						$token = $this->model->seg_sesion->crearToken($user);
+						$data = [
+							'usuario_id' => $user->id,
+							'ip_address' => $_SERVER['REMOTE_ADDR'],
+							'user_agent' => $_SERVER['HTTP_USER_AGENT'],
+							'iniciada' => date('Y-m-d H:i:s'),
+							'token' => $token,
+						];
+						$this->model->seg_sesion->add($data);
+						$_SESSION['usuario'] = $user;
+						$_SESSION['usuario_id'] = $user->id;
+						$_SESSION['permisos'] = $newModulos;
+						$_SESSION['foto'] = $this->model->usuario->getFoto($user->id);
 
-					$token = $this->model->seg_sesion->crearToken($user);
-					$data = [
-						'usuario_id' => $user->id,
-						'ip_address' => $_SERVER['REMOTE_ADDR'],
-						'user_agent' => $_SERVER['HTTP_USER_AGENT'],
-						'iniciada' => date('Y-m-d H:i:s'),
-						'token' => $token,
-					];
-					$this->model->seg_sesion->add($data);
-					$_SESSION['usuario'] = $user;
-					$_SESSION['usuario_id'] = $user->id;
-					$_SESSION['permisos'] = $newModulos;
-					$_SESSION['foto'] = $this->model->usuario->getFoto($user->id);
-
-					$this->model->seg_log->add('Inicio de sesión SwitchCode', 'usuario', $user->id, 1);
-					$this->response->username = $user->nombre;
-					$this->response->SetResponse(true, 'Esta ventana se cerrará en 4 segundos');
+						$this->model->seg_log->add('Inicio de sesión SwitchCode', 'usuario', $user->id, 1);
+						$this->response->username = $user->nombre;
+						$this->response->SetResponse(true, 'Esta ventana se cerrará en 4 segundos');
+					}else{
+						$this->response->SetResponse(false, 'Existe una sesión activa con este usuario en otro dispositivo.');
+					}
 				}
 			}else{
 				$this->response->SetResponse(false, 'No encontramos el usuario. Verifique Switch Code.');
