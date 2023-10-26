@@ -14,6 +14,7 @@ use Slim\Http\UploadedFile;
 
 		$this->post('login', function($req, $res, $args){
 			if(!isset($_SESSION)) { session_start(); }
+			$continuar = true;
 			$parsedBody = $req->getParsedBody();
 			$sucursal_id = $parsedBody['sucursal'];
 			$user = $parsedBody['user'];
@@ -23,35 +24,51 @@ use Slim\Http\UploadedFile;
 			$usuario = $this->model->usuario->login($user, $contrasena);
 			if($usuario->response){
 				$infoUser = $usuario->result;
-				$acciones = $this->model->usuario->getPermisos($infoUser->id, 1);
-				$_SESSION['usuario'] = $infoUser;
-				$_SESSION['usuario_id'] = $infoUser->id;
-				$_SESSION['permisos'] = $acciones;
 
-				$infoSuc = $this->model->sucursal->get($sucursal_id)->result;
-				$_SESSION['sucursal_nombre'] = $infoSuc->nombre;
-				$_SESSION['sucursal_id'] = $sucursal_id;
-				$_SESSION['foto'] = $this->model->usuario->getFoto($infoUser->id);
-				
-				$browser = $_SERVER['HTTP_USER_AGENT'];
-				$ipAddr = $_SERVER['REMOTE_ADDR'];
+				$sesion_activa = $this->model->seg_sesion->getSessionAct($infoUser->id);
+				if($sesion_activa->response){
+					$continuar = false;
+					$sesion_id = $sesion_activa->result->id;
+					$logout = $this->model->seg_sesion->logoutRemoto($sesion_id);
+					if($logout->response){
+						$continuar = true;
+					}
+				}
 
-				$token = $this->model->seg_sesion->crearToken($infoUser->id);
+				if($continuar){
+					$acciones = $this->model->usuario->getPermisos($infoUser->id, 1);
+					$_SESSION['usuario'] = $infoUser;
+					$_SESSION['usuario_id'] = $infoUser->id;
+					$_SESSION['permisos'] = $acciones;
+
+					$infoSuc = $this->model->sucursal->get($sucursal_id)->result;
+					$_SESSION['sucursal_nombre'] = $infoSuc->nombre;
+					$_SESSION['sucursal_id'] = $sucursal_id;
+					$_SESSION['sucursal_identificador'] = $infoSuc->identificador;
+					$_SESSION['foto'] = $this->model->usuario->getFoto($infoUser->id);
 					
-				$data = [
-					'usuario_id' => $infoUser->id,
-					'ip_address' => $ipAddr,
-					'user_agent' => $browser,
-					'token' => $token,
-					'iniciada'    => $date,
-				];
-				$sesion = $this->model->seg_sesion->add($data);
-				$acceso = [ 'acceso' => date('Y-m-d H:i:s') ];
-				$edit = $this->model->usuario->edit($acceso, $infoUser->id, 'usuario');
-				if($sesion){
-					$_SESSION['logID'] = $sesion->result;
-					$_SESSION['token'] = $token;
-					$seg_log = $this->model->seg_log->add('Inicio de sesión', 'usuario', $infoUser->id, 1);
+					$browser = $_SERVER['HTTP_USER_AGENT'];
+					$ipAddr = $_SERVER['REMOTE_ADDR'];
+
+					$token = $this->model->seg_sesion->crearToken($infoUser->id);
+						
+					$data = [
+						'usuario_id' => $infoUser->id,
+						'ip_address' => $ipAddr,
+						'user_agent' => $browser,
+						'token' => $token,
+						'iniciada'    => $date,
+					];
+					$sesion = $this->model->seg_sesion->add($data);
+					$acceso = [ 'acceso' => date('Y-m-d H:i:s') ];
+					$edit = $this->model->usuario->edit($acceso, $infoUser->id, 'usuario');
+					if($sesion){
+						$_SESSION['logID'] = $sesion->result;
+						$_SESSION['token'] = $token;
+						$seg_log = $this->model->seg_log->add('Inicio de sesión', 'usuario', $infoUser->id, 1);
+					}
+				}else{
+					$usuario = ['response' => false, 'message' => 'Ya existe una sesión activa con este usuario.'];
 				}
 			}
 			return $res->withJson($usuario);

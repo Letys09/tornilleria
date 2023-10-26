@@ -59,6 +59,17 @@ class SegSesionModel {
 			return $this->response;
 		}
 
+		public function getSessionAct($usuario_id){
+			$this->response->result = $this->db
+				->from("$this->table")
+				->where("usuario_id", $usuario_id)
+				->where("DATE_FORMAT(iniciada, '%Y-%m-%d')", date('Y-m-d'))
+				->where("finalizada IS NULL")
+				->fetch();
+			if($this->response->result) return $this->response->SetResponse(true);
+			else return $this->response->SetResponse(false, 'No hay sesión activa');
+		}
+
 		public function add($data) {
 			try {
 				$sesion = $this->db
@@ -148,6 +159,14 @@ class SegSesionModel {
     
             return $this->response;
         }
+
+		public function logoutRemoto($sesion_id){
+			$data = [
+				'finalizada' => date('Y-m-d H:i:s'),
+			];
+			$this->response = $this->edit($data, $sesion_id);
+			return $this->response;
+		}
 
 		public function logoutApp($sesion) {
 			date_default_timezone_set('America/Mexico_City');

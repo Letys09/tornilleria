@@ -19,7 +19,7 @@ class SucursalModel {
 		$this->response->result = $this->db
 			->from($this->table)
             ->select(null)
-            ->select("direccion_id, nombre, telefono, calle, no_ext, no_int, colonia, municipio, estado, codigo_postal")
+            ->select("identificador, direccion_id, nombre, telefono, calle, no_ext, no_int, colonia, municipio, estado, codigo_postal")
             ->innerJoin("$this->tableDir ON $this->tableDir.id = $this->table.direccion_id")
 			->where("$this->table.id", $id)
 			->fetch();

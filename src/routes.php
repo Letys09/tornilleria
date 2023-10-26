@@ -11,15 +11,25 @@
 			if(!isset($args['name'])) { $args['name'] = 'login'; }
 			
 			if(!isset($_SESSION)) { session_start(); }
+			if(isset($_SESSION['logID'])){
+				$sesion_info = $this->model->seg_sesion->get($_SESSION['logID']);
+				if($sesion_info->response){
+					$sesion = $sesion_info->result;
+					if($sesion->finalizada != null){
+						unset($_SESSION['logID']);
+						return $this->response->withRedirect(URL_ROOT.'/login');
+					}
+				}
+			}
 			if((isset($_SESSION['usuario']))) {
 				if($args['name'] == '') {
 					return $this->view->render($response, 'login.phtml', $args);
-				}else if($args['name'] == 'principal'){
+				}else if($args['name'] == 'venta'){
 					$user = $_SESSION['usuario']->id;
 					$permisos = $this->model->usuario->getAcciones($user, 0);
 					$arrPermisos = getPermisos($permisos); 
 					$params = array('vista' => ucfirst($args['name']), 'permisos' => $arrPermisos, 'todo' => $this, 'modulos' => $_SESSION['permisos']);
-					return $this->view->render($response, 'principal.phtml', $params);
+					return $this->view->render($response, 'venta.phtml', $params);
 				}else{
 					$params = array('vista' => ucfirst($args['name']));
 					try{

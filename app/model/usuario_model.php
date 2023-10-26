@@ -268,7 +268,7 @@ class UsuarioModel {
 			->where("$this->tablePermiso.usuario_id", $usuario_id)
 			->where(intval($seg_modulo_id)>0? "$this->tableAccion.seg_modulo_id = $seg_modulo_id": "TRUE")
 			->where("$this->tableAccion.status", 1)
-			->orderBy('id asc')
+			->orderBy('nombre asc')
 			->fetchAll();
 	}
 
