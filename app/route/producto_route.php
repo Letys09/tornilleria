@@ -124,10 +124,6 @@ use App\Lib\Auth,
             ];
             return $res->withJson($prod);
         });
-
-        $this->get('getArea', function($req, $res, $args){
-            return $res->withJson($this->model->producto->getArea());
-        });
         
         $this->post('editRangos', function($req, $res, $args){
             $this->model->transaction->iniciaTransaccion();
@@ -271,6 +267,20 @@ use App\Lib\Auth,
             $producto = $this->model->producto->add($data, 'producto'); //Producto original
             if($producto->response){
                 $prod_origen = $producto->result;
+                $sucursales = $this->model->sucursal->getAll()->result;
+                foreach($sucursales as $sucursal){              
+                    $sucursal_id = $sucursal->id;
+                    $dataPrecio = [ 'producto_id' => $prod_origen, ];
+                    $addPrecio = $this->model->producto->add($dataPrecio, 'prod_precio');
+                    if($addPrecio->response){
+                        $dataRango = [ 
+                            'sucursal_id' => $sucursal_id, 
+                            'producto_id' => $prod_origen, 
+                            'prod_precio_id' => $addPrecio->result, 
+                        ];
+                        $addRango = $this->model->producto->add($dataRango, 'prod_rango');
+                    }
+                }
                 $dataPrecio = [ 'producto_id' => $prod_origen ];
                 $addPrecio = $this->model->producto->add($dataPrecio, 'prod_precio');
                 if($addPrecio->response){
@@ -329,7 +339,7 @@ use App\Lib\Auth,
                                 $prod_kilo->state = $this->model->transaction->regresaTransaccion();
                                 if($producto->errors->errorInfo[0] == 23000) {
                                     $producto->error = 23000;
-                                    return $res->withJson($producto->SetResponse(false, 'El código de producto para venta por kilo ya existe'));
+                                    return $res->withJson($producto->SetResponse(false, 'La clave de producto para venta por kilo ya existe'));
                                 }else 
                                     return $res->withJson($prod_kilo->SetResponse(false, 'No se pudo agregar el producto para venta por kilo'));
                             }
@@ -355,7 +365,7 @@ use App\Lib\Auth,
                 $producto->state = $this->model->transaction->regresaTransaccion();
                 if($producto->errors->errorInfo[0] == 23000) {
                     $producto->error = 23000;
-                    return $res->withJson($producto->SetResponse(false, 'El código de producto ya existe'));
+                    return $res->withJson($producto->SetResponse(false, 'La clave de producto ya existe'));
                 }
                 else
                     return $res->withJson($producto->SetResponse(false, 'No se pudo agregar el producto'));
@@ -525,7 +535,7 @@ use App\Lib\Auth,
                     $editProd->state = $this->model->transaction->regresaTransaccion();
                     if($editProd->errors->errorInfo[0] == 23000) {
                         $editProd->error = 23000;
-                        return $res->withJson($editProd->SetResponse(false, 'El código de producto ya existe'));
+                        return $res->withJson($editProd->SetResponse(false, 'La clave de producto ya existe'));
                     }
                     return $res->withJson($editProd->setResponse(false, 'No se editó la información general del producto'));
                 }
@@ -759,7 +769,7 @@ use App\Lib\Auth,
                 if($addProd->response){
                     $prod_origen = $addProd->result;
                     $sucursales = $this->model->sucursal->getAll()->result;
-                    foreach($sucursales as $sucursal){
+                    foreach($sucursales as $sucursal){              
                         $sucursal_id = $sucursal->id;
                         $dataPrecio = [ 'producto_id' => $prod_origen, ];
                         $addPrecio = $this->model->producto->add($dataPrecio, 'prod_precio');
@@ -818,8 +828,14 @@ use App\Lib\Auth,
                                 return $response->withJson($kilo->SetResponse(false, 'No se pudo agregar el kilo del producto'));
                             }
                         }else{
-                            $kilo->state = $this->model->transaction->regresaTransaccion();
-                            return $response->withJson($kilo->SetResponse(false, 'No se pudo agregar el producto para venta por kilo'));
+                            if($prod_kilo->errors->errorInfo[0] == 23000) {
+                                $prod_kilo->error = 23000;
+                                $prod_kilo->state = $this->model->transaction->regresaTransaccion();
+                                return $response->withJson($prod_kilo->SetResponse(false, 'La clave '.$hojaActual->getCell("L$fila")->getValue().' del producto '.$hojaActual->getCell("E$fila")->getValue().' para venta por kilo en la fila '.$fila.' ya existe.'));
+                            }else{
+                                $prod_kilo->state = $this->model->transaction->regresaTransaccion();
+                                return $response->withJson($prod_kilo->SetResponse(false, 'No se pudo agregar el producto para venta por kilo'));
+                            }
                         }
                     }else{
                         $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
@@ -831,7 +847,8 @@ use App\Lib\Auth,
                 }else{
                     if($addProd->errors->errorInfo[0] == 23000) {
                         $addProd->error = 23000;
-                        return $response->withJson($addProd->SetResponse(false, 'El código '.$hojaActual->getCell("G$fila")->getValue().' del producto '.$hojaActual->getCell("D$fila")->getValue().' en la fila '.$fila.' ya existe.'));
+                        $addProd->state = $this->model->transaction->regresaTransaccion();	
+                        return $response->withJson($addProd->SetResponse(false, 'La clave '.$hojaActual->getCell("D$fila")->getValue().' del producto '.$hojaActual->getCell("E$fila")->getValue().' en la fila '.$fila.' ya existe.'));
                     }else{
                         $addProd->state = $this->model->transaction->regresaTransaccion();	
                         return $response->withJson($addProd->SetResponse(false, 'No se pudo agregar el producto'));

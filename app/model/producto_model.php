@@ -184,16 +184,6 @@ class ProductoModel {
 		return $this->response->SetResponse(true);
 	}
 
-    public function getArea(){
-        $this->response->result = $this->db
-            ->from("$this->tableArea")
-            ->select(null)
-            ->select('id, nombre')
-            ->where("status", 1)
-            ->fetchAll();
-        return $this->response;
-    }
-
 	public function getLast(){
 		$this->response->result = $this->db
 			->from($this->table)

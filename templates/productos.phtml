@@ -592,6 +592,7 @@
                     $('#tbl-sucursales tbody').empty()
                     prod_id = $(this).data('id')
                     producto = $(this).data('producto')
+                    medida = $(this).data('medida')
                     $.get(apiUrl+'prod_stock/getStockSuc/'+prod_id, function(resp){
                         elem =  $('#tbl-sucursales tbody')
                         if(resp){
@@ -621,7 +622,7 @@
                             }
                         }
                     },'json');
-                    $('#frm-sucursales h4').html('stock de "'+producto+'" en otras sucursales')
+                    $('#frm-sucursales h4').html('stock de '+producto+' '+medida+' en otras sucursales')
                     $('#frm-sucursales').modal('show')
                     $.unblockUI()
                 })
@@ -631,6 +632,7 @@
                 $.blockUI()
                 prod_id = $(this).data('id')
                 producto = $(this).data('producto')
+                medida = $(this).data('medida')
                 $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
                     $.each(resp, function(index, item){
                         $('#rango-'+index).val(item)
@@ -639,7 +641,7 @@
                     $('#rango-distribuidor').val(parseInt(mayoreo)+1)
                 })
                 $('#prod_rangos_id').val(prod_id)
-                $('#frm-listadoP h4').html('rangos de precios "'+producto+'"')
+                $('#frm-listadoP h4').html('rangos de precios '+producto+' '+medida+'')
                 $('#btnSaveRangos').removeClass('disabled').attr('disabled', false)
                 $('#frm-listadoP').modal('show')
                 $.unblockUI()
@@ -961,6 +963,7 @@
 
             <?php if(in_array(MOD_CARGA_M, $permisos)) : ?>
                 $('#btnMasiva').click(function(){
+                    $('#btnCargar').attr('disabled', false).prop('disabled', false)
                     $('#frm-masiva').modal('show')
                 })
 
@@ -1014,6 +1017,7 @@
                     if(Dropzone.forElement("#layout").files.length == 0){
                         error('layout', 'Debe agregar un archivo con el inventario.');
                         btn.attr('disabled', false).prop('disabled', false)
+                        $.unblockUI()
                     }else{
                         $.blockUI()
                         Dropzone.forElement("#layout").processQueue();
@@ -1098,7 +1102,7 @@
                 $('#btnCambiarPrecios').on('click', function(e){
                     e.preventDefault();
                     if(Dropzone.forElement("#layout_precios").files.length == 0){
-                        error('layout', 'Debe agregar un archivo con precios de los productos.');
+                        error('layout_precios', 'Debe agregar un archivo con precios de los productos.');
                     }else{
                         Dropzone.forElement("#layout_precios").processQueue();
                         setTimeout(() => {
@@ -1137,9 +1141,9 @@
                     $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
                     $.unblockUI()
                 }
-                $.get(apiUrl+'producto/getArea', function(resp) {
-                    if(resp.result.length > 0) {
-                        $.each(resp.result, function(index, item) {
+                $.get(apiUrl+'prod_clasificacion/getAreas', function(resp) {
+                    if(resp.length > 0) {
+                        $.each(resp, function(index, item) {
                             $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
                         });
                         $.unblockUI()
@@ -1231,13 +1235,13 @@
                                                        '<i class="fas fa-barcode"></i>'+
                                                     '</button>'+
                                                     <?php if(in_array(MOD_PROD_SUC, $permisos)) : ?>
-                                                        '<button type="button" class="btn btn-outline-warning btn-sm btnVer" data-id="'+id+'" data-producto="'+full['descripcion']+'" data-toggle="tooltip" title="Ver en Sucursales" style="margin-right:4px;">'+
+                                                        "<button type='button' class='btn btn-outline-warning btn-sm btnVer' data-id='"+id+"' data-producto='"+full['descripcion']+"' data-medida='"+full['medida']+"' data-toggle='tooltip' title='Ver en Sucursales' style='margin-right:4px;'>"+ 
                                                             feather.icons['eye'].toSvg({ class: 'font-small-4 me-20' })+
-                                                        '</button>'+
+                                                        "</button>"+
                                                     <?php endif; ?>
-                                                    '<button type="button" class="btn btn-outline-success btn-sm btnlistadoP" data-id="'+id+'" data-producto="'+full['descripcion']+'" data-toggle="tooltip" title="Precios" style="margin-right:4px;">'+ 
+                                                    "<button type='button' class='btn btn-outline-success btn-sm btnlistadoP' data-id='"+id+"' data-producto='"+full['descripcion']+"' data-medida='"+full['medida']+"' data-toggle='tooltip' title='Precios' style='margin-right:4px;'>"+ 
                                                         feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' }) +
-                                                    '</button>'+
+                                                    "</button>"+
                                                     <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
                                                         '<button type="button" class="btn btn-outline-dark btn-sm btnAjuste" data-id="'+id+'" data-toggle="tooltip" title="Ajuste Inventario" style="margin-right:4px;">'+
                                                             feather.icons['download'].toSvg({ class: 'font-small-4 me-20' })+
