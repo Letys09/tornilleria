@@ -2,7 +2,7 @@
 	namespace App\Model;
 	use App\Lib\Response;
 
-class BajaModel {
+class AjusteModel {
 	private $db;
 	private $table = 'prod_ajuste';
 	private $response;
@@ -12,6 +12,15 @@ class BajaModel {
 		if(!isset($_SESSION)) { session_start(); }
 		$this->db = $db;
 		$this->response = new Response();
+	}
+
+	public function get($id){
+		$this->response->result = $this->db
+			->from($this->table)
+			->where("id", $id)
+			->where("status", 1)
+			->fetch();
+		return $this->response->SetResponse(true);
 	}
 
 	public function add($data){

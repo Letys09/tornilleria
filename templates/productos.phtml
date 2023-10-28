@@ -284,7 +284,7 @@
                                                         </tr>
                                                         <tr>
                                                             <td>Distribuidor</td>
-                                                            <td><input type="text" class="form-control text-end" id="rango-distribuidor" placeholder="0"></td>
+                                                            <td><input type="text" class="form-control text-end deshabilitado" id="rango-distribuidor" placeholder="0" readonly></td>
                                                             <td>
                                                                 <div class="input-group">
                                                                     <div class="input-group-text">
@@ -309,7 +309,7 @@
                                 </div>
                             </div>
 
-                            <div class="modal fade" data-bs-backdrop="statis" data-bs-keyboard="false" id="frm-baja">
+                            <div class="modal fade" data-bs-backdrop="statis" data-bs-keyboard="false" id="frm-ajuste">
                                 <div class="modal-dialog modal-lg">
                                     <form class="modal-content pt-0">
                                         <div class="modal-header mb-1">
@@ -328,27 +328,33 @@
                                                 </div>
                                             </div>       
                                             <div class="form-group row mt-1">
-                                                <div class="col-sm-4">
-                                                    <label class="form-label fs-5" for="baja-fecha">Fecha *</label>
-                                                    <input type="date" id="baja-fecha" class="form-control" min="<?= date('Y-m-01') ?>" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-d')?>">
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fs-5" for="ajuste-fecha">Fecha *</label>
+                                                    <input type="date" id="ajuste-fecha" class="form-control" min="<?= date('Y-m-01') ?>" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-d')?>">
                                                 </div>
-                                                <div class="col-sm-4">
-                                                    <label class="form-label fs-5" for="baja-motivo">Motivo *</label>
-                                                    <select class="form-control" id="baja-motivo">
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fs-5" for="ajuste-accion">Acción *</label>
+                                                    <select class="form-control" id="ajuste-accion">
                                                         <option value="0" selected disabled>Seleccione una opción</option>
-                                                        <option value="2">Perdida</option>
-                                                        <option value="3">Merma</option>
+                                                        <option value="1">Alta</option>
+                                                        <option value="2">Baja</option>
                                                     </select>
                                                 </div>
-                                                <div class="col-sm-4">
-                                                    <label class="form-label fs-5" for="baja-cantidad">Cantidad a dar de baja *</label>
-                                                    <input type="number" id="baja-cantidad" class="form-control" min="1">
+                                            </div>                                        
+                                            <div class="form-group row mt-1">
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fs-5" for="ajuste-motivo">Motivo *</label>
+                                                    <select class="form-control deshabilitado" id="ajuste-motivo" disabled></select>
+                                                </div>
+                                                <div class="col-sm-6">
+                                                    <label class="form-label fs-5" for="ajuste-cantidad">Cantidad *</label>
+                                                    <input type="number" id="ajuste-cantidad" class="form-control" min="1">
                                                 </div>
                                             </div>                                        
                                             <div class="form-group row mt-1">
                                                 <div class="col-sm-12">
-                                                    <label class="form-label fs-5" for="baja-comentarios">Comentarios *</label>
-                                                    <textarea id="baja-comentarios" placeholder="Indique el motivo por el que se da de baja el inventario del producto." rows="10" cols="90"></textarea>
+                                                    <label class="form-label fs-5" for="ajuste-comentarios">Comentarios *</label>
+                                                    <textarea id="ajuste-comentarios" placeholder="Indique el motivo por el que se ajusta el inventario del producto." rows="10" cols="90"></textarea>
                                                 </div>
                                             </div>                                        
                                         </div>
@@ -356,7 +362,7 @@
                                             <div class="buttonsEnd">
                                                 <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Salir</button>
                                                 <button type="button" class="btn btn-danger me-1" id="btnAjustar">Guardar</button>
-                                                <input  type="hidden" id="prod_id_baja" value="0">
+                                                <input  type="hidden" id="prod_id_ajuste" value="0">
                                             </div>
                                         </div>
                                     </form>
@@ -647,6 +653,11 @@
                 $.unblockUI()
             })
 
+            $('#rango-mayoreo').change(function(){
+                val = parseFloat($(this).val())
+                $('#rango-distribuidor').val(parseFloat(val+1))
+            })
+
             $('#btnSaveRangos').click(function(){
                 $.blockUI()
                 btn = $(this)
@@ -679,38 +690,62 @@
                     tr = $(this).closest('tr')
                     name = '('+$(tr).find('td:eq(0)').text()+') '+$(tr).find('td:eq(1)').text()
                     stock = $(tr).find('td:eq(6)').text()
-                    $('#frm-baja h4').html('ajuste de inventario')
+                    $('#frm-ajuste h4').html('ajuste de inventario')
                     $('#nameP').val(name)
                     $('#existencia').val(stock)
-                    $('#baja-cantidad').val(stock)
-                    $('#baja-cantidad').attr('max', stock)
-                    $('#prod_id_baja').val(prod_id)
+                    $('#prod_id_ajuste').val(prod_id)
                     if(stock == 0){
                         error('existencia', 'No hay stock disponible para dar de baja')
-                        $('#baja-fecha').prop('disabled', true).attr('disabled', 'disabled')
-                        $('#baja-motivo').prop('disabled', true).attr('disabled', 'disabled')
-                        $('#baja-cantidad').prop('disabled', true).attr('disabled', 'disabled')
-                        $('#baja-comentarios').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#ajuste-fecha').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#ajuste-accion').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#ajuste-cantidad').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#ajuste-comentarios').prop('disabled', true).attr('disabled', 'disabled')
                         $('#btnAjustar').prop('disabled', true).attr('disabled', 'disabled')
                     }else{
-                        $('#baja-fecha').prop('disabled', false).attr('disabled', false)
-                        $('#baja-motivo').prop('disabled', false).attr('disabled', false)
-                        $('#baja-cantidad').prop('disabled', false).attr('disabled', false)
-                        $('#baja-comentarios').prop('disabled', false).attr('disabled', false)
+                        $('#ajuste-fecha').prop('disabled', false).attr('disabled', false)
+                        $('#ajuste-accion').prop('disabled', false).attr('disabled', false)
+                        $('#ajuste-cantidad').prop('disabled', false).attr('disabled', false)
+                        $('#ajuste-comentarios').prop('disabled', false).attr('disabled', false)
                         $('#btnAjustar').prop('disabled', false).attr('disabled', false)
                     }
-                    $('#frm-baja').modal('show')
+                    $('#frm-ajuste').modal('show')
                 })
 
-                $('#baja-cantidad').change(function(){
+                $('#ajuste-accion').change(function(){
+                    opt = $(this).val()
                     existencia = $('#existencia').val()
-                    cant = $(this).val()
-                    if(cant < 1){
-                        error('baja-cantidad', 'No podemos dar de baja menos de 1 unidad del producto')
-                        $(this).val(1)
-                    }else if(cant > existencia){
-                        error('baja-cantidad', 'No podemos dar de baja más unidades que la existencia actual del producto')
-                        $(this).val(existencia)
+                    $('#ajuste-motivo').empty()
+                    if(opt == 1){
+                        $('#ajuste-motivo').attr('disabled', true).prop('disabled', true).append('<option value="1" selected>Inventario físico realizado</option>')
+                        $('#ajuste-cantidad').val('')
+                        $('#ajuste-cantidad').attr('max', 1000000)
+                    }else{
+                        $('#ajuste-motivo').attr('disabled', false).prop('disabled', false).removeClass('deshabilitado')
+                        $('#ajuste-motivo').append('<option value="0" selected disabled>Seleccione una opción</option>')
+                        $('#ajuste-motivo').append('<option value="2">Perdida</option>')
+                        $('#ajuste-motivo').append('<option value="3">Merma</option>')
+                        $('#ajuste-cantidad').val(existencia)
+                        $('#ajuste-cantidad').attr('max', existencia)
+                    }
+                })
+
+                $('#ajuste-cantidad').change(function(){
+                    cant = parseFloat($(this).val())
+                    accion = $('#ajuste-accion').val()
+                    existencia = $('#existencia').val()
+                    if(accion == 1){
+                        if(cant < 1){
+                            error('ajuste-cantidad', 'Ingrese un número mayor a 0')
+                            $(this).val(1)
+                        }
+                    }else{
+                        if(cant < 1){
+                            error('ajuste-cantidad', 'No podemos dar de baja menos de 1 unidad del producto')
+                            $(this).val(1)
+                        }else if(cant > existencia){
+                            error('ajuste-cantidad', 'No podemos dar de baja más unidades que la existencia actual del producto')
+                            $(this).val(existencia)
+                        }
                     }
                 })
 
@@ -719,32 +754,36 @@
                     btn = $(this)
                     btn.attr('disabled', true).prop('disabled', true)
                     data = {}
-                    $.each($('#frm-baja input, #frm-baja textarea, #frm-baja select'), function(index, elem){
+                    $.each($('#frm-ajuste input, #frm-ajuste textarea, #frm-ajuste select'), function(index, elem){
                         if(!$(elem).hasClass('empty')){
-                            ide = $(elem).attr('id').replace('baja-','')
+                            ide = $(elem).attr('id').replace('ajuste-','')
                             data[ide] = $.trim($(elem).val())
                         }
                     })
                     if(data.fecha == ''){
-                        error('baja-fecha', 'Este campo es requerido')
+                        error('ajuste-fecha', 'Este campo es requerido')
+                        btn.attr('disabled', false).prop('disabled', false)
+                        $.unblockUI()
+                    }else if(data.accion == 0 || data.accion == null){
+                        error('ajuste-accion', 'Este campo es requerido, seleccione una opción')
                         btn.attr('disabled', false).prop('disabled', false)
                         $.unblockUI()
                     }else if(data.motivo == 0 || data.motivo == null){
-                        error('baja-motivo', 'Este campo es requerido, seleccione una opción')
+                        error('ajuste-motivo', 'Este campo es requerido, seleccione una opción')
                         btn.attr('disabled', false).prop('disabled', false)
                         $.unblockUI()
                     }else if(data.comentarios == ''){
-                        error('baja-comentarios', 'Este campo es requerido')
+                        error('ajuste-comentarios', 'Este campo es requerido')
                         btn.attr('disabled', false).prop('disabled', false)
                         $.unblockUI()
                     }else{
-                        $.post(apiUrl+'producto/ajuste/', data, function(resp){
+                        $.post(apiUrl+'prod_ajuste/add/', data, function(resp){
                             if(resp.response){
-                                toastr["success"]("¡Listo!", "Se dio de baja el inventario del producto.")
-                                $('#frm-baja').modal('hide')
+                                toastr["success"]("¡Listo!", "Se realizó el ajuste de inventario del producto.")
+                                $('#frm-ajuste').modal('hide')
                                 getItems('tbl-producto')
                             }else{
-                                toastr["error"]("¡Ocurrió un problema!", "No pudimos dar de baja el inventario del producto.")
+                                toastr["error"]("¡Ocurrió un problema!", "No pudimos realizar el ajuste de inventario del producto.")
                             }
                             btn.attr('disabled', false).prop('disabled', false)
                             $.unblockUI()
@@ -1244,7 +1283,7 @@
                                                     "</button>"+
                                                     <?php if(in_array(MOD_PROD_BAJA, $permisos)) : ?>
                                                         '<button type="button" class="btn btn-outline-dark btn-sm btnAjuste" data-id="'+id+'" data-toggle="tooltip" title="Ajuste Inventario" style="margin-right:4px;">'+
-                                                            feather.icons['download'].toSvg({ class: 'font-small-4 me-20' })+
+                                                            feather.icons['clipboard'].toSvg({ class: 'font-small-4 me-20' })+
                                                         '</button>'+
                                                     <?php endif; ?>
                                                 '</div>' +
