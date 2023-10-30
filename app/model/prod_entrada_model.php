@@ -34,16 +34,28 @@ class EntradaModel {
 			->select("DATE_FORMAT(fecha, '%d-%m-%Y') as date, CAST(fecha AS TIME) as hora, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, sucursal.nombre")
 			->innerJoin("sucursal ON sucursal.id = $this->table.sucursal_id")
 			->innerJoin("usuario ON usuario.id = $this->table.usuario_id")
+			->where("$this->table.sucursal_id", $_SESSION['sucursal_id'])
 			->where("$this->table.status", 1)
 			->fetchAll();
 		return $this->response;
+	}
+
+	public function getDet($id){
+		$this->response->result = $this->db
+			->from($this->tableDet)
+			->select(null)
+			->select("id, producto_id, cantidad, costo, total")
+			->where("id", $id)
+			->where("status", 1)
+			->fetch();
+		return $this->response->SetResponse(true);
 	}
 
 	public function getDetalles($id){
 		$this->response->result = $this->db
 			->from($this->tableDet)
 			->select(null)
-			->select("producto_id, cantidad, costo, total")
+			->select("id, producto_id, cantidad, costo, total")
 			->where("prod_entrada_id", $id)
 			->where("status", 1)
 			->fetchAll();
@@ -81,6 +93,40 @@ class EntradaModel {
 			$this->response->SetResponse(false, 'No se pudo agregar la entrada de productos.'); 
 		}
 			
+		return $this->response;
+	}
+
+	public function edit($data, $id, $tabla){
+		try{
+			$this->response->result = $this->db
+				->update($tabla, $data)
+				->where("id", $id)
+				->execute();
+
+			if($this->response->result) { $this->response->SetResponse(true); }
+			else { $this->response->SetResponse(false, 'No se actualizó el registro '.$id.' '.$tabla); }
+		}catch(\PDOException $ex) {
+			$this->response->errors = $ex;
+			$this->response->SetResponse(false, 'catch: editar '.$tabla);
+		}
+
+		return $this->response;
+	}
+
+	public function del($id, $tabla){
+		try {
+			$data['status'] = 0;
+			$this->response->result = $this->db
+				->update($tabla, $data)
+				->where('id', $id)
+				->execute();
+			if($this->response->result) { $this->response->SetResponse(true); }
+			else { $this->response->SetResponse(false, 'No se eliminó el registro '.$id.' '.$tabla); }
+		} catch(\PDOException $ex) {
+			$this->response->errors = $ex;
+			$this->response->SetResponse(false, 'catch: eliminar registro '.$tabla);
+		}
+
 		return $this->response;
 	}
 }

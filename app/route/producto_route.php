@@ -582,53 +582,6 @@ use App\Lib\Auth,
             }
         });
 
-        $this->post('baja/', function($req, $res, $args){
-            $this->model->transaction->iniciaTransaccion();
-            $parsedBody = $req->getParsedBody();
-            $usuario = $_SESSION['usuario_id']; $sucursal = $_SESSION['sucursal_id']; $producto_id = $parsedBody['prod_id_baja']; $fecha = date('Y-m-d H:i:s');
-            $dataAjuste = [
-                'producto_id' => $producto_id,
-                'usuario_id' => $usuario,
-                'fecha' => $fecha,
-                'tipo' => $parsedBody['motivo'],
-                'cantidad' => $parsedBody['cantidad'],
-                'comentarios' => $parsedBody['comentarios']
-            ];
-            $addAjuste = $this->model->prod_baja->add($dataAjuste);
-            if($addAjuste->response){
-                $inicial = $this->model->prod_stock->getStock($sucursal, $producto_id, 1)->result->final;
-                $dataStock = [
-                    'usuario_id' => $usuario,
-                    'sucursal_id' => $sucursal,
-                    'producto_id' => $producto_id,
-                    'tipo' => -1,
-                    'inicial' => $inicial,
-                    'cantidad' => $parsedBody['cantidad'],
-                    'final' => floatval($inicial - $parsedBody['cantidad']),
-                    'fecha' => $fecha,
-                    'origen_tipo' => 2,
-                    'origen_id' => $addAjuste->result
-                ];
-                $addStock = $this->model->prod_stock->add($dataStock);
-                if($addStock->response){
-                    $seg_log = $this->model->seg_log->add('Baja de inventario', 'prod_ajuste', $addAjuste->result, 1);
-                    if($seg_log->response){
-                        $addAjuste->state = $this->model->transaction->confirmaTransaccion();	
-                        return $res->withJson($addAjuste);
-                    }else{
-                        $seg_log->state = $this->model->transaction->regresaTransaccion();	
-                        return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
-                    }
-                }else{
-                    $addStock->state = $this->model->transaction->regresaTransaccion();	
-                    return $res->withJson($addStock->SetResponse(false, 'No se pudo agregar el registro de stock'));
-                }
-            }else{
-                $addAjuste->state = $this->model->transaction->regresaTransaccion();	
-                return $res->withJson($addAjuste->SetResponse(false, 'No se pudo agregar el registro del ajuste'));
-            }
-        });
-
         $this->get('excel/', function($req, $res, $args){
             $spreadsheet = new Spreadsheet();
             $sheet = $spreadsheet->getActiveSheet();

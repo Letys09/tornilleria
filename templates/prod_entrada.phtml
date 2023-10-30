@@ -34,7 +34,7 @@
                                 </div>
                             </div>
                             <div class="card-datatable table-responsive pt-0">
-                                <table id="tbl-entrada" class="table">
+                                <table id="tbl-entradas" class="table">
                                     <thead class="table-light">
                                         <tr class="text-center">
                                             <th>Fecha</th>
@@ -80,8 +80,6 @@
                                                                 <th class="fw-bolder" width="45%">Producto</th>
                                                                 <th class="fw-bolder" width="10%">Cantidad</th>
                                                                 <th class="fw-bolder" width="10%">Costo</th>
-                                                                <!-- <th class="fw-bolder" width="10%">Importe</th> -->
-                                                                <!-- <th class="fw-bolder" width="10%">Descuento</th> -->
                                                                 <th class="fw-bolder" width="10%">Total</th>
                                                                 <th class="fw-bolder" width="5%"></th>
                                                             </tr>
@@ -89,11 +87,9 @@
                                                         <tbody></tbody>
                                                         <tfoot>
                                                             <tr>
-                                                                <td><input class="form-control form-control-sm" id="entrada-producto" placeholder="Buscar por nombre, descripción, código, marca"></td>
+                                                                <td><input class="form-control form-control-sm" id="entrada-producto" placeholder="Buscar por descripción, código, medida"></td>
                                                                 <td><input class="form-control form-control-sm text-end entrada" id="entrada-cantidad" placeholder="0"></td>
                                                                 <td><input class="form-control form-control-sm text-end entrada" id="entrada-costo" placeholder="0.00"></td>
-                                                                <!-- <td><input class="form-control form-control-sm text-end entrada" id="entrada-importe" placeholder="0.00" disabled></td> -->
-                                                                <!-- <td><input class="form-control form-control-sm text-end entrada" id="entrada-descuento" placeholder="0.00"></td> -->
                                                                 <td><input class="form-control form-control-sm text-end entrada" id="entrada-total" placeholder="0.00" disabled>
                                                                 <td class="text-center">
                                                                     <button type="button" class="btn btn-sm btn-success" id="btnAddRow" data-toggle="tooltip" title="Confirmar"><i class="fas fa-check"></i></button>
@@ -115,7 +111,7 @@
                                                             <div class="input-group-text">
                                                                 <small>$</small>
                                                             </div>
-                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-importe" readonly value="0.00">
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6 deshabilitado" id="total-importe" readonly value="0.00">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -137,7 +133,7 @@
                                                             <div class="input-group-text">
                                                                 <small>$</small>
                                                             </div>
-                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-subtotal" readonly value="0.00">
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6 deshabilitado" id="total-subtotal" readonly value="0.00">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -148,7 +144,7 @@
                                                             <div class="input-group-text">
                                                                 <input class="form-check-input" type="checkbox" id="iva">
                                                             </div>
-                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-iva" readonly value="0.00">
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6 deshabilitado" id="total-iva" readonly value="0.00">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -159,7 +155,7 @@
                                                             <div class="input-group-text">
                                                                 <small>$</small>
                                                             </div>
-                                                            <input type="text" class="form-control form-control-sm text-end fs-6" id="total-total" readonly value="0.00">
+                                                            <input type="text" class="form-control form-control-sm text-end fs-6 deshabilitado" id="total-total" readonly value="0.00">
                                                         </div>
                                                     </div>
                                                 </div>
@@ -172,6 +168,7 @@
                                                 <button type="button" class="btn btn-success mb-1 data-submit" id="btnSave">Guardar</button>
                                                 <input type="hidden" id="prod_id" value="0">
                                                 <input type="hidden" id="entrada_id" value="0">
+                                                <input type="hidden" id="detalle_id" value="0">
                                             </div>
                                         </div>
                                     </form>
@@ -295,9 +292,9 @@
         $(function(){
             var apiUrl = '<?= URL_ROOT ?>/';
 
-            getItems('tbl-entrada')
+            getItems('tbl-entradas')
 
-            <?php if(in_array(MOD_ADD, $permisos)) : ?>
+            <?php if(in_array(MOD_ADD, $permisos) || in_array(MOD_EDIT, $permisos)) : ?>
                 $('#btnAdd').click(function(){
                     getSucursales(<?= $_SESSION['sucursal_id'] ?>)
                     clearAll()
@@ -329,6 +326,68 @@
                     }
                 })
                 $('#entrada-producto').focus()
+
+                $('#tbl-entradas').on('click', '.btnEdit', function(){
+                    clearAll()
+                    entrada_id = $(this).data('id')
+                    $('#entrada_id').val(entrada_id)
+                    $.get(apiUrl+'prod_entrada/getEntrada/'+entrada_id, function(res){
+                        getSucursales(res.sucursal_id)
+                        $('#entrada-sucursal').prop('disabled', true).attr('disabled', 'disabled').addClass('deshabilitado')
+                        $('#entrada-folio').val(res.folio).prop('disabled', true).attr('disabled', 'disabled').addClass('deshabilitado')
+                        $('#total-importe').val(res.importe)
+                        $('#total-descuento').val(res.descuento).prop('disabled', true).attr('disabled', 'disabled').addClass('deshabilitado')
+                        $('#total-subtotal').val(res.subtotal)
+                        if(res.iva != 0 && res.iva != 0.00) $('#iva').prop('checked', true).prop('disabled', true).attr('disabled', 'disabled').addClass('deshabilitado')
+                        else $('#iva').prop('checked', false).prop('disabled', true).attr('disabled', 'disabled').addClass('deshabilitado')
+                        $('#total-iva').val(res.iva)
+                        $('#total-total').val(res.total)
+                        $('#frm-entrada h4').html('editar entrada de productos del '+res.date+' a las '+res.hora)
+                        $('#tbl_entrada tfoot').addClass('hidden')
+                        mostrar = res.detalles.length > 1 ? '' : 'hidden'
+                        $.each(res.detalles, function(index, item){
+                            addDetalle('tbl_entrada', item, mostrar)
+                        })
+                    },'json')
+                    $('#frm-entrada').modal('show')
+                })
+
+                $('#tbl_entrada').on('click', '.editDetalleEntrada', function(e){
+                    e.preventDefault()
+                    tr = $(this).closest('tr')
+                    tr.find('.ent-cantidad').removeClass('deshabilitado').attr('disabled', false).focus()
+                    tr.find('.ent-costo').removeClass('deshabilitado').attr('disabled', false)
+                    det_id = $(tr).data('detalle_id')
+                    $('#detalle_id').val(det_id)
+                })
+
+                $('#tbl_entrada').on('change', '.ent-cantidad', function(){
+                    tr = $(this).closest('tr')
+                    cant = parseFloat($(this).val())
+                    costo = parseFloat(tr.find('.ent-costo').val())
+                    tot = parseFloat(cant*costo).toFixed(2)
+                    detalle_id = $('#detalle_id').val()
+                    prod_id = tr.data('id')
+                    data = {'prod_id': prod_id, 'cantidad': cant, 'total': tot}
+                    $.post(apiUrl+'prod_entrada/editDet/'+detalle_id, data, function(res){
+                        tr.find('.ent-total').text(tot)
+                        getTotal()
+                    })
+                })
+
+                $('#tbl_entrada').on('change', '.ent-costo', function(){
+                    tr = $(this).closest('tr')
+                    costo = parseFloat($(this).val())
+                    cantidad = parseFloat(tr.find('.ent-cantidad').val())
+                    tot = parseFloat(cantidad*costo).toFixed(2)
+                    detalle_id = $('#detalle_id').val()
+                    prod_id = tr.data('id')
+                    data = {'prod_id': prod_id, 'costo': costo, 'total': tot}
+                    $.post(apiUrl+'prod_entrada/editDet/'+detalle_id, data, function(res){
+                        tr.find('.ent-total').text(tot)
+                        getTotal()
+                    })
+                })
 
                 $('#entrada-costo').change(function(){
                     costo = $(this).val()
@@ -407,7 +466,7 @@
                 })
        
                 $('#btnSave').click(function(){
-                    id = $('#prod_id').val()
+                    entrada_id = $('#entrada_id').val()
                     data = { 
                         sucursal_id: $('#entrada-sucursal').val(),
                         folio: $('#entrada-folio').val(),
@@ -418,43 +477,38 @@
                         total: $('#total-total').val(),
                     }
 
-                    data.entradas = []
-                    $.each($('#tbl_entrada tbody tr'), function(index, trInfo) {
-                        if($(trInfo).hasClass('new')){
-                            entradas = { 
-                                'producto_id': $(trInfo).data('id'), 
-                                'cantidad': $(trInfo).find('.ent-cantidad').text(), 
-                                'costo': $(trInfo).find('.ent-costo').text(), 
-                                // 'importe': $(trInfo).find('.ent-importe').text(), 
-                                // 'descuento': $(trInfo).find('.ent-descuento').text(), 
-                                'total': $(trInfo).find('.ent-total').text(), 
+                    if(entrada_id == 0){
+                        data.entradas = []
+                        $.each($('#tbl_entrada tbody tr'), function(index, trInfo) {
+                            if($(trInfo).hasClass('new')){
+                                entradas = { 
+                                    'producto_id': $(trInfo).data('id'), 
+                                    'cantidad': $(trInfo).find('.ent-cantidad').text(), 
+                                    'costo': $(trInfo).find('.ent-costo').text(),
+                                    'total': $(trInfo).find('.ent-total').text(), 
+                                }
+                                data.entradas.push(entradas);
                             }
-                            data.entradas.push(entradas);
-                        }
-                    })
-                  
-                    if($('#entrada_id').val() == 0){
-                        console.log(data)
+                        })
                         $.post(apiUrl+'prod_entrada/add/', data, function(resp){
                             if(resp.response){
                                 toastr["success"]("¡Listo!", "Se ha realizado la entrada de productos.")
                                 $('#frm-entrada').modal('hide')
-                                getItems('tbl-entrada')
+                                getItems('tbl-entradas')
                             }else{
                                 toastr["error"]("¡Ocurrió un problema!", "No pudimos agregar la entrada de productos.")
                             }
                         }, 'json')
                     }else{
-                        console.log(data)
-                        $.post(apiUrl+'producto/edit/'+id, data, function(resp){
+                        $.post(apiUrl+'prod_entrada/edit/'+entrada_id, data, function(resp){
                             if(resp.response){
-                                toastr["success"]("¡Listo!", "Se editó la información del producto.")
-                                getItems('tbl-entrada')
+                                toastr["success"]("¡Listo!", "Se editó la información de la entrada de productos.")
+                                getItems('tbl-entradas')
                                 $('#frm-entrada').modal('hide')
                             }else if(resp.code){
                                 toastr["info"]("No hay cambios!", resp.msg); 
                             }else{
-                                toastr["error"]("¡Ocurrió un problema!", "No pudimos editar la información del producto.")
+                                toastr["error"]("¡Ocurrió un problema!", "No pudimos editar la información de la entrada.")
                             }
                         }, 'json')
                     }
@@ -466,8 +520,6 @@
                     tr.append('<td>'+data.producto+'</td>')
                     tr.append('<td class="text-center ent-cantidad">'+data.cantidad+'</td>')
                     tr.append('<td class="text-end ent-costo">'+parseFloat(data.costo).toFixed(2)+'</td>')
-                    // tr.append('<td class="text-end ent-importe">'+parseFloat(data.importe).toFixed(2)+'</td>')
-                    // tr.append('<td class="text-end ent-descuento">'+parseFloat(data.descuento).toFixed(2)+'</td>')
                     tr.append('<td class="text-end ent-total">'+parseFloat(data.total).toFixed(2)+'</td>')
                     tr.append('<td class="text-center"><button type="button" class="btn btn-sm btn-danger btnDelRow" data-toggle="tooltip" title="Eliminar"><i class="fas fa-trash"></i></button></td>')
                     elem.append(tr)
@@ -476,27 +528,79 @@
                 }
             <?php endif; ?>
 
-            $('#tbl-entrada').on('click', '.btnVer', function(){
+            $('#tbl-entradas').on('click', '.btnVer', function(){
                 id = $(this).data('id')
                 $('#tbl_ver_entrada tbody').empty()
                 $.get(apiUrl+'prod_entrada/getEntrada/'+id, function(resp){
-                    $('#sucursal_nombre').val(resp.nombre).prop('disabled', true).attr('disabled', 'disabled')
-                    $('#folio').val(resp.folio).prop('disabled', true).attr('disabled', 'disabled')
+                    $('#sucursal_nombre').val(resp.nombre).prop('disabled', true).attr('disabled', 'disabled').addClass('deshabilitado')
+                    $('#folio').val(resp.folio).prop('disabled', true).attr('disabled', 'disabled').addClass('deshabilitado')
                     $('#importe').val(resp.importe)
                     $('#descuento').val(resp.descuento)
                     $('#subtotal').val(resp.subtotal)
-                    if(resp.iva != 0 && resp.iva != 0.00) $('#iva_entrada').prop('checked', true).prop('disabled', true).attr('disabled', 'disabled')
-                    else $('#iva_entrada').prop('checked', false).prop('disabled', true).attr('disabled', 'disabled')
+                    if(resp.iva != 0 && resp.iva != 0.00) $('#iva_entrada').prop('checked', true).prop('disabled', true).attr('disabled', 'disabled').addClass('deshabilitado')
+                    else $('#iva_entrada').prop('checked', false).prop('disabled', true).attr('disabled', 'disabled').addClass('deshabilitado')
                     $('#iva_cant').val(resp.iva)
                     $('#total').val(resp.total)
                     $('#frm-ver_entrada h4').html('entrada de productos del '+resp.date+' a las '+resp.hora)
                     $('#tbl_ver_entrada tfoot').addClass('hidden')
                     $.each(resp.detalles, function(index, item){
-                        addDetalle(item)
+                        addDetalle('tbl_ver_entrada', item)
                     })
                     $('#frm-ver_entrada').modal('show')
                 },'json')
             })
+
+            <?php if(in_array(MOD_DEL, $permisos)) : ?>
+                $('#tbl-entradas').on('click', '.btnDel', function(e){
+                    e.preventDefault()
+                    entrada_id = $(this).data('id')
+                    swal({
+                        title: "Eliminar entrada de productos",
+                        text: "¿Seguro que deseas eliminar la entrada de productos?",
+                        type: "warning",
+                        showCancelButton: true,
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "¡Eliminar!",
+                        closeOnConfirm: false 
+                    },function(){
+                        $.post(apiUrl+'prod_entrada/del/'+entrada_id, function(resp){
+                            if(resp.response){
+                                swal("¡Hecho!",	"Se eliminó la entrada de productos. ", "success");
+                                getItems('tbl-entradas')
+                            }else{
+                                swal("¡Error!",	resp.message, "error");
+                            }
+                        },'json')
+                    });
+                })
+
+                $('#tbl_entrada').on('click', '.delDet', function(e){
+                    e.preventDefault()
+                    tr = $(this).closest('tr')
+                    id = $(tr).data('detalle_id')
+                    swal({
+                        title: "Eliminar entrada de producto",
+                        text: "¿Seguro que deseas eliminar la entrada del producto "+$(tr).find('td:eq(0)').text()+"?",
+                        type: "warning",
+                        showCancelButton: true,
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "¡Eliminar!",
+                        closeOnConfirm: false 
+                    },function(){
+                        $.post(apiUrl+'prod_entrada/delDet/'+entrada_id, function(resp){
+                            if(resp.response){
+                                swal("¡Hecho!",	"Se eliminó la entrada del producto. ", "success");
+                                $(tr).remove()
+                                getTotal()
+                            }else{
+                                swal("¡Ocurrió un problema!", "No pudimos eliminar la entrada del producto", "error")
+                            }
+                        },'json')
+                    });
+                })
+            <?php endif; ?>
 
             function clear(){
                 $('#entrada-producto').focus().val('')
@@ -535,12 +639,13 @@
                 })
             }
 
-            function getTotal(general = 0){
+            function getTotal(){
                 imp = 0.00; desc = 0.00; tot = 0.00;
                 $.each($('#tbl_entrada tbody tr'), function(index, trInfo) {
                     if($(trInfo).hasClass('new')){
                         tot += parseFloat($(trInfo).find('.ent-total').text())
                     }
+                    console.log(trInfo)
                 })
 
                 descuento = $('#total-descuento').val()
@@ -555,15 +660,28 @@
                 $('#total-total').val(parseFloat(sub+iva).toFixed(2))
             }
 
-            function addDetalle(item){  
-                elem =  $('#tbl_ver_entrada tbody')
-                tr = $('<tr></tr>')
+            function addDetalle(tbl, item, mostrar=''){  
+                elem =  $('#'+tbl+' tbody')
+                if(tbl == 'tbl_entrada'){
+                    tr = $('<tr class="new" data-id="'+item.producto_id+'" data-detalle_id="'+item.id+'"></tr>')
+                }else{
+                    tr = $('<tr class="new" data-id="'+item.producto_id+'"></tr>')
+                }
                 tr.append('<td>'+item.producto+'</td>')
-                tr.append('<td class="text-center">'+item.cantidad+'</td>')
-                tr.append('<td class="text-end">'+parseFloat(item.costo).toFixed(2)+'</td>')
-                // tr.append('<td class="text-end">'+parseFloat(item.importe).toFixed(2)+'</td>')
-                // tr.append('<td class="text-end">'+parseFloat(item.descuento).toFixed(2)+'</td>')
-                tr.append('<td class="text-end">'+parseFloat(item.total).toFixed(2)+'</td>')
+                if(tbl == 'tbl_entrada'){
+                    tr.append('<td class="text-center"><input type="text" class="form-control text-center deshabilitado ent-cantidad" value="'+item.cantidad+'" disabled></td>')
+                    tr.append('<td class="text-center"><input type="text" class="form-control text-end deshabilitado ent-costo" value="'+parseFloat(item.costo).toFixed(2)+'" disabled></td>')
+                }else{
+                    tr.append('<td class="text-center">'+item.cantidad+'</td>')
+                    tr.append('<td class="text-end">'+parseFloat(item.costo).toFixed(2)+'</td>')
+                }
+                tr.append('<td class="text-end ent-total">'+parseFloat(item.total).toFixed(2)+'</td>')
+                if(tbl == 'tbl_entrada'){
+                    tr.append('<td class="text-center">'+
+                                '<button class="button btn-sm btn-outline-new-info me-1 editDetalleEntrada" data-toggle="tooltip" title="Editar"><i class="fas fa-edit"></i></button>'+
+                                '<button class="button btn-sm btn-outline-danger delDet '+mostrar+'" data-toggle="tooltip" title="Eliminar"><i class="fas fa-trash"></i></button>'
+                               +'</td>')                    
+                }
                 elem.append(tr)
             }
 
@@ -581,8 +699,8 @@
             }
 
             function createTable(tbl){
-                if($('#tbl-entrada').length){
-                    $('#tbl-entrada').DataTable({
+                if($('#tbl-entradas').length){
+                    $('#tbl-entradas').DataTable({
                         ajax:{
                             url: apiUrl+'prod_entrada/getAllDataTable',
                             type: 'GET',
@@ -609,7 +727,7 @@
                                     id = full['data_id'];
                                     return (
                                         '<div class="text-center">' +
-                                            '<button type="button" class="btn btn-outline-new-success btn-sm btnVer" data-id="'+id+'" data-toggle="tooltip" title="Ver" style="margin-right:4px;">'+
+                                            '<button type="button" class="btn btn-outline-new-success btn-sm btnVer" data-id="'+id+'" data-toggle="tooltip" title="Detalles" style="margin-right:4px;">'+
                                                 feather.icons['eye'].toSvg({ class: 'font-small-4 me-20' })+
                                             '</button>'+
                                             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
@@ -618,7 +736,7 @@
                                                 '</button>'+
                                             <?php endif; ?>
                                             <?php if(in_array(MOD_DEL, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-danger btn-sm" data-id="'+id+'" data-name="'+full['nombre']+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDel" data-id="'+id+'" data-toggle="tooltip" title="Eliminar" style="margin-right:4px;">'+
                                                     feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>' +
                                             <?php endif; ?>
@@ -714,7 +832,7 @@
                                 .appendTo('#tbl-entrada_length').on('change', function () {
                                     sucursal = $('#sucursal').val();
                                    
-                                    $('#tbl-entrada').DataTable().page.len( $(this).val() ).draw();
+                                    $('#tbl-entradas').DataTable().page.len( $(this).val() ).draw();
                                     $('#sucursal').val(sucursal).trigger('change');
                                 });
 
@@ -728,7 +846,7 @@
                                     )
                                     .prependTo('#tbl-entrada_length')
                                     .on('change', function () {
-                                        $('#tbl-entrada').DataTable().column(4).search(
+                                        $('#tbl-entradas').DataTable().column(4).search(
                                             $('#sucursal').val()
                                         ).draw();
                                     });

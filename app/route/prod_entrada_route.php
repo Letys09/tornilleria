@@ -27,8 +27,6 @@ use App\Lib\Auth,
 			$data = [];
 			if(!isset($_SESSION)) { session_start(); }
 			foreach($entradas->result as $entrada) {
-                // print_r($entrada);
-                // print_r('<hr>');
                 $data[] = array(
 					"fecha" => $entrada->date,
 					"hora" => $entrada->hora,
@@ -57,10 +55,7 @@ use App\Lib\Auth,
 
             foreach($entrada->detalles as $detalle){
                 $prod = $this->model->producto->get($detalle->producto_id)->result;
-                $marca = $prod->marca != '' ? ', '.$prod->marca : '';
-                $descripcion = $prod->descripcion != '' ? ', '.$prod->descripcion : '';
-                $codigo = $prod->codigo != '' ? ', '.$prod->codigo : '';
-                $detalle->producto = $prod->nombre.$marca.$descripcion.$codigo;
+                $detalle->producto = '('.$prod->clave.') '.$prod->descripcion;
             }
             return $res->withJson($entrada);
         });
@@ -110,6 +105,7 @@ use App\Lib\Auth,
                             'fecha' => date('Y-m-d H:i:s'),
                             'motivo' => '',
                             'origen_tipo' => 1,
+                            'origen_tabla' => 'prod_entrada',
                             'origen_id' => $id_entrada,
                         ];
                         if(is_object($stock)){
@@ -150,222 +146,208 @@ use App\Lib\Auth,
 
 		$this->post('edit/{id}', function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
-			$parsedBody = $req->getParsedBody();
-
-            $prodIgual = true; $precioIgual = true; $prodKiloI = true; $kiloDatos = true;
-            $infoP = $this->model->producto->get($args['id'])->result;
-            $prod = [
-                'prod_categoria_id' => $parsedBody['prod_categoria_id'],
-                'prod_area_id' => $parsedBody['prod_area_id'],
-                'nombre' => $parsedBody['nombre'],
-                'descripcion' => $parsedBody['descripcion'],
-                'codigo' => $parsedBody['codigo'],
-                'marca' => $parsedBody['marca'],
-                'minimo' => $parsedBody['minimo'],
-                'venta_kilo' => $parsedBody['venta_kilo'],
-                'es_kilo' => 0,
-                'menudeo' => $parsedBody['menudeo'],
-                'medio' => $parsedBody['medio'],
-                'mayoreo' => $parsedBody['mayoreo'],
+            $parsedBody = $req->getParsedBody();
+            $entrada_id = $args['id'];
+            $dataIgual = true;
+            $entrada = $this->model->prod_entrada->get($entrada_id)->result;
+            $entrada_ant = [
+                'importe' => $entrada->importe,
+                'subtotal' => $entrada->subtotal,
+                'iva' => $entrada->iva,
+                'total' => $entrada->total,
             ];
-
-            foreach($prod as $field => $value) { 
-                if($infoP->$field != $value) { 
-                    $prodIgual = false; break; 
+            $entrada_new = [
+                'importe' => $parsedBody['importe'],
+                'subtotal' => $parsedBody['subtotal'],
+                'iva' => $parsedBody['iva'],
+                'total' => $parsedBody['total'],
+            ];    
+            foreach($entrada_new as $field => $value) { 
+                if($entrada_ant[$field] != $value) { 
+                    $dataIgual = false; break; 
                 } 
             }
-
-            $infoPrecio = $this->model->producto->getPrecios($args['id'])->result;
-            $precio = [
-                'menudeo' => $parsedBody['precio_menudeo'],
-                'medio' => $parsedBody['precio_medio'],
-                'mayoreo' => $parsedBody['precio_mayoreo'],
-                'distribuidor' => $parsedBody['precio_distribuidor'],
-            ];
-
-            foreach($precio as $field => $value){
-                if($infoPrecio->$field != $value){
-                    $precioIgual = false; break;
-                }
-            }
-
-            if($parsedBody['venta_kilo'] != $infoP->venta_kilo){
-                if($parsedBody['venta_kilo'] == 0){ // era 1 y ahora es 0, debemos poner el prod_kilo y el kilo del producto en 0 
-                    $infoKilo = $this->model->producto->getKiloBy($args['id'], 'producto_origen')->result;
-                    $delKilo = $this->model->producto->del('prod_kilo', $infoKilo->id);
-                    if($delKilo->response){
-                        $delProdKilo = $this->model->producto->del('producto', $infoKilo->producto_id);
-                        if(!$delProdKilo->response){
-                            $delProdKilo->state = $this->model->transaction->regresaTransaccion();
-                            return $res->withJson($delProdKilo->setResponse(false, 'No se dio de baja el kilo del producto (producto)'));
-                        }else{
-                            $seg_log = $this->model->seg_log->add('Baja venta del producto por kilo', 'producto', $args['id'], 1);
-                        }
+            if(!$dataIgual){
+                $edit_entrada = $this->model->prod_entrada->edit($entrada_new, $entrada_id, 'prod_entrada');
+                if($edit_entrada->response){
+                    $seg_log = $this->model->seg_log->add('Modifica entrada de productos', 'prod_entrada', $entrada_id, 1);
+                    if($seg_log->response){
+                        $edit_entrada->state = $this->model->transaction->confirmaTransaccion();	
+                        return $res->withJson($edit_entrada);
                     }else{
-                        $delProdKilo->state = $this->model->transaction->regresaTransaccion();
-                        return $res->withJson($delProdKilo->setResponse(false, 'No se dio de baja el kilo (prod_kilo)'));
-                    }
-                }else{ 
-                    // era 0 y ahora es 1
-                    // verficiar, si ya existía un prod_kilo del producto original poner en status 1 prod_kilo y producto
-                    $infoKilo = $this->model->producto->getKiloBy($args['id'], 'producto_origen')->result;
-                    if(is_object($infoKilo)){
-                        $dataKilo = ['cantidad' => $parsedBody['cant_kilo'], 'precio' => $parsedBody['precio_kilo'], 'status' => 1];
-                        $editKilo = $this->model->producto->edit('prod_kilo', 'id', $dataKilo, $infoKilo->id);
-                        if($editKilo->response){
-                            $dataP = ['status' => 1];
-                            $editProdKilo = $this->model->producto->edit('producto', 'id', $dataP, $infoKilo->producto_id);
-                            if(!$editProdKilo->response){
-                                $editProdKilo->state = $this->model->transaction->regresaTransaccion();
-                                return $res->withJson($editProdKilo->setResponse(false, 'No se editó el kilo del producto (producto)'));
-                            }else{
-                                $seg_log = $this->model->seg_log->add('Alta venta del producto por kilo', 'producto', $args['id'], 1);
-                            }
-                        }else{
-                            $editKilo->state = $this->model->transaction->regresaTransaccion();
-                            return $res->withJson($editKilo->setResponse(false, 'No se editó el kilo (prod_kilo)'));
-                        }
-                    }else{
-                        // agregar producto y prod_kilo
-                        $dataKilo = [
-                            'prod_categoria_id' => $parsedBody['prod_categoria_id'],
-                            'prod_area_id' => $parsedBody['prod_area_id'],
-                            'nombre' => 'Kilo de '.$parsedBody['nombre'],
-                            'descripcion' => 'Kilo de '.$parsedBody['nombre'],
-                            'codigo' => 'PK'.$parsedBody['codigo'],
-                            'marca' => $parsedBody['marca'],
-                            'es_kilo' => 1,
-                        ];
-                        $prod_kilo = $this->model->producto->add($dataKilo, 'producto');
-                        if($prod_kilo->response){
-                            $kilo_id = $prod_kilo->result;
-                            $prodKilo = [
-                                'producto_id' => $kilo_id,
-                                'producto_origen' => $args['id'],
-                                'cantidad' => $parsedBody['cant_kilo'],
-                                'precio' => $parsedBody['precio_kilo']
-                            ];
-                            $kilo = $this->model->producto->add($prodKilo, 'prod_kilo');
-                            if(!$kilo->response){
-                                $kilo->state = $this->model->transaction->confirmaTransaccion();	
-                                return $res->withJson($kilo->setResponse(false, 'No se pudo agregar el kilo (prod_kilo)'));
-                            }else{
-                                $seg_log = $this->model->seg_log->add('Venta del producto por kilo', 'producto', $args['id'], 1);
-                            }
-                        }else{
-                            $prod_kilo->state = $this->model->transaction->regresaTransaccion();
-                            return $res->withJson($prod_kilo->SetResponse(false, 'No se pudo agregar el producto para venta por kilo'));
-                        }
-                    }
-                }
-            }else{
-                if($infoP->venta_kilo == 1){
-                    $prodKilo = $this->model->producto->getKiloBy($args['id'], 'producto_origen')->result;
-                    $infoProdKilo = $this->model->producto->get($prodKilo->producto_id)->result;
-                    $dataCompartida = [
-                        'prod_categoria_id' => $parsedBody['prod_categoria_id'],
-                        'prod_area_id' => $parsedBody['prod_area_id'],
-                        'marca' => $parsedBody['marca'],
-                    ];
-
-                    foreach($dataCompartida as $field => $value){
-                        if($infoProdKilo->$field != $value){
-                            $prodKiloI = false; break;
-                        }
-                    }
-
-                    $dataKilo = [
-                        'cantidad' => $parsedBody['cant_kilo'],
-                        'precio' => $parsedBody['precio_kilo'],
-                    ];
-
-                    foreach($dataKilo as $field => $value){
-                        if($prodKilo->$field != $value){
-                            $kiloDatos = false; break;
-                        }
-                    }
-
-                    if(!$prodKiloI){
-                        $editProdKilo = $this->model->producto->edit('producto', 'id', $dataCompartida, $prodKilo->producto_id);
-                        if($editProdKilo->response){
-                            $seg_log = $this->model->seg_log->add('Modifica producto', 'producto', $prodKilo->producto_id, 1);
-                            if(!$seg_log->response){
-                                $seg_log->state = $this->model->transaction->regresaTransaccion();
-                                return $res->withJson($seg_log->setResponse(false, 'No se agregó el registro de bitácora'));
-                            }
-                        }else{
-                            $editProdKilo->state = $this->model->transaction->regresaTransaccion();
-                            return $res->withJson($editProdKilo->setResponse(false, 'No se editó la información general del kilo de producto'));
-                        }
-                    }
-                    if(!$kiloDatos){
-                        $editKiloP = $this->model->producto->edit('prod_kilo', 'id', $dataKilo, $prodKilo->id);
-                        if($editKiloP->response){
-                            $seg_log = $this->model->seg_log->add('Modifica kilo', 'prod_kilo', $prodKilo->id, 1);
-                            if(!$seg_log->response){
-                                $seg_log->state = $this->model->transaction->regresaTransaccion();
-                                return $res->withJson($seg_log->setResponse(false, 'No se agregó el registro de bitácora'));
-                            }
-                        }else{
-                            $editKiloP->state = $this->model->transaction->regresaTransaccion();
-                            return $res->withJson($editKiloP->setResponse(false, 'No se editó la información del kilo de producto'));
-                        }
-                    }
-                }
-            }
-
-            if(!$prodIgual){
-                $editProd = $this->model->producto->edit('producto', 'id', $prod, $args['id']);
-                if($editProd->response){
-                    $seg_log = $this->model->seg_log->add('Modifica producto', 'producto', $args['id'], 1);
-                    if(!$seg_log->response){
-                        $seg_log->state = $this->model->transaction->regresaTransaccion();
-                        return $res->withJson($seg_log->setResponse(false, 'No se agregó el registro de bitácora'));
+                        $seg_log->state = $this->model->transaction->regresaTransaccion();	
+                        return $res->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
                     }
                 }else{
-                    $editProd->state = $this->model->transaction->regresaTransaccion();
-                    return $res->withJson($editProd->setResponse(false, 'No se editó la información general del producto'));
+                    $edit_entrada->state = $this->model->transaction->regresaTransaccion();	
+                    return $res->withJson($edit_entrada->SetResponse(false, 'No se pudo modificar el registro de la entrada'));
                 }
-            }
-            if(!$precioIgual){
-                $editPrecio = $this->model->producto->edit('prod_precio', 'producto_id', $precio, $args['id']);
-                if($editPrecio->response){
-                        $seg_log = $this->model->seg_log->add('Modifica precios', 'prod_precio', $infoPrecio->id, 1);
-                        if(!$seg_log->response){
-                            $seg_log->state = $this->model->transaction->regresaTransaccion();
-                            return $res->withJson($seg_log->setResponse(false, 'No se agregó el registro de bitácora'));
-                        }
-                }else{
-                    $editPrecio->state = $this->model->transaction->regresaTransaccion();
-                    return $res->withJson($editPrecio->setResponse(false, 'No se edititaron los precios del producto'));
-                }
-            }
-			
-            if($prodIgual && $precioIgual && $prodKiloI && $kiloDatos){
-                $editProd = ['code' => 1, 'msg' => 'No existen datos diferentes a los antes registrados'];
-                return $res->withJson($editProd);
             }else{
-                $editProd = ['response' => true, 'msg' => 'Registro '.$args['id'].' actualizado'];
-                $this->model->transaction->confirmaTransaccion();
-                return $res->withJson($editProd);
+                $edit_entrada = ['code' => 1, 'msg' => 'No existen datos diferentes a los antes registrados'];
+                return $res->withJson($edit_entrada);
             }
 		});
 
+        $this->post('editDet/{id}', function($req, $res, $args){
+            $this->model->transaction->iniciaTransaccion();
+            $data = $req->getParsedBody();
+            $det_id = $args['id'];
+            $fecha = date('Y-m-d H:i:s'); $sucursal_id = $_SESSION['sucursal_id']; $usuario_id = $_SESSION['usuario_id'];
+            $detalle = $this->model->prod_entrada->getDet($det_id);
+            if(isset($data['cantidad'])){
+                $cant_ant = $detalle->result->cantidad;
+                $data_det = ['cantidad' => $data['cantidad'], 'total' => $data['total']];
+                $edit = $this->model->prod_entrada->edit($data_det, $det_id, 'prod_det_entrada');
+                if($edit->response){
+                    $prod_id = $data['prod_id'];
+                    $prod_stock = $this->model->prod_stock->getStock($sucursal_id, $prod_id)->result;
+                    $inicial = $prod_stock->final;
+                    $cant_new = $data['cantidad'];
+                    if($cant_ant < $cant_new){
+                        $tipo = 1;   
+                        $cantidad = $cant_new - $cant_ant; 
+                        $final = floatval($inicial+$cantidad);
+                        $origen_tipo = 10; // Entrada por modificación de entrada de productos  
+                    }else{
+                        $tipo = -1;    
+                        $cantidad = $cant_ant - $cant_new; 
+                        $final = floatval($inicial-$cantidad);
+                        $origen_tipo = 11; // Salida por modificación de entrada de productos  
+                    }
+                    $data_stock = [
+                        'usuario_id' => $usuario_id,
+                        'sucursal_id' => $sucursal_id,
+                        'producto_id' => $prod_id, 
+                        'tipo' => $tipo,
+                        'inicial' => $inicial,
+                        'cantidad' => $cantidad,
+                        'final' => $final,
+                        'fecha' => $fecha,
+                        'origen_tipo' => $origen_tipo,
+                        'origen_tabla' => 'prod_det_entrada',
+                        'origen_id' => $det_id,
+                    ];
+                    $add_stock  =$this->model->prod_stock->add($data_stock);
+                    if($add_stock->response){
+                        $seg_log = $this->model->seg_log->add('Modifica cantidad de detalle. Ant: '.$cant_ant.' Desp: '.$cant_new, 'prod_det_entrada', $det_id, 1);
+                        $seg_log->state = $this->model->transaction->confirmaTransaccion();
+                        return $res->withJson($edit);
+                    }else{
+                        $add_stock->state = $this->model->transaction->regresaTransaccion();
+                        return $res->withJson($add_stock);
+                    }
+                }else{
+                    $edit->state = $this->model->transaction->regresaTransaccion();
+                    return $res->withJson($edit);
+
+                }
+            }else{
+                $costo_ant = $detalle->result->costo;
+                $data_det = ['costo' => $data['costo'], 'total' => $data['total']];
+                $edit = $this->model->prod_entrada->edit($data_det, $det_id, 'prod_det_entrada');
+                if($edit->response){
+                    $seg_log = $this->model->seg_log->add('Modifica costo de detalle. Ant: '.$costo_ant.' Desp: '.$data['costo'], 'prod_det_entrada', $det_id, 1);
+                    $seg_log->state = $this->model->transaction->confirmaTransaccion();
+                    return $res->withJson($edit);
+                }else{
+                    $edit->state = $this->model->transaction->regresaTransaccion();
+                    return $res->withJson($edit);
+                }
+            }
+        });
+
         $this->post('del/{id}', function($req, $res, $args){
             $this->model->transaction->iniciaTransaccion();
-            $update = $this->model->sucursal->del($args['id']);
-            if($update->response){
-                $seg_log = $this->model->seg_log->add('Elimina sucursal', 'sucursal', $args['id'], 1);
+            $entrada_id = $args['id']; $fecha = date('Y-m-d H:i:s');
+            $detalles = $this->model->prod_entrada->getDetalles($entrada_id)->result;
+            foreach($detalles as $detalle){
+                $id = $detalle->id;
+                $del_detalle = $this->model->prod_entrada->del($id, 'prod_det_entrada');
+                if($del_detalle->response){
+                    $prod_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id)->result;
+                    $info_prod = $this->model->producto->get($detalle->producto_id)->result;
+                    $producto = '('.$info_prod->clave.') '.$info_prod->descripcion;
+                    if($detalle->cantidad <= $prod_stock->final){
+                        $data_stock = [
+                            'usuario_id' => $_SESSION['usuario_id'],
+                            'sucursal_id' => $_SESSION['sucursal_id'],
+                            'producto_id' => $detalle->producto_id,
+                            'tipo' => -1,
+                            'inicial' => $prod_stock->final,
+                            'cantidad' => $detalle->cantidad,
+                            'final' => floatval($prod_stock->final-$detalle->cantidad),
+                            'fecha' => $fecha,
+                            'origen_tipo' => 12,
+                            'origen_tabla' => 'prod_det_entrada',
+                            'origen_id' => $id
+                        ];   
+                        $add_stock = $this->model->prod_stock->add($data_stock);
+                        if(!$add_stock->response){
+                            $add_stock->state = $this->model->transaction->regresaTransaccion();
+                            return $res->withJson($add_stock);
+                        }
+                    }else{
+                        $del_detalle->state = $this->model->transaction->regresaTransaccion();
+                        return $res->withJson($del_detalle->SetResponse(false, "No se puede eliminar la entrada ya que hay menos stock disponible del que se ingresó. \nProducto: ".$producto."\nStock ingresado: ".$detalle->cantidad."\nStock actual: ".$prod_stock->final));
+                    }
+                }
+            }
+            $del_entrada = $this->model->prod_entrada->del($entrada_id, 'prod_entrada');
+            if($del_entrada->response){
+                $seg_log = $this->model->seg_log->add('Elimina entrada de productos', 'prod_entrada', $entrada_id, 1);
                 if($seg_log->response){
-                    $update->state = $this->model->transaction->confirmaTransaccion();	
-                    return $res->withJson($update);
+                    $del_entrada->state = $this->model->transaction->confirmaTransaccion();	
+                    return $res->withJson($del_entrada);
                 }else{
                     $seg_log->state = $this->model->transaction->regresaTransaccion();	
                     return $res->withJson($sucursal->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
                 }
             }else{
-                $update->state = $this->model->transaction->regresaTransaccion();	
-                return $res->withJson($update->SetResponse(false, 'No se pudo eliminar la sucursal'));
+                $del_entrada->state = $this->model->transaction->regresaTransaccion();	
+                return $res->withJson($del_entrada->SetResponse(false, 'No se pudo eliminar la entrada de productos'));
+            }
+        });
+
+        $this->post('delDet/{id}', function($req, $res, $args){
+            $this->model->transaction->iniciaTransaccion();
+            $id = $args['id']; $fecha = date('Y-m-d H:i:s');
+            $detalle = $this->model->prod_entrada->getDet($id)->result;
+            $del_detalle = $this->model->prod_entrada->del($id, 'prod_det_entrada');
+            if($del_detalle->response){
+                $prod_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id)->result;
+                $producto = $this->model->producto->get($detalle->producto_id)->result->descripcion;
+                if($detalle->cantidad <= $prod_stock->final){
+                    $data_stock = [
+                        'usuario_id' => $_SESSION['usuario_id'],
+                        'sucursal_id' => $_SESSION['sucursal_id'],
+                        'producto_id' => $detalle->producto_id,
+                        'tipo' => -1,
+                        'inicial' => $prod_stock->final,
+                        'cantidad' => $detalle->cantidad,
+                        'final' => floatval($prod_stock->final-$detalle->cantidad),
+                        'fecha' => $fecha,
+                        'origen_tipo' => 12,
+                        'origen_tabla' => 'prod_det_entrada',
+                        'origen_id' => $id
+                    ];   
+                    $add_stock = $this->model->prod_stock->add($data_stock);
+                    if($add_stock->response){
+                        $seg_log = $this->model->seg_log->add('Elimina entrada de producto', 'prod_det_entrada', $id, 1);
+                        if($seg_log->response){
+                            $del_detalle->state = $this->model->transaction->confirmaTransaccion();	
+                            return $res->withJson($del_detalle);
+                        }else{
+                            $seg_log->state = $this->model->transaction->regresaTransaccion();	
+                            return $res->withJson($sucursal->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
+                        }
+                    }else{
+                        $add_stock->state = $this->model->transaction->regresaTransaccion();
+                        return $res->withJson($add_stock);
+                    }
+                }else{
+                    $del_detalle->state = $this->model->transaction->regresaTransaccion();
+                    return $res->withJson($this->response->SetResponse(false, "No se puede eliminar la entrada ya que hay menos stock disponible del que se ingresó, producto: ".$descripcion));
+                }
             }
         });
 	});
