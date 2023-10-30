@@ -700,7 +700,7 @@
                                 getItems('tbl-usuarios');
                             }else{
                                 if(resp == 'Debe seleccionar un tipo de usuario'){ toastr["warning"]("Verifique el tipo de usuario!", resp); }
-                                else{ toastr["warning"]("No hay cambios!", resp); }
+                                else{ toastr["info"]("No hay cambios!", resp); }
                             }
                             $.unblockUI()
                         },'json');

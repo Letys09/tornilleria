@@ -187,7 +187,7 @@
 							swal("¡Hecho!",	"Se eliminó el área", "success");
 							getAreas()
 						}else{
-							toastr["error"]("¡Ocurrió un problema!", "No pudimos eliminar el área.")
+							swal("¡Ocurrió un problema!",	"¡Ocurrió un problema!", "No pudimos eliminar el área.", "error");
 						}
                     },'json')
 				});
@@ -272,7 +272,7 @@
 							getCategorias()
                             $('#tbl-subcategoria tbody').empty().append('<tr class="noData"><td>Seleccione una categoría del lado izquierdo</td></tr>')
 						}else{
-							toastr["error"]("¡Ocurrió un problema!", "No pudimos eliminar la categoría.")
+							swal("¡Ocurrió un problema!", "No pudimos eliminar la categoría", "error")
 						}
                     },'json')
 				});
@@ -375,7 +375,7 @@
 							swal("¡Hecho!",	"Se eliminó la subcategoría", "success")
 							getSubcategorias(categoria_id)
 						}else{
-							toastr["error"]("¡Ocurrió un problema!", "No pudimos eliminar la subcategoría.")
+							swal("¡Ocurrió un problema!", "No pudimos eliminar la subcategoría", "error")
 						}
                     },'json')
 				});

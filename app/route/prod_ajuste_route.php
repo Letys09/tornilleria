@@ -39,6 +39,7 @@ use App\Lib\Auth,
                     'final' => $final,
                     'fecha' => $fecha,
                     'origen_tipo' => $origen_tipo,
+                    'origen_tabla' => 'prod_ajuste',
                     'origen_id' => $addAjuste->result
                 ];
                 $addStock = $this->model->prod_stock->add($dataStock);

@@ -24,6 +24,7 @@
 <script src="<?= URL_ROOT ?>/app-assets/js/lightbox.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/js/blockPage.js"></script>
+<script src="<?= URL_ROOT ?>/app-assets/plugin/md5/md5.min.js"></script>
 
 
 <script src="<?= URL_ROOT ?>/app-assets/js/core/app-menu.min.js"></script>
@@ -193,7 +194,7 @@
                     $('#frm-datos').modal('hide');
                 }else{
                     if(resp == 'Debe seleccionar un tipo de usuario'){ toastr["warning"]("Verifique el tipo de usuario!", resp); }
-                    else{ toastr["warning"]("No hay cambios!", resp); }
+                    else{ toastr["info"]("No hay cambios!", resp); }
                 }
             btn.removeClass('disabled');
             },'json');

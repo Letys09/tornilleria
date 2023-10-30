@@ -675,7 +675,7 @@
                         getItems('tbl-producto')
                     }else{
                         if(resp.code){
-                            toastr["warning"]("¡Verifique la información!", resp.msg)
+                            toastr["info"]("No hay cambios!", resp.msg)
                         }else
                         toastr["error"]("¡Ocurrió un problema!", "No pudimos actualizar los precios por rango del producto.")
                     }
