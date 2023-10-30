@@ -589,7 +589,7 @@
                         confirmButtonText: "¡Eliminar!",
                         closeOnConfirm: false 
                     },function(){
-                        $.post(apiUrl+'prod_entrada/delDet/'+entrada_id, function(resp){
+                        $.post(apiUrl+'prod_entrada/delDet/'+id, function(resp){
                             if(resp.response){
                                 swal("¡Hecho!",	"Se eliminó la entrada del producto. ", "success");
                                 $(tr).remove()
