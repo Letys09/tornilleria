@@ -16,6 +16,27 @@ use App\Lib\Auth,
             return $res->withJson($detalles);
         });
 
+        $this->get('getAll/{desde}/{hasta}', function($req, $res, $args){
+            $detalles = $this->model->venta_detalle->getAll($args['desde'], $args['hasta']);
+            $data = [];
+            foreach($detalles->result as $detalle){
+                $data[] = array(
+                    "fecha" => $detalle->date,
+                    "hora" => $detalle->hora,
+                    "producto" => $detalle->producto,
+                    "cantidad" => $detalle->cantidad,
+                    "folio" => $_SESSION['sucursal_identificador'].'-'.$detalle->venta_fecha.'-'.$detalle->venta_id, 
+                    "usuario" => $detalle->usuario, 
+                    "cliente" => $detalle->cliente,
+                );
+            }
+            echo json_encode(array(
+                'data' => $data
+            ));
+
+			exit(0);
+        });
+
         $this->post('add/',function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();

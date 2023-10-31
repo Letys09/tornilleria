@@ -32,6 +32,34 @@ class VentaDetModel {
         return $this->response->SetResponse(true);
     }
 
+	public function getBy($column, $dato){
+		$this->response->result = $this->db
+			->from($this->table)
+			->where($column, $dato)
+			->where("status", 1)
+			->fetch();
+		return $this->response->SetResponse(true);
+	}
+
+	public function getAll($desde, $hasta){
+		$this->response->result = $this->db
+		->from($this->table)
+		->select(null)
+		->select("DATE_FORMAT($this->table.fecha, '%d-%m-%Y') as date, CAST($this->table.fecha AS TIME) as hora, venta_id, cantidad, 
+				  CONCAT_WS(' ', producto.clave, producto.descripcion) as producto, DATE_FORMAT(venta.fecha, '%d%m%Y') as venta_fecha, 
+				  CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, 
+				  CONCAT_WS(' ', cliente.nombre, cliente.apellidos) as cliente")
+		->innerJoin("venta ON venta.id = venta_detalle.venta_id")
+		->innerJoin("usuario ON usuario.id = venta.usuario_id")
+		->innerJoin("cliente ON cliente.id = venta.cliente_id")
+		->where("DATE_FORMAT($this->table.fecha, '%Y-%m-%d') BETWEEN '$desde' AND '$hasta'")
+		->where("venta.sucursal_id", $_SESSION['sucursal_id'])
+		->where("venta.status", 1)
+		->where("$this->table.status", 1)
+		->fetchAll();
+	return $this->response->SetResponse(true);
+	}
+
 	public function add($data){
 		$SQL = $this->db
 			->insertInto($this->table, $data)

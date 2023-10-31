@@ -204,6 +204,22 @@ class ProductoModel {
 		return $this->response->SetResponse(true);
 	}
 
+	public function getProdsMesAnio($year, $month){
+		$this->response->result = $this->db
+		->from($this->table)
+		->select(NULL)
+		->select("clave, venta")
+		->innerJoin("venta_detalle ON venta_detalle.producto_id = producto.id")
+		->where("DATE_FORMAT(venta_detalle.fecha, '%Y') = '$year'")
+		->where("DATE_FORMAT(venta_detalle.fecha, '%m') = '$month'")
+		->groupBy("clave")
+		->orderBy("$this->table.venta DESC")
+		->limit(10)
+		->fetchAll();
+
+		return $this->response->SetResponse(true);
+	}
+
 	// Obtener todos los productos app
 	public function getAllApp($pagina, $limite, $busqueda) {
 		$inicial = $pagina * $limite;

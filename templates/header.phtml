@@ -4,6 +4,7 @@
     $nombreEmp = $_SESSION['usuario']->nombre;
 
     define('MOD_CERRAR',    30);
+    define('MOD_BITACORA_ACCIONES',    30);
 
     $icono = '';
     // echo($vista);
@@ -15,8 +16,11 @@
         case 'Kardex': $icono = 'fas fa-list'; break;
         case 'Prod_entrada': $icono = 'fas fa-upload'; $vista = 'Entrada de Productos'; break;
         case 'Clientes': $icono = 'fas fa-handshake'; break;
-        case 'Ventas': $icono = 'fas fa-file-invoice-dollar'; $vista = 'Ventas a crédito'; break;
-        case 'Ventas del día': $icono = 'fas fa-calendar-day'; break;
+        case 'Ventas': $icono = 'fas fa-file-invoice-dollar'; $vista = 'Ventas a Crédito'; break;
+        case 'Ventas del día': $icono = 'fas fa-calendar-day'; $vista = 'Ventas del Día'; break;
+        case 'Periodo': $icono = 'fas fa-calendar-check'; $vista = 'Reporte de Ventas Por Periodo'; break;
+        case 'Forma pago': $icono = 'fas fa-money-check-alt'; $vista = 'Reporte de Métodos de Pago'; break;
+        case 'Producto': $icono = 'fas fa-chart-pie'; $vista = 'Reporte de Productos'; break;
         case 'Inventario': $icono = 'fas fa-clipboard-list'; $vista = 'Inventario Físico'; break;
         case 'Clasificacion': $icono = 'fas fa-network-wired'; $vista = 'Clasificación'; break;
     }
@@ -104,9 +108,9 @@
                     <div class="dropdown-menu dropdown-menu-end" aria-labelledby="dropdown-user">
                         <a class="dropdown-item" id="menuDatos"><i class="me-50" data-feather="user"></i> Mis Datos</a>
                         <a class="dropdown-item" id="menuContrasena" ><i class="me-50" data-feather="key"></i> Contraseña</a>
-                        <?php //if(in_array(MOD_BITACORA_ACCIONES, $permisos)): ?>
-                            <!-- <hr><a class="dropdown-item" href="<?= URL_ROOT ?>/log"><i class="me-50" data-feather="check-square"></i> Bitácora de Acciones</a> -->
-                            <?php // endif; ?>
+                        <?php if(in_array(MOD_BITACORA_ACCIONES, $permisos)): ?>
+                            <hr><a class="dropdown-item" href="<?= URL_ROOT ?>/log"><i class="me-50" data-feather="check-square"></i> Bitácora de Acciones</a>
+                        <?php endif; ?>
                             <div class="dropdown-divider"></div><a class="dropdown-item" href="<?= URL_ROOT ?>/usuario/logout"><i class="me-50" data-feather="power"></i> Cerrar Sesión</a>
                         <?php if(in_array(MOD_CERRAR, $permisos)) : ?>
                             <div class="dropdown-divider"></div><a class="dropdown-item cerrarSuc" href="<?= URL_ROOT ?>/sucursal/cerrar"><i class="me-50" data-feather="slash"></i> Cerrar Sucursal</a>

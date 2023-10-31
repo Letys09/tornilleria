@@ -1,7 +1,7 @@
 <div class="main-menu menu-fixed menu-light menu-accordion menu-shadow menu-expanded" data-scroll-to-active="true">
     <div class="navbar-header">
         <ul class="nav navbar-nav flex-row">
-            <li class="nav-item me-auto"><a class="navbar-brand" href="<?= URL_ROOT ?>/temp/index.html">
+            <li class="nav-item me-auto"><a class="navbar-brand" href="<?= URL_ROOT ?>/usuarios">
                 <span class="brand-text"><strong><?= $_SESSION['sucursal_nombre'] ?></strong></span></a>
             </li>
          </ul>
@@ -15,8 +15,8 @@
 			</div>
 			<div class="profile-text">
 				<h5><b><?= $_SESSION['usuario']->nombre ?></b></h5>
-				<a href="#" class="btnSwitch" data-toggle="tooltip" title="Cambiar Usuario"><i class="fas fa-exchange-alt"></i></a>
-				<a href="<?= URL_ROOT ?>/usuario/logout" class="" data-toggle="tooltip" title="Cerrar Sesión"><i class="me-50" data-feather="power"></i></a>
+				<a href="#" class="btnSwitch" data-toggle="tooltip" title="Cambiar Usuario" style="color:rgba(8, 150, 245, 0.7);"><i class="fas fa-exchange-alt"></i></a>
+				<a href="<?= URL_ROOT ?>/usuario/logout" class="" data-toggle="tooltip" title="Cerrar Sesión" style="color: rgba(252, 5, 5, 0.7);"><i class="me-50" data-feather="power"></i></a>
 			</div>
 		</div>
     </div><br><br><br><br><br><br><br><hr>

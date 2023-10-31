@@ -12,3 +12,8 @@ ALTER TABLE `prod_inventario` ADD `estado_inventario` TINYINT(1) NOT NULL DEFAUL
 
 -- Agregar check_inventario a prod_det_inventario
 ALTER TABLE `prod_det_inventario` ADD `check_inventario` TINYINT(1) NOT NULL DEFAULT '0' AFTER `monto`;
+
+-- Agregar la sucursal en venta
+ALTER TABLE `venta` ADD `sucursal_id` INT(11) NOT NULL AFTER `id`; 
+
+ALTER TABLE `venta_detalle` ADD `fecha` DATETIME NULL DEFAULT NULL AFTER `producto_id`; 

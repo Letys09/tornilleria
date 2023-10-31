@@ -141,6 +141,56 @@
 			// print_r($params['venta']);exit();
 			return $this->renderer->render($response, 'ticket.phtml', $params);
 		});
+
+		$app->get('/reporte/{nombre}[/{mes}[/{anio}]]', function(Request $request, Response $response, array $args) use ($container){
+			if(isset($_SESSION['logID'])){
+				$sesion_info = $this->model->seg_sesion->get($_SESSION['logID']);
+				if($sesion_info->response){
+					$sesion = $sesion_info->result;
+					if($sesion->finalizada != null){
+						unset($_SESSION['logID']);
+						return $this->response->withRedirect(URL_ROOT.'/login');
+					}
+				}
+			}
+			$mes_select = isset($args['mes']) ? $args['mes'] : date('m'); 
+			$anio = isset($args['anio']) ? $args['anio'] : date('Y'); 
+			$user = $_SESSION['usuario']->id;
+			$permisos = $this->model->usuario->getAcciones($user, 0);
+			$arrPermisos = getPermisos($permisos); 
+			if($args['nombre'] == 'periodo'){
+				$params['vista'] = 'Periodo';
+				$info = $this->model->venta->getVentasMesAnio($anio, $mes_select);
+				$params['permisos'] = $arrPermisos;
+				$params['mes_select'] = $mes_select;
+				$params['anio'] = $anio;
+				$params['ventas'] = $info->result;
+				$params['numVentas'] = $info->total;
+				$params['contado'] = $info->contado;
+				$params['credito'] = $info->credito;
+				$params['general'] = $info->general;
+				$params['frecuente'] = $info->frecuente;
+				$template = 'ventas_periodo';
+			}else if($args['nombre'] == 'metodo'){
+				$params['vista'] = 'Forma pago';
+				$info = $this->model->venta_pago->getPagosMesAnio($anio, $mes_select);
+				$params['permisos'] = $arrPermisos;
+				$params['mes_select'] = $mes_select;
+				$params['anio'] = $anio;
+				$params['metodos'] = $info->result;
+				$template = 'ventas_metodo';
+			}else{
+				$params['vista'] = 'Producto';
+				$info = $this->model->producto->getProdsMesAnio($anio, $mes_select);
+				$params['permisos'] = $arrPermisos;
+				$params['mes_select'] = $mes_select;
+				$params['anio'] = $anio;
+				$params['productos'] = $info->result;
+				$template = 'ventas_producto';
+			}
+			return $this->renderer->render($response, 'rpt_'.$template.'.phtml', $params);
+		});
+
 	};
 
 

@@ -1,0 +1,284 @@
+<?php 
+	include 'header.phtml';
+    define('MOD_VER_RPT',  40);
+
+    if(!in_array(MOD_VER_RPT, $permisos)) {
+		header('Location: '.URL_ROOT.'/403');
+		exit;
+	} 
+
+    $meses = ['ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE'];
+    $num = 1;
+?>
+
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+    <div class="app-content content ">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body">
+                <section>
+                    <div class="card">
+                        <div class="card-body border-bottom">
+                            <div class="card-body border-bottom filtroFechas">
+                                <div class="col-md-4 col-12">
+                                    <div class="input-group input-daterange">
+                                        <select class="form-control text-center" id="mes">
+                                            <?php foreach($meses as $mes) : ?>
+                                                <option value="<?= $num ?>" <?= $num == $mes_select ? ' selected="selected"': '' ?> > <?= $mes ?> </option>
+                                            <?php $num++; endforeach; ?>
+                                        </select>
+                                        <span class="input-group-text">del</span>
+                                        <select class="form-control text-center" id="anio">
+											<?php for($i=2023; $i<=date('Y'); $i++): ?>
+												<option value="<?= $i ?>" <?= $anio == $i ? ' selected="selected"': '' ?>><?= $i ?></option>
+											<?php endfor; ?>
+										</select>
+                                        <button type="button" class="btn btn-new-info" id="btnGrafica"><i class="fas fa-search"></i> Buscar</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="row">
+                                <div class="col-sm-12">
+                                    <canvas id="grafica" style="width: 100%; height: 400px; overflow: visible;"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+
+                <section>
+                    <div class="card">
+                        <div class="card-body border-bottom">
+                            <div class="card-body border-bottom filtroFechas">
+                                <div class="col-md-4 col-12">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-text">Del</span>
+                                        <input type="date" id="desde" class="form-control" value="<?= date('Y-m-01') ?>"/>
+                                        <span class="input-group-text">al</span>
+                                        <input type="date" id="hasta" class="form-control" value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>"/>
+                                        <button type="button" class="btn btn-new-info" id="btnBuscar"><i class="fas fa-search"></i> Buscar</button>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="card-datatable table-responsive pt-0">
+                                <table id="tbl_detalles" class="table">
+                                    <thead class="table-light">
+                                        <tr class="text-center">
+                                            <th>Fecha</th>
+                                            <th>Producto</th>
+                                            <th>Cantidad</th>
+                                            <th>Folio Venta</th>
+                                            <th>Usuario</th>
+                                            <th>Cliente</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <script src="<?= URL_ROOT ?>/app-assets/plugin/Chart.js/Chart.min.js"></script>
+    <script src="<?= URL_ROOT ?>/app-assets/plugin/Chart.js/chartjs-plugin-datalabels.min.js"></script>
+    <?php include 'footer.phtml'; ?>
+
+    <script>
+        $(function(){
+            var apiUrl = '<?= URL_ROOT ?>/',
+                id_cliente = 0,
+                desde = $('#desde').val()
+                hasta = $('#hasta').val();
+
+            getItems('tbl_detalles', desde, hasta)
+
+            meses = ['', 'ENERO', 'FEBRERO', 'MARZO', 'ABRIL', 'MAYO', 'JUNIO', 'JULIO', 'AGOSTO', 'SEPTIEMBRE', 'OCTUBRE', 'NOVIEMBRE', 'DICIEMBRE']
+            mes = $('#mes').val()
+            anio = $('#anio').val()
+		    txtTitle = '10 PRODUCTOS MÁS VENDIDOS DURANTE ' + meses[mes] + ' DEL ' + anio
+            labels = []
+            data = []
+            colors = []
+            totalVentas = 0
+            <?php 
+                $colors = ['#836AF9', '#f1a929', '#1ed3be', '#ed7f37', '#58da3e', '#299AFF', '#5276a7', '#8976dc', '#08659f', '#f0b3ec', '#98356b', '#ff4961'];
+                
+                $ventas = 0;
+                foreach($productos as $producto):
+                    $color = $colors[intval(rand(0, count($colors)-1))];
+                    $ventas = $producto->venta;
+            ?>
+                    labels.push('<?= $producto->clave ?>');
+                    data.push(<?= $ventas ?>);
+                    colors.push('<?= $color ?>')
+                <?php endforeach; ?>
+                    
+            
+            var ctx = document.getElementById('grafica');
+            var chart = new Chart(ctx, {
+                type: 'bar',
+                data: {
+                    labels: labels,
+                    datasets: [{
+                        label: 'VENDIDO',
+                        backgroundColor: colors,
+                        data: data,
+                        datalabels: {
+                            anchor: 'middle'
+                        }
+                    }]
+                },
+                plugins: [ChartDataLabels],
+                options: {
+                    responsive: true,
+                    legend: {
+                        position: 'bottom',
+                        display: false,
+                        onHover: function(event, item) {
+                            this.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
+                                colors[index] = index === item.index || color.length === 9 ? color : color + '4D';
+                            });
+                            this.chart.update();
+                        },
+                        onLeave: function() {
+                            this.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
+                                colors[index] = color.length === 9 ? color.slice(0, -2) : color;
+                            });
+                            this.chart.update();
+                        }
+                    },
+                    title: {
+                        display: true,
+                        text: txtTitle,
+                        fontSize: 16,
+                        padding: 20
+                    },
+                    tooltips: {
+                        callbacks: {
+                            label: function(item, data) {
+                                dataset = data.datasets[item.datasetIndex];
+                                var label = dataset.label || '';
+                                if(label) { label += ' '; }
+
+                                return label += dataset.data[item.index] + ' VECES';
+                            }
+                        }
+                    },
+                    plugins: {
+                        datalabels: {
+                            backgroundColor: function(context) {
+                                return context.dataset.backgroundColor;
+                            },
+                            borderColor: 'white',
+                            borderRadius: 25,
+                            borderWidth: 1,
+                            color: 'white',
+                            // display: function(context) {
+                            //     var dataset = context.dataset;
+                            //     var count = dataset.data.length;
+                            //     var value = dataset.data[context.dataIndex];
+                            //     total = context.dataset.data.reduce((a, b) => a+b);
+
+                            //     return Math.round(value / total * 100);
+                            // },
+                            font: {
+                                weight: 'bold'
+                            },
+                            padding: 6,
+                            formatter: function(value, context) {
+                                // total = context.chart.data.datasets[0].data.reduce((a, b) => a+b);
+                                // return parseFloat(value / total * 100).toFixed(1) + '%';
+                            },
+                        },
+                    }
+                },
+            });
+
+            
+
+            $('#btnBuscar').click(function(e){
+                e.preventDefault()
+                desde = $('#desde').val()
+                hasta = $('#hasta').val()
+                getItems('tbl_pagos', desde, hasta)
+            })
+
+            $('#btnGrafica').click(function(e){
+                e.preventDefault()
+                mes = $('#mes').val()
+                anio = $('#anio').val()
+                if(!'<?= $_SERVER['REQUEST_URI'] ?>'.endsWith('/reporte/periodo/'+mes+'/'+anio)) {
+                    window.location.href = '<?= URL_ROOT ?>/reporte/producto/'+mes+'/'+anio;
+                }
+            })
+           
+
+            function getItems(tbl, desde, hasta){
+                cleanTable(tbl)
+                $('#'+tbl+' tbody').empty()
+                createTable(tbl, desde, hasta)
+            }
+
+            function cleanTable(tbl){
+                if($.fn.dataTable.isDataTable('#'+tbl)){
+                    table = $('#'+tbl).DataTable()
+                    table.destroy()
+                }
+            }
+
+            function createTable(tbl, desde, hasta){
+                if($('#'+tbl).length){
+                    $('#'+tbl).DataTable({
+                        ajax:{
+                            url: apiUrl+'venta_detalle/getAll/'+desde+'/'+hasta,
+                            type: 'GET',
+                        },
+                        columns: [
+                            {data: 'fecha'},
+                            {data: 'producto'},
+                            {data: 'cantidad'},
+                            {data: 'folio'},
+                            {data: 'usuario'},
+                            {data: 'cliente'}
+                        ],
+                        columnDefs: [ 
+                            {
+                                targets: 0,
+                                render: function (data, type, full, meta) {
+                                    var salida =
+                                        '<div class="d-flex flex-column">' +
+                                            '<span >' +
+                                                full['fecha'] +
+                                            '</span>' +
+                                            '<small class="emp_post text-muted">' +
+                                            full['hora'] +
+                                            '</small>' +
+                                        '</div>';
+                                    return salida;
+                                }
+                            },                       
+                        ],
+                        order: [[0, 'desc']], 
+                        dom:
+                            '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
+                            '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
+                            '<"col-sm-12 col-lg-10 ps-xl-75 ps-0"<"dt-action-buttons d-flex align-items-center justify-content-center justify-content-lg-end flex-lg-nowrap flex-wrap"<"me-1"l>>>' +
+                            '>t' +
+                            '<"d-flex justify-content-between mx-2 row mb-1"' +
+                            '<"col-sm-12 col-md-6"i>' +
+                            '<"col-sm-12 col-md-6"p>' +
+                            '>',
+                        language: {
+                            url:'<?= URL_ROOT ?>/spanish.json'
+                        },
+                    });
+                }
+            }
+
+        });
+    </script>
+</html>
