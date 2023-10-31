@@ -135,7 +135,7 @@ use Slim\Http\UploadedFile;
 				$acceso = [ 'acceso' => $date ];
 				$edit = $this->model->usuario->edit($acceso, $infoUser->id, 'usuario');
 				if($sesion->response){
-					$seg_log = $this->model->seg_log->addByApp('Inicio de sesión App', 'usuario', $infoUser->id, 1, $infoUser->id, $sesion->result);
+					$seg_log = $this->model->seg_log->addByApp('Inicio de sesión App', 'usuario', $infoUser->id, 1, $infoUser->id, $sesion->result, $sucursal_id);
 				}
 			}else{
 				$usuario->result="";
@@ -150,9 +150,10 @@ use Slim\Http\UploadedFile;
 			$parsedBody = $req->getParsedBody();
 			$sesion_id = $parsedBody['sesion_id'];
 			$id_user = $parsedBody['id_user'];
+			$sucursal_id = $parsedBody['sucursal_id'];
 			$logout = $this->model->seg_sesion->logoutApp($sesion_id);
 			$logout->result="";
-			$seg_log = $this->model->seg_log->addByApp('Cierre de sesión App', 'usuario', $id_user, 1, $id_user, $sesion_id);
+			$seg_log = $this->model->seg_log->addByApp('Cierre de sesión App', 'usuario', $id_user, 1, $id_user, $sesion_id, $sucursal_id);
 			return $res->withJson($logout->setResponse(true, 'Hasta pronto'));
 		});
 

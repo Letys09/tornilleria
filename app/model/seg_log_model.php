@@ -50,10 +50,11 @@
 			return $this->response;
 		}
 
-		public function addByApp($descripcion, $tabla, $registro, $mostrar=0, $user, $sesion){
+		public function addByApp($descripcion, $tabla, $registro, $mostrar=0, $user, $sesion, $sucursal){
 			$data = array(
-				'usuario_id ' => intval($user), 
-				'seg_session_id ' => intval($sesion), 
+				'usuario_id' => intval($user), 
+				'seg_session_id' => intval($sesion), 
+				'sucursal_id' => intval($sucursal), 
 				'fecha' => date('Y-m-d H:i:s'), 
 				'descripcion' => $descripcion, 
 				'tabla' => $tabla, 
