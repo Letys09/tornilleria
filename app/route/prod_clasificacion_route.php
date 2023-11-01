@@ -78,7 +78,7 @@ use App\Lib\Auth,
             }
             $update = $this->model->prod_clasificacion->del($args['id'], $tabla);
             if($update->response){
-                $seg_log = $this->model->seg_log->add($txt, $tabla, $args['id'], 1);
+                $seg_log = $this->model->seg_log->add($txt, $tabla, $args['id'], 0);
                 if($seg_log->response){
                     $update->state = $this->model->transaction->confirmaTransaccion();	
                     return $res->withJson($update);

@@ -65,7 +65,7 @@ use Slim\Http\UploadedFile;
 					if($sesion){
 						$_SESSION['logID'] = $sesion->result;
 						$_SESSION['token'] = $token;
-						$seg_log = $this->model->seg_log->add('Inicio de sesión', 'usuario', $infoUser->id, 1);
+						$seg_log = $this->model->seg_log->add('Inicio de sesión', 'usuario', $infoUser->id, 0);
 					}
 				}else{
 					$usuario = ['response' => false, 'message' => 'Ya existe una sesión activa con este usuario en otro dispositivo.'];
@@ -350,7 +350,7 @@ use Slim\Http\UploadedFile;
 				if(!$dirIgual){
 					$edit = $this->model->usuario->edit($dataDir, $infoUser->direccion_id, 'direccion');
 					if($edit->response){
-						$seg_log = $this->model->seg_log->add('Modifica dirección', 'direccion', $infoUser->direccion_id, '1');
+						$seg_log = $this->model->seg_log->add('Modifica dirección', 'direccion', $infoUser->direccion_id, 0);
 						if(!$seg_log->response){
 							$seg_log->state = $this->model->transaction->regresaTransaccion();
 						}
@@ -417,7 +417,7 @@ use Slim\Http\UploadedFile;
 					$obs = isset($parsedBody['observaciones']) ? $parsedBody['observaciones'] : '';
 					$motivo = $parsedBody['status'] == 0 ? ' Motivo: '.$obs : '';
 					if($edit->response){
-						$seg_log = $this->model->seg_log->add($accion.' usuario.'.$motivo, 'usuario', $arguments['id'], '1');
+						$seg_log = $this->model->seg_log->add($accion.' usuario.'.$motivo, 'usuario', $arguments['id'], 1);
 						if($seg_log->response){
 							$seg_log->state = $this->model->transaction->confirmaTransaccion();
 						}else{
@@ -527,7 +527,7 @@ use Slim\Http\UploadedFile;
 
 			$delProfile = $this->model->usuario->updateTypeUser($args['id'], $parsedBody);
 			if($delProfile->response){
-				$seg_log = $this->model->seg_log->add('Elimina tipo de usuario', 'usuario_tipo', $args['id'], '');
+				$seg_log = $this->model->seg_log->add('Elimina tipo de usuario', 'usuario_tipo', $args['id'], 0);
 				if($seg_log->response){
 					$seg_log->state = $this->model->transaction->confirmaTransaccion();
 				}else{
@@ -590,7 +590,7 @@ use Slim\Http\UploadedFile;
 					if($continuar){
 						if(isset($_SESSION['usuario'])){
 							$userId = $_SESSION['usuario_id'];
-							$this->model->seg_log->add('Cierra Sesion SwitchCode', 'usuario', $userId, 1);
+							$this->model->seg_log->add('Cierra Sesion SwitchCode', 'usuario', $userId, 0);
 							$data = [
 								'status' => 0,
 								'finalizada' => date('Y-m-d H:i:s'),
@@ -618,7 +618,7 @@ use Slim\Http\UploadedFile;
 						$_SESSION['permisos'] = $newModulos;
 						$_SESSION['foto'] = $this->model->usuario->getFoto($user->id);
 
-						$this->model->seg_log->add('Inicio de sesión SwitchCode', 'usuario', $user->id, 1);
+						$this->model->seg_log->add('Inicio de sesión SwitchCode', 'usuario', $user->id, 0);
 						$this->response->username = $user->nombre;
 						$this->response->SetResponse(true, 'Esta ventana se cerrará en 4 segundos');
 					}else{

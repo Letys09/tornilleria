@@ -132,7 +132,7 @@ use App\Lib\Auth,
             if(!$dirIgual){
                 $editSuc = $this->model->sucursal->editDir($dataDir, $args['id']);
                 if($editSuc->response){
-                        $seg_log = $this->model->seg_log->add('Modifica dirección', 'dirección', $info->direccion_id, 1);
+                        $seg_log = $this->model->seg_log->add('Modifica dirección', 'dirección', $info->direccion_id, 0);
                         if(!$seg_log->response){
                             $seg_log->state = $this->model->transaction->regresaTransaccion();
                         }

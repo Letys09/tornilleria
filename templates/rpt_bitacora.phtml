@@ -1,10 +1,10 @@
 <?php 
 	include 'header.phtml';
 
-    if(!in_array(MOD_BITACORA_ACCIONES, $permisos)) {
-		header('Location: '.URL_ROOT.'/403');
-		exit;
-	}
+    // if(!in_array(MOD_BITACORA_ACCIONES, $permisos)) {
+	// 	header('Location: '.URL_ROOT.'/403');
+	// 	exit;
+	// }
 ?>
 
 <!DOCTYPE html>
@@ -15,25 +15,21 @@
                 <section>
                     <div class="card">
                         <div class="card-body border-bottom">
-                            <div class="card-body filtrosFechas" style="margin-bottom: -45px;">
-                                <div class ="row justify-content-end">
-                                    <div class ="col-2">
-                                        <label for="filter_since" class="form-label input-sm" >Desde:</label>
-                                        <input type="date" id="filter_since" class="form-control input-sm" placeholder="Fecha" data-bs-toggle="tooltip" title="Fecha" value="<?= date('Y-m-d') ?>">                                         
-                                    </div>
-                                    <div class ="col-2">
-                                        <label class="form-label input-sm-1" for="filter_to">Hasta:</label>
-                                        <input type="date" id="filter_to" class="form-control input-sm" placeholder="Fecha" data-bs-toggle="tooltip" title="Fecha" value="<?= date('Y-m-d') ?>">
-                                    </div>
-                                    <div class ="col-sm-1" style="margin-top: auto;">
-                                        <button id="buscarfecha" type="button" class="btn btn-s waves-effect btn-warning" style="width: 8rem;"><i class="fas fa-search"></i> Buscar</button>
+                            <div class="card-body border-bottom filtroFechas">
+                                <div class="col-md-4 col-12">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-text">Del</span>
+                                        <input type="date" id="desde" class="form-control" value="<?= date('Y-m-d') ?>"/>
+                                        <span class="input-group-text">al</span>
+                                        <input type="date" id="hasta" class="form-control" value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>"/>
+                                        <button type="button" class="btn btn-new-info" id="btnBuscar"><i class="fas fa-search"></i> Buscar</button>
                                     </div>
                                 </div>
                             </div>
 
                             <br>
                             <div class="card-datatable table-responsive pt-0 " >
-                                <table id="tbl-log" class="table table-bordered">
+                                <table id="tbl-log" class="table">
                                     <thead class="table-light">
                                         <tr>
                                             <th>Fecha</th>
@@ -55,27 +51,22 @@
 
     <script>
 
-    var apiUrl = '<?= URL_ROOT ?>/seg_log/',
-        dtLogTable = $('#tbl-log');
+    var apiUrl = '<?= URL_ROOT ?>/',
+        desde = $('#desde').val(),
+        hasta = $('#hasta').val();
 
-        getItems('tbl-log');
+        getItems('tbl-log', desde, hasta);
 
-        $('#filter_since').change(function(){
-            desde = new Date($(this).val());
-            hasta = new Date($('#filter_to').val());
-            if(desde>hasta){
-                $('#filter_since').val($('#filter_to').val());
-            }
+        $('#btnBuscar').on('click', function(){
+            desde = $('#desde').val()
+            hasta = $('#hasta').val()
+            getItems('tbl-log', desde, hasta);
         });
 
-        $('#buscarfecha').on('click', function(){
-            getItems('tbl-log');
-        });
-
-        function getItems(tbl){
+        function getItems(tbl, desde, hasta){
             cleanTable(tbl);
             $('#'+tbl+' tbody').empty();
-            createTable(tbl);
+            createTable(tbl, desde, hasta);
         }
 
         function cleanTable(tbl){
@@ -85,13 +76,11 @@
             }
         }
 
-        function createTable(){
-            if(dtLogTable.length){
-                from = $('#filter_since').val();
-                to= $('#filter_to').val();
-                dtLogTable.DataTable({
+        function createTable(tbl, desde, hasta){
+            if($('#'+tbl).length){
+                $('#'+tbl).DataTable({
                     ajax:{
-                        url: apiUrl+'getLog/'+from+'/'+to,
+                        url: apiUrl+'seg_log/get/'+desde+'/'+hasta,
                         type: 'GET',
                     },
                     columns: [
@@ -100,6 +89,23 @@
                         {data: 'descripcion'},
                         {data: 'adicional'}
                     ], 
+                    columnDefs: [ 
+                        {
+                            targets: 0,
+                            render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column">' +
+                                        '<span >' +
+                                            full['fecha'] +
+                                        '</span>' +
+                                        '<small class="emp_post text-muted">' +
+                                        full['hora'] +
+                                        '</small>' +
+                                    '</div>';
+                                return salida;
+                            }
+                        },                          
+                    ],
                     order: [[0, 'desc']], 
                     dom:
                         '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
@@ -112,7 +118,7 @@
                         '>'
                         ,
                     language: {
-                        url:'../spanish.json'
+                        url:'<?= URL_ROOT ?>/spanish.json'
                     },
                 });
             }

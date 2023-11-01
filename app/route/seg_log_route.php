@@ -7,28 +7,18 @@
                          ->write('Soy ruta de SegLog');
         });
         
-        
-        $this->get('getLog/{from}/{to}', function($req, $res, $args){
-            $registros = $this->model->seg_log->getLog($args['from'], $args['to']);    
+        $this->get('get/{desde}/{hasta}', function($req, $res, $args){
+            $registros = $this->model->seg_log->get($args['desde'], $args['hasta']);    
+            // print_r($registros);exit();
             $data=[];
     
-            foreach($registros as $registro){
-                $adicional = "";
-                if($registro->descripcion == 'Inicio de sesión'){
-                    $fkSession = $registro->seg_session_id ;
-                    $session = $this->model->seg_log->getSession($fkSession);
-                    $info = parse_user_agent($session->user_agent);
-                    $adicional = $info['browser'].' en '.$info['platform'].' ['.$session->ip_address.']';
-                }else if($registro->descripcion == 'Agrega usuario' || $registro->descripcion == 'Modifica usuario' || $registro->descripcion == 'Asigna permiso' || $registro->descripcion == 'Elimina permiso'){
-                    $usuario = $this->model->usuario->get($registro->registro)->result;
-                    $adicional = $usuario->nombre.' '.$usuario->apellidos;
-                }
-              
+            foreach($registros as $registro){              
                 $data[] =array(
                     "fecha" => $registro->fecha,
-                    "usuario" => $registro->login,
+                    "hora" => $registro->hora,
+                    "usuario" => $registro->usuario,
                     "descripcion" => $registro->descripcion,
-                    "adicional" => $adicional,
+                    "adicional" => $registro->adicional,
                 );
             }
     

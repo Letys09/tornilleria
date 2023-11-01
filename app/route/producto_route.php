@@ -161,7 +161,7 @@ use App\Lib\Auth,
             if(!$rangos){
                 $edit = $this->model->producto->edit('prod_rango', 'id', $dataRangos, $info->id);
                 if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Modifica rangos de producto', 'prod_rango', $info->id, 1);
+                    $seg_log = $this->model->seg_log->add('Modifica rangos de producto', 'prod_rango', $info->id, 0);
                     if(!$seg_log->response){
                         $seg_log->state = $this->model->transaction->regresaTransaccion();
                     }
@@ -174,7 +174,7 @@ use App\Lib\Auth,
                 $dataPrecios['actualiza'] = date('Y-m-d H:i:s');
                 $edit = $this->model->producto->edit('prod_precio', 'id', $dataPrecios, $info->prod_precio_id);
                 if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Modifica precios de producto', 'prod_precio', $info->prod_precio_id, 1);
+                    $seg_log = $this->model->seg_log->add('Modifica precios de producto', 'prod_precio', $info->prod_precio_id, 0);
                     if(!$seg_log->response){
                         $seg_log->state = $this->model->transaction->regresaTransaccion();
                     }
@@ -407,7 +407,7 @@ use App\Lib\Auth,
                             $delProdKilo->state = $this->model->transaction->regresaTransaccion();
                             return $res->withJson($delProdKilo->setResponse(false, 'No se dio de baja el kilo del producto (producto)'));
                         }else{
-                            $seg_log = $this->model->seg_log->add('Baja venta del producto por kilo', 'producto', $args['id'], 1);
+                            $seg_log = $this->model->seg_log->add('Baja venta del producto por kilo', 'producto', $args['id'], 0);
                         }
                     }else{
                         $delProdKilo->state = $this->model->transaction->regresaTransaccion();
@@ -427,7 +427,7 @@ use App\Lib\Auth,
                                 $editProdKilo->state = $this->model->transaction->regresaTransaccion();
                                 return $res->withJson($editProdKilo->setResponse(false, 'No se editó el kilo del producto (producto)'));
                             }else{
-                                $seg_log = $this->model->seg_log->add('Alta venta del producto por kilo', 'producto', $args['id'], 1);
+                                $seg_log = $this->model->seg_log->add('Alta venta del producto por kilo', 'producto', $args['id'], 0);
                             }
                         }else{
                             $editKilo->state = $this->model->transaction->regresaTransaccion();
@@ -510,7 +510,7 @@ use App\Lib\Auth,
                     if(!$kiloDatos){
                         $editKiloP = $this->model->producto->edit('prod_kilo', 'id', $dataKilo, $prodKilo->id);
                         if($editKiloP->response){
-                            $seg_log = $this->model->seg_log->add('Modifica kilo', 'prod_kilo', $prodKilo->id, 1);
+                            $seg_log = $this->model->seg_log->add('Modifica kilo', 'prod_kilo', $prodKilo->id, 0);
                             if(!$seg_log->response){
                                 $seg_log->state = $this->model->transaction->regresaTransaccion();
                                 return $res->withJson($seg_log->setResponse(false, 'No se agregó el registro de bitácora'));
@@ -543,7 +543,7 @@ use App\Lib\Auth,
             if(!$precioIgual){
                 $editPrecio = $this->model->producto->edit('prod_precio', 'producto_id', $precio, $args['id']);
                 if($editPrecio->response){
-                        $seg_log = $this->model->seg_log->add('Modifica precios', 'prod_precio', $infoPrecio->id, 1);
+                        $seg_log = $this->model->seg_log->add('Modifica precios', 'prod_precio', $infoPrecio->id, 0);
                         if(!$seg_log->response){
                             $seg_log->state = $this->model->transaction->regresaTransaccion();
                             return $res->withJson($seg_log->setResponse(false, 'No se agregó el registro de bitácora'));
@@ -856,7 +856,7 @@ use App\Lib\Auth,
 				$fila++;
 			}
 
-            $seg_log = $this->model->seg_log->add('Edita rangos de precios con layout', 'prod_precio', $precio_id, 1);
+            $seg_log = $this->model->seg_log->add('Edita rangos de precios con layout', 'prod_precio', $precio_id, 0);
             $edit->state = $this->model->transaction->confirmaTransaccion();	
             return $response->withJson($edit);		
 		});

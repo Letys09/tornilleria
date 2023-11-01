@@ -25,7 +25,7 @@
 
 				$addPermiso = $this->model->seg_permiso->add($parsedBody);
 				if($addPermiso->response){
-					$seg_log = $this->model->seg_log->add('Asigna permiso '.$parsedBody['seg_accion_id'], 'usuario', $parsedBody['usuario_id'], '1');
+					$seg_log = $this->model->seg_log->add('Asigna permiso '.$parsedBody['seg_accion_id'], 'usuario', $parsedBody['usuario_id'], 0);
 					if($seg_log->response){
 						$seg_log->state = $this->model->transaction->confirmaTransaccion();
 					}else{
@@ -53,7 +53,7 @@
 			$this->model->transaction->iniciaTransaccion();
 				$delPermiso = $this->model->seg_permiso->delUserAccion($arguments['user'], $arguments['accion']);
 				if($delPermiso->response){
-					$seg_log = $this->model->seg_log->add('Elimina permiso', $arguments['user'], '14');
+					$seg_log = $this->model->seg_log->add('Elimina permiso', 'usuario', $arguments['user'], 0);
 					if($seg_log->response){
 						$seg_log->state = $this->model->transaction->confirmaTransaccion();
 					}else{
