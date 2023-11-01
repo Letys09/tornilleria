@@ -70,7 +70,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                 $add_inv = $this->model->prod_inventario->add($data_inv);
                 if($add_inv->response){
                     $inventario_id = $add_inv->result;
-                    $this->model->seg_log->addByApp('Inventario físico abierto en sucursal '.$sucursal_id, 'prod_inventario', $inventario_id, 1, $usuario_id, $sesion_id);
+                    $this->model->seg_log->addByApp('Inventario físico abierto', 'prod_inventario', $inventario_id, 1, $usuario_id, $sesion_id, $sucursal_id);
                     $add_inv->state = $this->model->transaction->confirmaTransaccion();
                     return $res->withJson($add_inv);
                 }else{
@@ -165,7 +165,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                     ];
                     $edit_inv = $this->model->prod_inventario->edit($data_inv, $idInventario);
                     if($edit_inv->response){
-                        $this->model->seg_log->addByApp('Inventario físico cerrado en sucursal '.$sucursal_id, 'prod_inventario', $idInventario, 1, $usuario_id, $sesion_id);
+                        $this->model->seg_log->addByApp('Inventario físico cerrado', 'prod_inventario', $idInventario, 1, $usuario_id, $sesion_id, $sucursal_id);
                         $edit_inv->state = $this->model->transaction->confirmaTransaccion();
                         return $res->withJson($edit_inv);
                     }else{
