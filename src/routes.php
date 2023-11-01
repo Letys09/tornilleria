@@ -159,7 +159,7 @@
 			$permisos = $this->model->usuario->getAcciones($user, 0);
 			$arrPermisos = getPermisos($permisos); 
 			if($args['nombre'] == 'periodo'){
-				$params['vista'] = 'Periodo';
+				$params['vista'] = 'Reporte de Ventas Por Periodo';
 				$info = $this->model->venta->getVentasMesAnio($anio, $mes_select);
 				$params['permisos'] = $arrPermisos;
 				$params['mes_select'] = $mes_select;
@@ -172,21 +172,29 @@
 				$params['frecuente'] = $info->frecuente;
 				$template = 'ventas_periodo';
 			}else if($args['nombre'] == 'metodo'){
-				$params['vista'] = 'Forma pago';
+				$params['vista'] = 'Reporte de Métodos de Pago';
 				$info = $this->model->venta_pago->getPagosMesAnio($anio, $mes_select);
 				$params['permisos'] = $arrPermisos;
 				$params['mes_select'] = $mes_select;
 				$params['anio'] = $anio;
 				$params['metodos'] = $info->result;
 				$template = 'ventas_metodo';
-			}else{
-				$params['vista'] = 'Producto';
+			}else if($args['nombre'] == 'producto'){
+				$params['vista'] = 'Reporte de Productos';
 				$info = $this->model->producto->getProdsMesAnio($anio, $mes_select);
 				$params['permisos'] = $arrPermisos;
 				$params['mes_select'] = $mes_select;
 				$params['anio'] = $anio;
 				$params['productos'] = $info->result;
 				$template = 'ventas_producto';
+			}else{
+				$params['vista'] = 'Bitácora de Acciones';
+				$info = $this->model->producto->getProdsMesAnio($anio, $mes_select);
+				$params['permisos'] = $arrPermisos;
+				$params['mes_select'] = $mes_select;
+				$params['anio'] = $anio;
+				$params['productos'] = $info->result;
+				$template = 'bitacora';
 			}
 			return $this->renderer->render($response, 'rpt_'.$template.'.phtml', $params);
 		});
