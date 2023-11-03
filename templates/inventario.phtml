@@ -70,8 +70,7 @@
                                         </div>
                                         <div class="modal-footer">
                                             <div class="buttonsEnd">
-                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
-                                                <button type="button" class="btn btn-success mb-1 data-submit" id="btnCambiarPrecios">Guardar</button>
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Salir</button>
                                             </div>
                                         </div>
                                     </form>
@@ -105,7 +104,7 @@
             })
 
             function getDetalles(id){
-                $('tbl-detalles tbody').empty()
+                $('#tbl-detalles tbody').empty()
                 $.get(apiUrl+'prod_det_inventario/getByInv/'+id, function(resp){
                     $.each(resp, function(index, item){
                         data = {
@@ -124,6 +123,7 @@
             }
 
             function addRow(data){
+                clase = data.diferencia < 0 ? 'badge bg-danger bg-label-danger' : 'badge bg-success bg-label-success'
                 container = $('#tbl-detalles tbody')
                 tr = $('<tr data-id="'+data.id+'"></tr>')
                 tr.append('<td>'+data.clave+'</td>')
@@ -131,9 +131,8 @@
                 tr.append('<td class="text-center">'+data.medida+'</td>')
                 tr.append('<td class="text-end">'+data.sistema+'</td>')
                 tr.append('<td class="text-end">'+data.fisico+'</td>')
-                tr.append('<td class="text-end">'+data.diferencia+'</td>')
+                tr.append('<td class="text-end"><span class="'+clase+'">'+data.diferencia+'</span></td>')
                 tr.append('<td class="text-end">$'+data.monto+'</td>')
-                // tr.append('<td class="text-end"><a href="#" data-toggle="tooltip" title="" class="text-danger"><i class="fas fa-trash"></i></a></td>')
                 tr.appendTo(container)
             }
 
