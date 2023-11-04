@@ -1,0 +1,152 @@
+<?php
+	include 'core/defines.php';
+	if(isset($_SESSION['usuario'])) {
+		$user = $_SESSION['usuario'];
+		$username = $user->nombre;
+	} else{
+		header('Location: '.URL_ROOT.'/login');
+		exit();
+	}
+?>
+			
+<!DOCTYPE html>
+<html lang="es">
+	<head>
+		<meta charset="utf-8">
+		<meta http-equiv="X-UA-Compatible" content="IE=edge">
+		<meta name="viewport" content="width=device-width, initial-scale=1">
+		<meta name="description" content="">
+		<meta name="author" content="">
+		<title><?= 'Ticket | ' . SITE_NAME ?></title>
+		<link rel="stylesheet" href="<?= URL_ROOT ?>/assets/css/style.css">
+		<style>
+			body {
+				min-width: 340px;
+				max-width: 340px;
+				margin-left: auto;
+				margin-right: auto;
+				line-height: 15px;
+			}
+			h5 {
+				width: 100%;
+				text-align: center;
+			}
+			body{
+				color: black!important;
+			}
+			h1, h2, h3, h4, h5, h6, table { color: black!important; }
+		</style>
+	</head>
+	<body>
+		<div class="container-fluid ticket">
+			<div class="card">
+				<div class="card-header">
+					<div class="row text-center">
+						<img src="<?= URL_ROOT ?>/app-assets/images/logo/logo.png" class="img-ticket" alt="Logo">
+					</div>
+				</div>
+				<div class="card-body">
+					<div class="row">
+                        <p>
+                            <?= $sucursal->calle.' '.$sucursal->no_ext ?><br>
+                            <?= $sucursal->colonia ?><br>
+                            <?= $sucursal->municipio.' '.$sucursal->estado ?><br>
+                            <?= $sucursal->codigo_postal ?><br>
+                            Tels: <?= $sucursal->telefono ?><br>
+                            <?= $venta->date ?><br>
+                            <?= $venta->hora ?><br><br>
+							<b><?= $folio ?></b>
+                        </p>
+						<small><?= $cliente->razon_social ?><br><?= $cliente->rfc ?></small>
+					</div>
+					<div class="row">
+						<table class="table">
+							<thead>
+								<tr>
+									<th>Cant</th>
+									<th width="45%">Descripción</th>
+									<th width="15%">P.U</th>
+									<th>SubT</th>
+								</tr>
+							</thead>
+							<body>
+								<?php foreach($detalles as $detalle) : ?>
+									<tr>
+										<td class="align"><?= $detalle->cantidad ?></td>
+										<td class="align Desc" width="45%"><?= $detalle->producto ?></td>
+										<td class="align End" width="15%"><?= $detalle->precio ?></td>
+										<td class="align End"><?= $detalle->total ?></td>
+									</tr>
+								<?php endforeach; ?>
+							</body>
+						</table>
+					</div>
+					<br>
+					<div class="row">
+						<table>
+							<thead>
+								<th width="85%"></th>
+								<th></th>
+							</thead>
+							<tbody>
+								<tr>
+									<td class="Sub">Subtotal</td>
+									<td class="cantEnd">$<?= $venta->subtotal ?></td>
+								</tr>
+								<?php if($venta->descuento != 0) : ?>
+									<tr>
+										<td class="Sub">Descuento</td>
+										<td class="cantEnd"><?= $venta->descuento ?>%</td>
+									</tr>
+								<?php endif; ?>
+								<tr>
+									<td>Total</td>
+									<td class="cantEnd">$<?= $venta->total ?></td>
+								</tr>
+								<?php if($venta->tipo == 1) : ?>
+									<?php if($venta->metodo == 1) : ?>
+										<tr>
+											<td>Efectivo</td>
+											<td class="cantEnd">$<?= $venta->total ?></td>
+										</tr>
+										<tr>
+											<td>Cambio</td>
+											<td class="cantEnd">$0.00</td>
+										</tr>
+									<?php elseif($venta->metodo == 3) : ?>
+										<tr>
+											<td>Método pago: Tarjeta</td>
+										</tr>
+									<?php elseif($venta->metodo == 4) : ?>
+										<tr>
+											<td>Método pago: Transferencia</td>
+										</tr>
+									<?php endif; ?>
+								<?php else : ?>
+									<tr>
+										<td>Venta a crédito</td>
+									</tr>
+								<?php endif; ?>
+							</tbody>
+						</table>
+					</div>
+					<div class="row">
+						<p>
+							Le atendió: <?= $atendio ?>
+							<h3>** Conserve su ticket **</h3>
+						</p>
+						<p class="condiciones">
+							** En cambios y devoluciones únicamente con ticket, en la sucursal donde fue la compra y el producto en perfecto estado.<br>
+							** Devoluciones únicamente válidas el mismo día y en cobro con tarjeta es menos comisión.
+						</p>
+					</div>
+				</div>
+				<div class="card-footer condiciones">
+					<p>
+						** EN HERRAMIENTAS Y MATERIAL DE CORTE, NO HAY CAMBIOS NI DEVOLUCIONES.
+					</p>
+				</div>
+			</div>
+		</div>
+	</body>
+</html>

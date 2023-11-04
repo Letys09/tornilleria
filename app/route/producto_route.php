@@ -82,12 +82,48 @@ use App\Lib\Auth,
 			exit(0);
 		});
 
-        $this->get('getAllProds/{bus}', function($req, $res, $args){
-            $productos = $this->model->producto->getAllProds($args['bus'], $_SESSION['sucursal_id'], 0, 10);
-            foreach($productos->result as $producto) {
-                $stock = $producto->es_kilo ? 'N/A' : $producto->cantidad;
+        $this->get('getAllProdsVenta', function($req, $res, $args){ 
+			$productos = $this->model->producto->getAllProdsVenta();
+
+			$data = [];
+			if(!isset($_SESSION)) { session_start(); }
+			foreach($productos->result as $producto) {
+                $stockMin = $producto->es_kilo ? 'N/A' : $producto->minimo;
+                $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto->id)->result;
+                $stock = $producto->es_kilo ? 'N/A' : (is_object($stock) ? $stock->final : 0);
+                $minimo = $producto->es_kilo ? 'N/A' : (floatval($stock) <= $producto->minimo ? 'Mínimo' : 'Suficiente');
                 $data[] = array(
-					"id" => $producto->id,
+					"venta" => $producto->venta,
+					"clave" => $producto->clave,
+					"descripcion" => $producto->descripcion,
+					"medida" => $producto->medida,
+					"codigo_barras" => '*'.$producto->clave.'*',
+					// "categoria" => $producto->cat,
+					// "subcategoria" => $producto->sub,
+                    "area" => $producto->area,
+					"minimo" => $stockMin,
+					"stock" => $stock,
+					"enMinimo" => $minimo,
+					"data_id" => $producto->id,
+                    "es_kilo" => $producto->es_kilo,
+				);
+			}
+
+			echo json_encode(array(
+				'data' => $data
+			));
+			exit(0);
+		});
+
+        $this->get('getAllProds/[{busqueda}]', function($req, $res, $args){
+            // $bus = isset($args['bus']) ? $args['bus'] : '';
+			$busqueda = isset($_GET['search']['value'])? (strlen($_GET['search']['value'])>0? $_GET['search']['value']: '_') : $args['busqueda'];
+            $productos = $this->model->producto->getAllProds($busqueda, $_SESSION['sucursal_id'], 0, 10);
+            $data = [];
+            foreach($productos->result as $producto) {
+                $stock = $producto->es_kilo ? 'N/A' : ($producto->cantidad != null ? $producto->cantidad : 0.00);
+                $data[] = array(
+					// "id" => $producto->id,
 					"stock" => $stock,
 					"clave" => $producto->clave,
 					"descripcion" => $producto->descripcion,
@@ -102,7 +138,11 @@ use App\Lib\Auth,
 			}
 
             echo json_encode(array(
-				'data' => $data
+				// 'draw'=>$_GET['draw'],
+                'busqueda' => $productos->busqueda,
+				'data'=>$data,
+				'recordsTotal'=>intval($productos->total),
+				'recordsFiltered'=>$productos->filtered,
 			));
 			exit(0);
         });

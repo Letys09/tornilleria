@@ -23,7 +23,7 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
             ->select(null)
-            ->select("$this->table.id, prod_unidad_medida_id, $this->table.prod_categoria_id, prod_categoria.prod_categoria_id as categoria, prod_area_id, clave, descripcion, medida, costo, minimo, venta_kilo, es_kilo, clave_sat")
+            ->select("$this->table.id, prod_unidad_medida_id, $this->table.prod_categoria_id, prod_categoria.prod_categoria_id as categoria, prod_area_id, clave, descripcion, medida, costo, minimo, venta, venta_kilo, es_kilo, clave_sat")
             ->innerJoin("prod_categoria ON prod_categoria.id = $this->table.prod_categoria_id ")
 			->where("$this->table.id", $id)
 			->fetch();
@@ -150,10 +150,25 @@ class ProductoModel {
 		return $this->response->SetResponse(true);
 	}
 
-	public function getAllProds($bus, $sucursal, $inicial, $limite) {
+	public function getAllProdsVenta() {
+		$this->response->result = $this->db
+			->from($this->table)
+			->select(null)
+			->select("$this->table.id, clave, prod_area.nombre as area, descripcion, medida, minimo, es_kilo, venta")
+			->innerJoin("prod_categoria sub ON sub.id = $this->table.prod_categoria_id")
+			->innerJoin("prod_categoria cat ON cat.id = sub.prod_categoria_id")
+			->where("$this->table.status", 1)
+			// ->orderBy("venta DESC")
+			->fetchAll(); 
+					
+		return $this->response->SetResponse(true);
+	}
+
+	public function getAllProds($busqueda, $sucursal, $inicial, $limite) {
+		if($busqueda != '_') { $busqueda = array_reduce(array_filter(explode(' ', $busqueda), function($bus) { return strlen($bus) > 0; }), function($imp, $bus) { return $imp .= "+".str_replace('/', '_', $bus)."*"; }); }
 		$tbl_name = "temporal_tbl_".time()."_".random_int(0, 999999);
-		$this->response->result = $this->db->getPdo()->query("CALL tbl_busqueda('$bus', $sucursal, $inicial, $limite, '$tbl_name');")->fetchAll();
-		$this->response->filtered = count($this->db->getPdo()->query("CALL tbl_busqueda('$bus', $sucursal, 0, 10000, '$tbl_name');")->fetchAll());
+		$this->response->result = $this->db->getPdo()->query("CALL tbl_busqueda('$busqueda', $sucursal, $inicial, $limite, '$tbl_name');")->fetchAll();
+		$this->response->filtered = count($this->db->getPdo()->query("CALL tbl_busqueda('$busqueda', $sucursal, 0, 10000, '$tbl_name');")->fetchAll());
 
 		$this->response->total =  $this->db->getPdo()->query(
 			"SELECT COUNT(*) AS total
@@ -161,6 +176,8 @@ class ProductoModel {
 				WHERE 
 					status = 1;"
 		)->fetch()->total;
+
+		$this->response->busqueda = $busqueda; 
 
 		return $this->response->SetResponse(true);
 	}

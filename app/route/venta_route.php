@@ -130,6 +130,8 @@ use App\Lib\Auth,
                     ];
                     $addDet = $this->model->venta_detalle->add($dataDet);
                     if($addDet->response){
+                        $data_prod = ['venta' => $info_prod->venta+1];
+                        $this->model->producto->edit('producto', 'id', $data_prod, $info_prod->id);
                         $det_id = $addDet->result;
                         $seg_log = $this->model->seg_log->add('Agrega detalle de venta', 'venta_detalle', $det_id, 1);
                         if($info_prod->es_kilo == 0){

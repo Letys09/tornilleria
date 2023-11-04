@@ -485,7 +485,8 @@ div.card-header.link{
 }
 
 .card-header-venta{
-	background-color: #e8e5e5;
+	/* background-color: #e8e5e5; */
+	background-color: #52b6f83e;
 	padding: 0.75rem;
 }
 

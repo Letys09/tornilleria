@@ -1,0 +1,872 @@
+<?php 
+	include 'header.phtml';
+?>
+<link rel="stylesheet" type="text/css" href="<?=URL_ROOT?>/app-assets/plugin/typeahead.js-master/dist/typehead-min.css" >
+  <div class="app-content content ">
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body"> 
+                <div class="container-fluid">
+                    <div class="container-venta">
+                        <div class="w-100 card">
+                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" data-bs-toggle="collapse" href="#cliente" role="button" aria-expanded="true" aria-controls="cliente"><span><i class="fas fa-caret-down ms-1 me-1"></i>&nbsp;Cliente</span></div>
+                            <div class="card-body" id="cliente">
+                                <div class="d-flex">
+                                    <div class="col-4 mt-1">
+                                        <label for="clientes" class="form-label fw-bolder fs-5">Nombre del cliente</label>
+                                        <select class="form-control" id="clientes"></select>
+                                    </div>
+                                    <div class="col-4 text-center mt-1">
+                                        <label for="" class="form-label fw-bolder fs-5 text-center">Venta</label>
+                                        <div class="mt-1">
+                                            <input type="radio" id="contado" name="venta-tipo" class="radio" value="1">
+                                            <label for="contado">Contado</label> &nbsp;
+                                            <input type="radio" id="credito" name="venta-tipo" class="radio ventaCredito hidden" value="2">
+                                            <label for="credito" class="ventaCredito hidden">Crédito</label>
+                                        </div>
+                                    </div>
+                                    <div class="col-4 text-center mt-1">
+                                        <label for="descuento" class="form-label fw-bolder fs-5">Descuento %</label>
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <input class="form-check-input mt-0" type="checkbox" id="aplicar" data-toogle="tooltip" title="Aplicar descuento" disabled>
+                                            </div>
+                                            <input type="number" min="0" max="100" class="form-control text-end deshabilitado" id="descuento" value="0">
+                                        </div>
+                                    </div>
+                                    <input type="hidden" id="venta_id" value="0">
+                                </div>
+                            </div>
+                        </div>
+                        <div class="d-flex separar">
+                            <div class="col-8 card shadow-lg">
+                                <div class="card-header-venta fw-bolder fs-5 text-uppercase">productos</div>
+                                <div class="card-body">
+                                    <div class="w-100 d-flex">
+                                        <table id="tbl-prods" class="table table-hover table-striped m-0 w-100 table-sm">
+                                            <thead>
+                                                <tr class="text-center">
+                                                    <th>venta</th>
+                                                    <th>Stock</th>
+                                                    <th>Clave</th>
+                                                    <th>Descripción</th>
+                                                    <th>Medida</th>
+                                                    <th></th>
+                                                </tr>
+                                            </thead>
+                                            <tbody></tbody>
+                                        </table>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-4 card shadow-lg" style="width: calc(33.333% - 1rem);">
+                                <div class="card-header-venta fw-bolder fs-5 text-uppercase">rangos de precios</div>
+                                <div class="card-body">
+                                    <div class="d-flex">
+                                        <div>
+                                            <table id="tbl-rangos_precios" class="table">
+                                                <thead class="table-light">
+                                                    <tr class="text-center">
+                                                        <th>Tipo</th>
+                                                        <th>Hasta</th>
+                                                        <th>Precio</th>
+                                                    </tr>
+                                                </thead>
+                                                <tbody>
+                                                    <tr>
+                                                        <td>Menudeo</td>
+                                                        <td><input type="text" class="form-control text-end deshabilitado" id="precio-menudeo" placeholder="0" readonly></td>
+                                                        <td>
+                                                            <div class="input-group">
+                                                                <div class="input-group-text">
+                                                                    <small>$</small>
+                                                                </div>
+                                                                <input type="text" class="form-control text-end deshabilitado" id="precio-precio_menudeo" placeholder="0.00" readonly>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Medio mayoreo</td>
+                                                        <td><input type="text" class="form-control text-end deshabilitado" id="precio-medio" placeholder="0" readonly></td>
+                                                        <td>
+                                                            <div class="input-group">
+                                                                <div class="input-group-text">
+                                                                    <small>$</small>
+                                                                </div>
+                                                                <input type="text" class="form-control text-end deshabilitado" id="precio-precio_medio" placeholder="0.00" readonly>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Mayoreo</td>
+                                                        <td><input type="text" class="form-control text-end deshabilitado" id="precio-mayoreo" placeholder="0" readonly></td>
+                                                        <td>
+                                                            <div class="input-group">
+                                                                <div class="input-group-text">
+                                                                    <small>$</small>
+                                                                </div>
+                                                                <input type="text" class="form-control text-end deshabilitado" id="precio-precio_mayoreo" placeholder="0.00" readonly>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                    <tr>
+                                                        <td>Distribuidor</td>
+                                                        <td><input type="text" class="form-control text-end deshabilitado" id="precio-distribuidor" placeholder="0" readonly></td>
+                                                        <td>
+                                                            <div class="input-group">
+                                                                <div class="input-group-text">
+                                                                    <small>$</small>
+                                                                </div>
+                                                                <input type="text" class="form-control text-end deshabilitado" id="precio-precio_distribuidor" placeholder="0.00" readonly>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                </tbody>
+                                            </table>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="w-100 card">
+                            <div class="card-header-venta fw-bolder fs-5 text-uppercase">productos agregados</div>
+                            <div class="card-body">
+                                <table id="tbl-detalles" class="table table-hover table-striped m-0 w-100 mw-100 table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-start" width="10%">Cantidad</th>
+                                            <th class="text-start" width="45%">Concepto</th>
+                                            <th width="15%">P. Unitario</th>
+                                            <th width="15%">Total</th>
+                                            <th width="15%">Acciones</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr class="nodata">
+                                        <td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+                        <div class="w-100 card ventaPagos hidden">
+                            <div class="card-header-venta fw-bolder fs-5 text-uppercase">pagos realizados</div>
+                            <div class="card-body">
+                                <table id="tbl-pagos" class="table table-hover table-striped m-0 w-100 mw-100 table-sm">
+                                    <thead>
+                                        <tr>
+                                            <th class="text-start" width="10%">Fecha</th>
+                                            <th class="text-start" width="45%">Usuario</th>
+                                            <th width="15%">Monto</th>
+                                            <th width="15%">Forma de Pago</th>
+                                        </tr>
+                                    </thead>
+                                    <tbody>
+                                    <tr class="nodataPagos">
+                                        <td colspan="9" class="text-center p-10 nodataPagos">No se han agregado pagos a la venta</td>
+                                    </tr>
+                                    </tbody>
+                                </table>
+                            </div>
+                        </div>
+
+                        <div class="d-flex separar">
+                            <div class="col-8 card">
+                                <div class="form-group row m-1">
+                                    <label class="form-label fw-bolder fs-5" for="venta-comentarios">Comentarios</label><br>
+                                    <textarea name="" id="venta-comentarios" ></textarea>
+                                </div>
+                            </div>
+                            <div class="col-4 card" style="width: calc(33.333% - 1rem);">
+                                <div class="form-group row m-1">
+                                    <div class="mt-1 mb-1 ventaSub hidden">
+                                        <label class="form-label fw-bolder fs-5" for="venta-subtotal">Subtotal</label>
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span><i class="fas fa-dollar-sign"></i></span>
+                                            </div>
+                                            <input type="text" class="form-control text-end" id="venta-subtotal" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="mb-1 ventaDesc hidden">
+                                        <label class="form-label fw-bolder fs-5" for="venta-descuento">Descuento</label>
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span>%</span>
+                                            </div>
+                                            <input type="text" class="form-control text-end" id="venta-descuento" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="mb-1">
+                                        <label class="form-label fw-bolder fs-5" for="venta-total">Total</label>
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span><i class="fas fa-dollar-sign"></i></span>
+                                            </div>
+                                            <input type="text" class="form-control text-end" id="venta-total" placeholder="0.00" readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                        <div class="buttonsEnd">
+                            <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                            <button type="button" class="btn btn-new-info mb-1 data-submit" id="btnContinuar"></button>
+                            <input type="hidden" id="prod_id" value="0">
+                        </div>
+                    </div>
+                    <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-pago">
+                        <div class="modal-dialog">
+                            <form class="modal-content pt-0">
+                                <div class="modal-header mb-1">
+                                    <h4 class="modal-title text-uppercase"></h4>
+                                    <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                </div>
+                                <div class="modal-body flex-grow-1 form-horizontal">
+                                    <div class="mb-1 form-group row">
+                                        <div class="w-100 mb-1">
+                                            <label class="form-label fw-bolder fs-5" for="pago-monto">Monto</label>
+                                            <input type="text" class="form-control deshabilitado" id="pago-monto" readonly>
+                                        </div>
+                                        <div class="w-100">
+                                            <label class="form-label fw-bolder fs-5" for="pago-forma_pago">Método de Pago</label>
+                                            <select class="form-control" id="pago-forma_pago">
+                                                <option value="0" disabled>Seleccione una opción</option>
+                                                <option value="1">Efectivo</option>
+                                                <option value="2" class="hidden">Saldo a favor</option>
+                                                <option value="3">Tarjeta</option>
+                                                <option value="4">Transferencia</option>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer">
+                                    <div class="buttonsEnd">
+                                        <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="button" class="btn btn-success mb-1" id="btnSave">Guardar</button>
+                                        <input type="hidden" id="pago_id" value="0">
+                                    </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+<?php
+  include 'footer.phtml';
+?>
+<script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
+
+<script>
+    $(function(){
+        var apiUrl = '<?= URL_ROOT ?>/',
+            aplicar = 0,
+            desc_cli = 0,
+            tipo = 1,
+            collection = '<?= $_SESSION['sucursal_id'] ?>-'+'<?= $_SESSION['usuario_id'] ?>-'+'<?= date("Ymd") ?>',
+            firebaseConfig = {
+                apiKey: "AIzaSyDnf5WHyP3ifke133Gff5pngMDJXJMZu3E",
+                authDomain: "tornilleria-e631b.firebaseapp.com",
+                databaseURL: "https://tornilleria-e631b-default-rtdb.firebaseio.com",
+                projectId: "tornilleria-e631b",
+                storageBucket: "tornilleria-e631b.appspot.com",
+                messagingSenderId: "272353825182",
+                appId: "1:272353825182:web:273e1b72340fe691d7c68f",
+                measurementId: "G-NLJJ8F8TJ5"
+            };
+
+        firebase.initializeApp(firebaseConfig);
+        const db = firebase.firestore();
+
+        getClientes()
+        getItems('tbl-prods')
+
+        $('#clientes').on('change', function(){
+            $.blockUI()
+            id = $(this).val()
+            $('#aplicar').prop('checked', false).trigger('change')
+            if(id != 1){
+                $.get(apiUrl+'cliente/get/'+id, function(resp){
+                    desc_cli = resp.result.descuento; 
+                    $('#aplicar').attr('disabled', false).prop('disabled', false)
+                    $('.ventaCredito').removeClass('hidden')
+                    $('#descuento').val(resp.result.descuento)
+                    <?php if($nueva) : ?> 
+                        tipo = 2;
+                        $("input[type='radio'][name='venta-tipo']").prop('disabled', false).prop('disabled', false);
+                    <?php else : ?> 
+                        tipo = '<?= $venta->tipo ?>'
+                        $("input[type='radio'][name='venta-tipo']").prop('disabled', true).prop('disabled', true);
+                        descAplicado = '<?= $venta->descuento ?>'
+                        descAplicado != '' && descAplicado != 0 ? $('#aplicar').prop('checked', true) : $('#aplicar').prop('checked', false)
+                        $('#aplicar').attr('disabled', true).prop('disabled', true).trigger('change')
+                    <?php endif; ?>
+                    $("input[type='radio'][name='venta-tipo'][value='"+tipo+"']").prop('checked',true).trigger('change');
+                },'json')
+                $('#btnContinuar').html('Guardar')
+                $.unblockUI()
+            }else{
+                desc_cli = 0; tipo = 1;
+                $('#aplicar').attr('disabled', true).prop('disabled', 'disabled').prop('checked', false)
+                $('.ventaCredito').addClass('hidden')
+                $('#descuento').val('')
+                $("input[type='radio'][name='venta-tipo'][value='1']").prop('checked',true);
+                $('#btnContinuar').html('Cobrar')
+                $.unblockUI()
+            }
+            cargarVenta()
+        })
+
+        $('input[type=radio][name=venta-tipo]').on('change', function(){
+            tipo = $(this).val()
+            if(tipo == 1){
+                $('#btnContinuar').html('Cobrar')
+            }else{
+                $('#btnContinuar').html('Guardar')
+            }
+        })
+
+        $('#aplicar').change(function(){
+            aplicar = $(this).is(':checked') ? 1 : 0;
+            if(aplicar){
+                $('.ventaSub').removeClass('hidden')
+                $('.ventaDesc').removeClass('hidden')
+                $('#descuento').val(desc_cli)
+                $('#venta-descuento').val(desc_cli)
+                getTotales()
+            }else{
+                $('.ventaSub').addClass('hidden')
+                $('.ventaDesc').addClass('hidden')
+                $('#descuento').val('').addClass('deshabilitado').attr('disabled', true).prop('disabled', 'disabled')
+                $('#venta-descuento').val('')
+                getTotales()
+            }
+        })
+
+        $('#tbl-prods').on('click', '.btnAdd', function(e){
+            console.log('350')
+            e.preventDefault()
+            $.blockUI()
+            agregar = true
+            prod_id = $(this).data('id')
+            es_kilo = $(this).data('kilo')
+            tr = $(this).closest('tr')
+            clave = $(tr).find('td:eq(1)').text()
+            desc = $(tr).find('td:eq(2)').text()
+            concepto = '('+clave+') '+desc;
+            stock = $(tr).find('td:eq(0)').text()
+            if($('#tbl-detalles tbody tr').length != 0) {
+                $('.nodata').remove()
+                $.each($('#tbl-detalles tbody tr'), function(index, tr){
+                    if($(tr).data('producto_id') == prod_id){
+                        toastr['info']('El producto ya está agregado en la venta, modifique la cantidad')
+                        agregar = false
+                        $.unblockUI()
+                    }
+                })
+            }else{
+                $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+            }
+           
+            if(agregar){
+                if(es_kilo == 0){
+                    if(stock != 0){
+                        $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                            $.each(resp, function(index, item){
+                                $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
+                            })
+                            mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                            $('#precio-distribuidor').val(parseInt(mayoreo)+1)
+                            data = {
+                                'detalle_id': '', 
+                                'producto_id': prod_id, 
+                                'cantidad': 1, 
+                                'stock': stock, 
+                                'clave': clave, 
+                                'desc': desc, 
+                                'concepto': concepto, 
+                                'precio': resp.precio_menudeo, 
+                                'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
+                                'es_kilo': es_kilo
+                            }
+                            addFirebase(data)
+                            getTotales()
+                        })
+                    }else{
+                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                        $.unblockUI()
+                    }
+                }else{
+                    $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                        $.each(resp, function(index, item){
+                            $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
+                        })
+                        mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                        $('#precio-distribuidor').val(parseInt(mayoreo)+1)
+                        data = {
+                            'detalle_id': '', 
+                            'producto_id': prod_id, 
+                            'cantidad': 1, 
+                            'clave': clave, 
+                            'desc': desc, 
+                            'concepto': concepto, 
+                            'precio': resp.precio_menudeo, 
+                            'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
+                        }
+                        $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/1', function(respStock){
+                            if(respStock.response){
+                                data['es_kilo'] = respStock.cant_necesaria
+                                data['stock'] = respStock.stock_disp
+                                addFirebase(data)
+                                getTotales() 
+                                $.unblockUI()
+                            }else{
+                                toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                                if($('#tbl-detalles tbody tr').length == 0) 
+                                    $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                                $.unblockUI()
+                            }
+                        },'json')
+                    },'json')
+                }
+            }
+        })
+
+        $('#tbl-detalles').on('change', '.cant', function(){
+            $.blockUI()
+            elem = $(this)
+            cantidad = parseFloat($(elem).val())
+            tr = $(elem).closest('tr')
+            prod_id = $(tr).data('producto_id')
+            detalle_id = $(tr).data('detalle_id')
+            clave = $(tr).data('clave')
+            stock = $(tr).data('stock')
+            kilo = $(tr).data('kilo')
+            if(cantidad < 1){
+                toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
+                $(elem).val(1)
+                $.unblockUI()
+            }
+            if(kilo == 0){
+                <?php if($nueva) : ?>
+                    $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(resp){
+                        if(cantidad <= resp.final){
+                            cant = (cantidad.toFixed(1)).toString()
+                            db.collection(collection).doc(clave).update({'cantidad':cant})
+                            $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                                precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                                total = parseFloat(precio*cantidad).toFixed(2)
+                                $(tr).find('.precio').html('$ '+precio)
+                                $(tr).find('.total').html('$ '+total)
+                                getTotales()
+                            },'json')
+                        }else{
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            elem.val(1).trigger('change')
+                            $.unblockUI()
+                        }
+                    },'json')
+                <?php else : ?>
+                    if(detalle_id != ''){
+                        data = {'cantidad': cantidad, 'precio':, 'importe':, 'descuento':, 'total':''}
+                        $.post(apiUrl+'venta_detalle/edit/'+detalle_id, function(resp){
+
+                        })
+                    }
+                <?php endif; ?>
+            }else{
+                $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/'+cantidad, function(resp){
+                    if(resp.response){
+                        $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                            precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                            total = parseFloat(precio*cantidad).toFixed(2)
+                            $(tr).find('.precio').html('$ '+precio)
+                            $(tr).find('.total').html('$ '+total)
+                            getTotales()
+                        },'json')
+                    }else{
+                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                        $.unblockUI()
+                    }
+                },'json')
+            }
+        })
+
+        $('#tbl-detalles').on('click', '.btnDelDet', function(e){
+            e.preventDefault()
+            tr = $(this).parents('tr')
+            clave = $(tr).data('clave')
+            <?php if($nueva) : ?>
+                console.log(clave)
+                db.collection(collection).doc(clave).delete()
+                $(tr).remove()
+                <?php else : ?>
+                    det_id = $(tr).data('detalle_id')
+                    $.post(apiUrl+'venta_detalle/del/'+det_id, function(resp){
+                    if(resp.response){
+                        $(tr).remove() 
+                        toastr['success']('¡Hecho!', 'Producto eliminado de la venta')
+                        if($('#tbl-detalles tbody tr').length == 0){
+                            $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                        }
+                    }else{
+                        toastr['error']('¡Error!', 'No pudimos eliminar el producto de la venta')
+                    }
+                },'json')
+            <?php endif; ?>
+            getTotales()
+        })
+
+        $('#btnContinuar').click(function(e){
+            e.preventDefault()
+            btn = $(this)
+            btn.attr('disabled', true).prop('disabled', true)
+            if($('#clientes').val() == 1 || tipo == 1){
+                total = parseFloat($('#venta-total').val())
+                $('#frm-pago h4').html('agregar pago')
+                $('#pago-monto').val((total).toFixed(2))
+                $('#frm-pago').modal('show')
+                btn.attr('disabled', false).prop('disabled', false)
+            }else{
+                guardar()
+            }
+        })
+
+        $('#btnSave').click(function(e){
+            e.preventDefault()
+            btn = $(this)
+            btn.attr('disabled', true).prop('disabled', true)
+            guardar()           
+        })
+
+        function getClientes(){
+            $.blockUI()
+            $.get(apiUrl+'cliente/getCli', function(resp){
+                $.each(resp, function(index, item){
+                    $('#clientes').append('<option value="'+item.id+'">'+item.cliente+'</option>')
+                })
+                <?php if($nueva) : ?>
+                    $('#clientes').val(1)
+                <?php else : ?>
+                    $('#clientes').val(<?= $venta->cliente_id ?>).attr('disabled', true).prop('disabled', true).addClass('deshabilitado')
+                <?php endif; ?>
+                $('#clientes').trigger('change')
+                $.unblockUI()
+            },'json')
+        }
+
+        function getItems(tbl){
+            cleanTable(tbl)
+            $('#'+tbl+' tbody').empty()
+            createTable(tbl)
+        }
+
+        function cargarVenta(){
+            <?php foreach($detalles as $detalle) : ?>
+                detalle = {
+                    'detalle_id': '<?= $detalle->id ?>',
+                    'producto_id': '<?= $detalle->producto_id ?>',
+                    'es_kilo': '<?= $detalle->es_kilo ?>',
+                    'precio': '<?= $detalle->precio ?>',
+                    'cantidad': '<?= $detalle->cantidad ?>',
+                    'concepto': '<?= $detalle->concepto ?>',
+                    'total': '<?= $detalle->total ?>',
+                }
+                addDetalle(detalle, 1)
+            <?php endforeach; ?>
+
+            <?php if(!$nueva) : ?> 
+                $('.ventaPagos').removeClass('hidden')
+                <?php foreach($pagos as $pago) : ?>
+                    metodo_pago = '<?= $pago->forma_pago ?>' == 1 ? 'Efectivo' : ('<?= $pago->forma_pago ?>' == 2 ? 'Saldo a favor' : ('<?= $pago->forma_pago ?>' == 3 ? 'Tarjeta' : ('<?= $pago->forma_pago ?>' == 4 ? 'Transferencia' : 'Otro')))
+                    pago = {
+                        'id': '<?= $pago->id ?>',
+                        'fecha': '<?= $pago->date ?>',
+                        'hora': '<?= $pago->hora ?>',
+                        'usuario': '<?= $pago->usuario ?>',
+                        'monto': '<?= $pago->monto ?>',
+                        'metodo': '<?= $pago->forma_pago ?>',
+                    }
+                    addPago(pago)
+                <?php endforeach; ?>
+            <?php endif; ?>
+        }
+
+        function addDetalle(data, tipo=0){
+            precio = data.precio == null ? parseFloat(0).toFixed(2) : data.precio  
+            container = $('#tbl-detalles tbody')
+            $('#tbl-detalles tbody .nodata').remove();
+            tr = $('<tr class="detalle" data-detalle_id="'+data.detalle_id+'" data-producto_id="'+data.producto_id+'" data-clave="'+data.clave+'" data-stock="'+data.stock+'" data-kilo="'+data.es_kilo+'"></tr>')
+            tr.append('<td class="text-start venta-cantidad" width="10%"><input type="text" class="form-control text-center cant" value="'+data.cantidad+'"></td>')
+            tr.append('<td width="45%">'+data.concepto+'</td>')
+            tr.append('<td class="text-center precio" width="15%">$ '+precio+'</td>')
+            tr.append('<td class="text-center total" width="15%">$ '+data.total+'</td>')
+            td = $('<td class="text-center" width="15%"></td>').appendTo(tr)
+
+            td.append('<button type="button" class="btn btn-outline-danger btn-sm btnDelDet"><i class="fas fa-trash" data-toogle="tooltip" title="Eliminar"></i></button>')
+            container.append(tr)
+            getTotales()
+            $.unblockUI()
+        }
+
+        function addFirebase(data){
+            var addProd = db.collection(collection).doc(data.clave);
+            addProd.set({
+                'cantidad': ((data.cantidad).toFixed(1)).toString(),
+                'cantidadPorKilo': ((data.es_kilo).toFixed(1)).toString(),
+                'clave': data.clave,
+                'descripcion': data.desc,
+                'id': data.producto_id,
+                'stock': data.stock,
+            });
+
+        }
+
+        function addPago(data){
+            container = $('#tbl-pagos tbody')
+            $('#tbl-pagos tbody .nodataPagos').remove();
+            tr = $('<tr class="pago" data-pago_id="'+data.id+'"></tr>')
+            tr.append('<td width="10%"><div class="d-flex flex-column"><span >'+data.fecha+'</span>'+'<small class="emp_post text-muted">'+data.hora+'</small></div></td>')
+            tr.append('<td width="45%">'+data.usuario+'</td>')
+            tr.append('<td class="text-center monto" width="15%">$ '+data.monto+'</td>')
+            tr.append('<td class="text-center" width="15%">'+metodo_pago+'</td>')
+            container.append(tr)
+            getTotales()
+            $.unblockUI()
+        }
+
+        function getTotales(){
+            $.blockUI()
+            subtotal = 0; total = 0; pagado = 0;
+            $.each($('#tbl-detalles tbody tr.detalle'), function(index, tr){
+                // if(!$(tr).hasClass('nodata')){
+                    val = parseFloat($(tr).find('.total').text().replace('$', ''))
+                    subtotal += val
+                // }
+            })
+            $.each($('#tbl-pagos tbody tr.pago'), function(index, tr){
+                // if(!$(tr).hasClass('nodataPagos')){
+                    val = parseFloat($(tr).find('.monto').text().replace('$', ''))
+                    pagado += val
+                // }
+            })
+            if(aplicar == 1){
+                porcentaje = desc_cli
+                $('#venta-subtotal').val(subtotal.toFixed(2))
+                cantDesc = parseFloat((porcentaje*subtotal)/100)
+                total = parseFloat(subtotal-cantDesc-pagado)
+            }else{
+                total = parseFloat(subtotal-pagado)
+            }
+            $('#venta-total').val(total.toFixed(2))
+            $.unblockUI()
+        }
+
+        function guardar(){
+            subtotal = $('#venta-subtotal').is(':visible') ? $('#venta-subtotal').val() : $('#venta-total').val()
+            descuento = $('#venta-descuento').is(':visible') ? $('#venta-descuento').val() : 0
+            data = {
+                cliente_id: $('#clientes').val(),
+                tipo: tipo,
+                subtotal: subtotal,
+                descuento: descuento,
+                total: $('#venta-total').val(),
+                comentarios: $.trim($('#venta-comentarios').val()),
+            }
+            data.detalles = []
+            $.each($('#tbl-detalles tbody tr'), function(index, tr){
+                if($(tr).is(':visible') && !$(tr).hasClass('nodata')){
+                    detalle = {
+                        'clave': $(tr).data('clave'), 
+                        'producto_id': $(tr).data('producto_id'), 
+                        'cantidad': $(tr).find('.cant').val(),
+                        'precio': $(tr).find('.precio').text().replace('$', '').replace(' ', '')
+                    }
+                    data.detalles.push(detalle)
+                }
+            })
+            if($('#clientes').val() == 1 || tipo == 1){
+                data.pago = {
+                    'monto': data.total,
+                    'forma_pago': $('#pago-forma_pago').val()
+                }
+            }
+            if(data.detalles.length == 0){
+                toastr['warning']('¡Verifique la información!', 'Debe agregar al menos un producto a la venta')
+                btn.attr('disabled', false).prop('disabled', false)
+                $.unblockUI()
+            }else{
+                <?php if($nueva) : ?>
+                    $.post(apiUrl+'venta/add/', data, function(resp){
+                        if(resp.response){
+                            toastr['success']('¡Venta realizada!', 'Venta realizada con éxito')
+                            delDocs(data.detalles)
+                            window.open('<?= URL_ROOT ?>/ticket/'+$.md5(resp.result.toString()), '_blank')
+                            window.location.href = '<?= URL_ROOT ?>/venta/cliente'
+                        }else{
+                            toastr['error']('¡Error!', resp.message)
+                        }
+                        btn.attr('disabled', false).prop('disabled', false)
+                        $.unblockUI()
+                    },'json')
+                <?php else : ?>
+                    venta_id = '<?= $id ?>'
+                    $.post(apiUrl+'venta/edit/'+id, data, function(resp){
+
+                    })
+                <?php endif; ?>
+            }
+        }
+
+        function delDocs(docs){
+            $.each(docs, function(index, doc){
+                db.collection(collection).doc(doc.clave).delete()
+            })
+        }
+
+        function cleanTable(tbl){
+            if($.fn.dataTable.isDataTable('#'+tbl)){
+                table = $('#'+tbl).DataTable()
+                table.destroy()
+            }
+        }
+
+        var temporal = null;
+			function evaluar(time) {
+				setTimeout(() => {
+					if(time == temporal) {
+						$("#tbl-prods_filter label input").val($.trim($('#bus').val())).trigger('keyup');
+					}
+				}, 1000);
+			}
+
+        function createTable(tbl){
+            if($('#'+tbl).length){
+                $('#'+tbl).DataTable({
+                    ajax:{
+                        url: apiUrl+'producto/getAllProdsVenta',
+                        // url: apiUrl+'producto/getAllProds/_',
+                        type: 'GET',
+                    },
+                    columns: [
+                        {data: 'venta'},
+                        {data: 'stock'},
+                        {data: 'clave'},
+                        {data: 'descripcion'},
+                        {data: 'medida'},
+                        {data: ''}
+                    ],
+                    columnDefs: [
+                        {
+                            targets: 1,
+                            render: function (data, type, full, meta) {
+                            var salida =
+                                '<div class="d-flex flex-column text-center">' +
+                                    full['stock'] +
+                                '</div>';
+                                return salida;
+                            }
+                        },
+                        {
+                            targets: -1,
+                            title: 'Acciones',
+                            orderable: false,
+                            render: function (data, type, full, meta) {
+                                id = full['data_id']
+                                return (
+                                    '<div class="text-center">'+
+                                        '<button type="button" class="btn btn-success btn-sm btnAdd" data-id="'+id+'" data-kilo="'+full['es_kilo']+'" data-toggle="tooltip" title="Agregar" style="margin-right:4px;">'+ 
+                                            feather.icons['shopping-cart'].toSvg({ class: 'font-small-4 me-20' }) +
+                                        '</button>'+
+                                    '</div>'
+                                );
+                            }
+                        },
+                        {
+                            visible: false, targets: [0]
+                        }
+                    ],
+                    order: [[0, 'desc']], 
+                    dom:
+                        '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
+                        '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
+                        '<"col-sm-12 col-lg-10 ps-xl-75 ps-0"<"dt-action-buttons d-flex align-items-center justify-content-center justify-content-lg-end flex-lg-nowrap flex-wrap"<"me-1"l>>>' +
+                        '>t' +
+                        '<"d-flex justify-content-between mx-2 row mb-1"' +
+                        '<"col-sm-12 col-md-6"i>' +
+                        '<"col-sm-12 col-md-6"p>' +
+                        '>',
+                    language: {
+                        url:'<?= URL_ROOT ?>/spanish.json'
+                    },
+                    // 'processing': true,
+                    // 'serverSide': true,
+                    initComplete: function () {
+                        // $('#tbl-prods_wrapper').addClass('w-100')
+                        // $('#tbl-prods_filter').html('<div class="d-flex"><label>Buscar </label><input type="search" id="bus" placeholder="Buscar por clave o descripción" class="form-control"></div>') 
+                    }
+                });
+
+                // let intervaloBusqueda = null;
+                // $(document).on('keyup', '#bus',  function(e){
+                //     console.log("aqui ando")
+                //     temporal = moment().format('x')+"-"+Math.random();
+                //     evaluar(temporal);
+                //     clearInterval(intervaloBusqueda)
+                //     let valor = this.value;
+                //     intervaloBusqueda = setInterval(function() {
+                //         oTable = $('#tbl-prods').DataTable();
+                //         // Typing finished, now you can Do whatever after 2 sec
+                //         oTable.search( valor ).draw();
+
+                //         clearInterval(intervaloBusqueda)
+                //     }, 1000);
+                // });
+
+            }
+        }
+
+        db.collection(collection).onSnapshot((snapshot) => {
+            snapshot.docChanges().forEach((change) => {
+                info = change.doc.data()
+                if(change.type === 'added'){
+                    $.get(apiUrl+'producto/getRangos/'+info['id'], function(resp){
+                        precio = resp.precio_menudeo
+                        clave = '('+info['clave']+') '
+                        kilo = info['cantidadPorKilo'] != 0 ? 1 : 0
+                        data_detalle = {
+                            'detalle_id': '',
+                            'producto_id': info['id'],
+                            'cantidad': info['cantidad'],
+                            'stock': info['stock'],
+                            'clave': info['clave'],
+                            'desc': info['descripcion'],
+                            'concepto': clave+info['descripcion'],
+                            'precio': precio,
+                            'total': parseFloat(1*precio).toFixed(2), 
+                            'es_kilo': kilo
+                        }
+                        addDetalle(data_detalle)
+                    })
+                }else if(change.type === 'modified'){
+                    $.each($('#tbl-detalles tbody tr'), function(index, item){
+                        if($(item).data('producto_id') == info['id']){
+                            $(item).find('.cant').val(info['cantidad']).trigger('change')
+                        }
+                    })
+                }else{
+                    $.each($('#tbl-detalles tbody tr'), function(index, item){
+                        if($(item).data('producto_id') == info['id'])
+                            $(item).remove()
+                    })
+                    if($('#tbl-detalles tbody tr').length == 0)
+                        $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                }
+            })
+        });
+
+    });
+</script>
