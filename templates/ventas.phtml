@@ -1,0 +1,334 @@
+<?php 
+	include 'header.phtml';
+    define('MOD_VENTAS',	  29);
+    define('MOD_EDITAR',	  31);
+    define('MOD_ADDPAGO',	  32);
+    define('MOD_FINALIZAR',	  33);
+
+    if(!in_array(MOD_VENTAS, $permisos)) {
+		header('Location: '.URL_ROOT.'/403');
+		exit;
+	} 
+?>
+    <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.css">
+
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+    <div class="app-content content ">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body">
+                <section>
+                    <div class="card">
+                        <div class="card-body border-bottom">
+                            <div class="card-datatable table-responsive pt-0">
+                                <table id="tbl-ventas" class="table">
+                                    <thead class="table-light">
+                                        <tr class="text-center">
+                                            <th>Fecha</th>
+                                            <th>Folio</th>
+                                            <th>Usuario</th>
+                                            <th>Cliente</th>
+                                            <th>Total</th>
+                                            <th>Pagado</th>
+                                            <th>Pendiente</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-addpago">
+                                <div class="modal-dialog">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <h4 class="modal-title text-uppercase">agregar pago</h4>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">
+                                            <div class="mb-1 form-group row">
+                                                <div class="w-100 mb-1">
+                                                    <label class="form-label fw-bolder fs-5" for="monto">Monto</label>
+                                                    <input type="number" class="form-control" id="monto" min="1">
+                                                </div>
+                                                <div class="w-100 mb-2">
+                                                    <label class="form-label fw-bolder fs-5" for="forma_pago">Método de Pago</label>
+                                                    <select class="form-control" id="forma_pago">
+                                                        <option value="0" disabled>Seleccione una opción</option>
+                                                        <option value="1">Efectivo</option>
+                                                        <option value="2" class="hidden">Saldo a favor</option>
+                                                        <option value="3">Tarjeta</option>
+                                                        <option value="4">Transferencia</option>
+                                                    </select>
+                                                </div>
+                                                <div class="w-100">
+                                                    <div id="texto" class="alert alert-danger hidden" role="alert"></div>
+                                                </div>
+                                                <!-- <div class="w-100 fin hidden">
+                                                    <label class="form-label fw-bolder fs-5" for="finalizar">Finalizar Venta</label>
+                                                    <div class="form-check form-check-warning form-switch">
+                                                        <input type="checkbox" checked class="form-check-input" id="finalizar" />
+                                                    </div>
+                                                </div> -->
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-success mb-1" id="btnSave">Guardar</button>
+                                                <input type="hidden" id="venta_id" value="0">
+                                                <input type="hidden" id="saldo_favor" value="0">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <script src="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.min.js"></script>
+    <?php include 'footer.phtml'; ?>
+
+    <script>
+        $(function(){
+            var apiUrl = '<?= URL_ROOT ?>/',
+                id_cliente = 0;
+
+            getItems('tbl-ventas')
+
+            $('#tbl-ventas').on('click', '.btnAbrir', function(){
+                id = $(this).data('id')
+                window.location.href = '<?= URL_ROOT ?>/venta/cliente/'+$.md5(id.toString())
+            })
+
+            $('#tbl-ventas').on('click', '.btnAddPago', function(){
+                id = $(this).data('id')
+                saldo = $(this).data('saldo')
+                id_cliente = $(this).data('cliente')
+                tr = $(this).closest('tr')
+                total = $(tr).find('td:eq(6)').text()
+                $('#forma_pago').val(1)
+                $('#monto').val(total).attr('disabled', false).prop('disabled', false).attr('max', total)
+                if(saldo != 0){
+                    $('#forma_pago option[value="2"]').removeClass('hidden')
+                }else{
+                    $('#forma_pago option[value="2"]').addClass('hidden')
+                }
+                $('#venta_id').val(id)
+                $('#saldo_favor').val(saldo)
+                $('#frm-addpago').modal('show')
+            })
+
+            $('#forma_pago').change(function(){
+                val = $(this).val()
+                saldo = parseFloat($('#saldo_favor').val())
+                total = parseFloat($('#monto').val())
+                console.log(saldo)
+                console.log(total)
+                if(val == 2){
+                    $('#texto').removeClass('hidden')
+                    if(saldo < total){
+                        pendiente = parseFloat(total-saldo).toFixed(2) 
+                        $('#texto').html('Se registrará un pago por $'+saldo+' con saldo a favor.<br>Una vez finalizado el proceso habrá un saldo pendiente de $'+pendiente)
+                    }else{
+                        afavor = parseFloat(saldo-total).toFixed(2)
+                        $('#texto').html('Se registrará un pago por $'+total+' con saldo a favor.<br>Una vez finalizado el proceso quedará un saldo a favor de $'+afavor)
+                    }
+                }else{
+                    $('#texto').addClass('hidden')
+                }
+            })
+
+            $('#btnSave').click(function(){
+                btn = $(this)
+                btn.attr('disabled', true).prop('disabled', true)
+                $.blockUI()
+                if($('#monto').val() < 1){
+                    toastr['error']('¡Modifique el monto!', 'No se puede agregar un pago por menos de $1.00')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
+                }else if($('#forma_pago').val() == null || $('#forma_pago').val() == 0 || $('#forma_pago').val() == ''){
+                    toastr['error']('¡Método de pago!', 'Debe seleccionar un método de pago')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
+                }else{
+                    data = {
+                        'venta_id': $('#venta_id').val(),
+                        'cliente_id': id_cliente,
+                        'monto': $('#monto').val(),
+                        'forma_pago': $('#forma_pago').val()
+                    }
+                    $.post(apiUrl+'venta_pago/add/', data, function(resp){
+                        if(resp.response){
+                            toastr['success']('¡Listo!', 'Pago realizado con éxito')
+                            $('#frm-addpago').modal('hide')
+                            btn.attr('disabled', false).prop('disabled', false)
+                            getItems('tbl-ventas')
+                            $.unblockUI()
+                        }else{
+                            toastr['error']('¡Error!', 'No se pudo registrar el pago, inténtelo más tarde')
+                            btn.attr('disabled', false).prop('disabled', false)
+                            $.unblockUI()
+                        }
+                    })
+                }
+            })
+
+            $('#tbl-ventas').on('click', '.btnFinalizar', function(){
+                id = $(this).data('id')
+                swal({
+					title: "Finalizar",
+					text: "¿Seguro que deseas finalizar esta venta?",
+					type: "warning",
+					showCancelButton: true,
+					cancelButtonText: "Cancelar",
+					confirmButtonColor: "#DD6B55",
+					confirmButtonText: "¡Finalizar!",
+					closeOnConfirm: false 
+				},function(){
+					$.post(apiUrl+'venta/finalizar/'+id, function(response){
+						if(response.response){
+							swal("¡Hecho!",	"Venta finalizada", "success");
+							getItems('tbl-ventas')
+						}else{
+                            swal("¡Ocurrió un problema!", "No se pudo finalizar la venta.", "error")
+						}
+					},'json')
+				});
+            })
+
+            function getItems(tbl){
+                cleanTable(tbl)
+                $('#'+tbl+' tbody').empty()
+                createTable(tbl)
+            }
+
+            function cleanTable(tbl){
+                if($.fn.dataTable.isDataTable('#'+tbl)){
+                    table = $('#'+tbl).DataTable()
+                    table.destroy()
+                }
+            }
+
+            function createTable(tbl){
+                if($('#'+tbl).length){
+                    $('#'+tbl).DataTable({
+                        ajax:{
+                            url: apiUrl+'venta/getAllDataTable',
+                            type: 'GET',
+                        },
+                        columns: [
+                            {data: 'fecha'},
+                            {data: 'folio'},
+                            {data: 'usuario'},
+                            {data: 'cliente'},
+                            {data: 'total'},
+                            {data: 'pagado'},
+                            {data: 'pendiente'},
+                            {data: ''}
+                        ],
+                        columnDefs: [
+                            {
+                                targets: -1,
+                                title: 'Acciones',
+                                orderable: false,
+                                render: function (data, type, full, meta) {
+                                    id = full['id']; saldo = full['saldo']; cliente_id = full['cliente_id'];
+                                    return (
+                                        '<div class="text-center">'+
+                                            <?php if(in_array(MOD_EDITAR, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnAbrir" data-id="'+id+'" data-toggle="tooltip" title="Abrir" style="margin-right:4px;">'+
+                                                    feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_ADDPAGO, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-dark btn-sm btnAddPago" data-id="'+id+'" data-saldo="'+saldo+'" data-cliente="'+cliente_id+'" data-toggle="tooltip" title="Pagar" style="margin-right:4px;">'+
+                                                    feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_FINALIZAR, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-new-success btn-sm btnFinalizar" data-id="'+id+'" data-toggle="tooltip" title="Finalizar venta" style="margin-right:4px;">'+
+                                                    feather.icons['check'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                        '</div>'
+                                    );
+                                }
+                            },
+                            {
+                                targets: 0,
+                                render: function (data, type, full, meta) {
+                                    var salida =
+                                        '<div class="d-flex flex-column text-center">' +
+                                            '<span >' +
+                                                full['fecha'] +
+                                            '</span>' +
+                                            '<small class="emp_post text-muted">' +
+                                            full['hora'] +
+                                            '</small>' +
+                                        '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 4,
+                                render: function (data, type, full, meta) {
+                                    var salida = 
+                                        '<div class="d-flex flex-column text-end">'+
+                                            '<span>'+
+                                                full['total']
+                                            +'</span>'
+                                        +'</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 5,
+                                render: function (data, type, full, meta) {
+                                    var salida = 
+                                        '<div class="d-flex flex-column text-end">'+
+                                            '<span>'+
+                                                full['pagado']
+                                            +'</span>'
+                                        +'</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 6,
+                                render: function (data, type, full, meta) {
+                                    var salida = 
+                                        '<div class="d-flex flex-column text-end">'+
+                                            '<span>'+
+                                                full['pendiente']
+                                            +'</span>'
+                                        +'</div>';
+                                    return salida;
+                                }
+                            },
+                        ],
+                        order: [[1, 'asc']], 
+                        dom:
+                            '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
+                            '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
+                            '<"col-sm-12 col-lg-10 ps-xl-75 ps-0"<"dt-action-buttons d-flex align-items-center justify-content-center justify-content-lg-end flex-lg-nowrap flex-wrap"<"me-1"l>>>' +
+                            '>t' +
+                            '<"d-flex justify-content-between mx-2 row mb-1"' +
+                            '<"col-sm-12 col-md-6"i>' +
+                            '<"col-sm-12 col-md-6"p>' +
+                            '>',
+                        language: {
+                            url:'../spanish.json'
+                        },
+                    });
+                }
+            }
+
+        });
+    </script>
+</html>

@@ -8,14 +8,14 @@
                 <div class="container-fluid">
                     <div class="container-venta">
                         <div class="w-100 card">
-                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" data-bs-toggle="collapse" href="#cliente" role="button" aria-expanded="true" aria-controls="cliente"><span><i class="fas fa-caret-down ms-1 me-1"></i>&nbsp;Cliente</span></div>
+                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" data-bs-toggle="collapse" href="#cliente" role="button" aria-expanded="true" aria-controls="cliente" style="background-color: darkgray; color:white;"><span><i class="fas fa-caret-down ms-1 me-1"></i>&nbsp;Cliente</span></div>
                             <div class="card-body" id="cliente">
                                 <div class="d-flex">
-                                    <div class="col-4 mt-1">
+                                    <div class="col-4">
                                         <label for="clientes" class="form-label fw-bolder fs-5">Nombre del cliente</label>
                                         <select class="form-control" id="clientes"></select>
                                     </div>
-                                    <div class="col-4 text-center mt-1">
+                                    <div class="col-4 text-center">
                                         <label for="" class="form-label fw-bolder fs-5 text-center">Venta</label>
                                         <div class="mt-1">
                                             <input type="radio" id="contado" name="venta-tipo" class="radio" value="1">
@@ -24,7 +24,7 @@
                                             <label for="credito" class="ventaCredito hidden">Crédito</label>
                                         </div>
                                     </div>
-                                    <div class="col-4 text-center mt-1">
+                                    <div class="col-4 text-center">
                                         <label for="descuento" class="form-label fw-bolder fs-5">Descuento %</label>
                                         <div class="input-group">
                                             <div class="input-group-text">
@@ -33,13 +33,13 @@
                                             <input type="number" min="0" max="100" class="form-control text-end deshabilitado" id="descuento" value="0">
                                         </div>
                                     </div>
-                                    <input type="hidden" id="venta_id" value="0">
+                                    <!-- <input type="hidden" id="venta_id" value="0"> -->
                                 </div>
                             </div>
                         </div>
                         <div class="d-flex separar">
                             <div class="col-8 card shadow-lg">
-                                <div class="card-header-venta fw-bolder fs-5 text-uppercase">productos</div>
+                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #000066; color:white;">productos</div>
                                 <div class="card-body">
                                     <div class="w-100 d-flex">
                                         <table id="tbl-prods" class="table table-hover table-striped m-0 w-100 table-sm">
@@ -59,7 +59,7 @@
                                 </div>
                             </div>
                             <div class="col-4 card shadow-lg" style="width: calc(33.333% - 1rem);">
-                                <div class="card-header-venta fw-bolder fs-5 text-uppercase">rangos de precios</div>
+                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #000066; color:white;">rangos de precios</div>
                                 <div class="card-body">
                                     <div class="d-flex">
                                         <div>
@@ -128,7 +128,7 @@
                             </div>
                         </div>
                         <div class="w-100 card">
-                            <div class="card-header-venta fw-bolder fs-5 text-uppercase">productos agregados</div>
+                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: darkgray; color:white;">productos agregados</div>
                             <div class="card-body">
                                 <table id="tbl-detalles" class="table table-hover table-striped m-0 w-100 mw-100 table-sm">
                                     <thead>
@@ -149,7 +149,7 @@
                             </div>
                         </div>
                         <div class="w-100 card ventaPagos hidden">
-                            <div class="card-header-venta fw-bolder fs-5 text-uppercase">pagos realizados</div>
+                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #000066; color:white;">pagos realizados</div>
                             <div class="card-body">
                                 <table id="tbl-pagos" class="table table-hover table-striped m-0 w-100 mw-100 table-sm">
                                     <thead>
@@ -347,7 +347,6 @@
         })
 
         $('#tbl-prods').on('click', '.btnAdd', function(e){
-            console.log('350')
             e.preventDefault()
             $.blockUI()
             agregar = true
@@ -383,16 +382,27 @@
                             data = {
                                 'detalle_id': '', 
                                 'producto_id': prod_id, 
-                                'cantidad': 1, 
+                                'cantidad': '1.0', 
                                 'stock': stock, 
                                 'clave': clave, 
                                 'desc': desc, 
                                 'concepto': concepto, 
                                 'precio': resp.precio_menudeo, 
                                 'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
-                                'es_kilo': es_kilo
+                                'es_kilo': '0'
                             }
-                            addFirebase(data)
+                            <?php if(!$nueva) : ?>
+                                data['venta_id'] = '<?= $venta_id ?>'
+                                data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
+                                $.post(apiUrl+'venta_detalle/add/', data, function(res){
+                                    if(res.response){
+                                        data['detalle_id'] = res.result
+                                        addFirebase(data)
+                                    }
+                                },'json')
+                            <?php else : ?>        
+                                addFirebase(data)
+                            <?php endif; ?>
                             getTotales()
                         })
                     }else{
@@ -409,7 +419,7 @@
                         data = {
                             'detalle_id': '', 
                             'producto_id': prod_id, 
-                            'cantidad': 1, 
+                            'cantidad': '1.0', 
                             'clave': clave, 
                             'desc': desc, 
                             'concepto': concepto, 
@@ -418,7 +428,7 @@
                         }
                         $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/1', function(respStock){
                             if(respStock.response){
-                                data['es_kilo'] = respStock.cant_necesaria
+                                data['es_kilo'] = respStock.cant_necesaria.toFixed(1)
                                 data['stock'] = respStock.stock_disp
                                 addFirebase(data)
                                 getTotales() 
@@ -455,12 +465,12 @@
                     $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(resp){
                         if(cantidad <= resp.final){
                             cant = (cantidad.toFixed(1)).toString()
-                            db.collection(collection).doc(clave).update({'cantidad':cant})
                             $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
                                 precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
                                 total = parseFloat(precio*cantidad).toFixed(2)
                                 $(tr).find('.precio').html('$ '+precio)
                                 $(tr).find('.total').html('$ '+total)
+                                db.collection(collection).doc(clave).update({'cantidad':cant})
                                 getTotales()
                             },'json')
                         }else{
@@ -471,10 +481,25 @@
                     },'json')
                 <?php else : ?>
                     if(detalle_id != ''){
-                        data = {'cantidad': cantidad, 'precio':, 'importe':, 'descuento':, 'total':''}
-                        $.post(apiUrl+'venta_detalle/edit/'+detalle_id, function(resp){
-
-                        })
+                        $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                            let precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                            let total = parseFloat(precio*cantidad).toFixed(2)
+                            let cant = (cantidad.toFixed(1)).toString()
+                            $(tr).find('.precio').html('$ '+precio)
+                            $(tr).find('.total').html('$ '+total)
+                            getTotales()
+                            data = {'cantidad': cantidad, 'precio': precio, 'importe': total, 'descuento': 0, 'total': total}
+                            $.post(apiUrl+'venta_detalle/edit/'+detalle_id, data, function(resp){
+                                if(resp.response){
+                                    db.collection(collection).doc(clave).update({'cantidad':cant})
+                                    console.log('hecho')
+                                }else{
+                                    toastr["error"]("¡Ocurrió un error!", resp.msg)
+                                    elem.val(1).trigger('change')
+                                    $.unblockUI()
+                                }
+                            })
+                        },'json')
                     }
                 <?php endif; ?>
             }else{
@@ -483,8 +508,10 @@
                         $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
                             precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
                             total = parseFloat(precio*cantidad).toFixed(2)
+                            cant = cantidad.toFixed(1).toString()
                             $(tr).find('.precio').html('$ '+precio)
                             $(tr).find('.total').html('$ '+total)
+                            db.collection(collection).doc(clave).update({'cantidad':cant})
                             getTotales()
                         },'json')
                     }else{
@@ -500,12 +527,10 @@
             tr = $(this).parents('tr')
             clave = $(tr).data('clave')
             <?php if($nueva) : ?>
-                console.log(clave)
-                db.collection(collection).doc(clave).delete()
                 $(tr).remove()
-                <?php else : ?>
-                    det_id = $(tr).data('detalle_id')
-                    $.post(apiUrl+'venta_detalle/del/'+det_id, function(resp){
+            <?php else : ?>
+                det_id = $(tr).data('detalle_id')
+                $.post(apiUrl+'venta_detalle/del/'+det_id, function(resp){
                     if(resp.response){
                         $(tr).remove() 
                         toastr['success']('¡Hecho!', 'Producto eliminado de la venta')
@@ -517,6 +542,7 @@
                     }
                 },'json')
             <?php endif; ?>
+            db.collection(collection).doc(clave).delete()
             getTotales()
         })
 
@@ -565,20 +591,23 @@
         }
 
         function cargarVenta(){
-            <?php foreach($detalles as $detalle) : ?>
-                detalle = {
-                    'detalle_id': '<?= $detalle->id ?>',
-                    'producto_id': '<?= $detalle->producto_id ?>',
-                    'es_kilo': '<?= $detalle->es_kilo ?>',
-                    'precio': '<?= $detalle->precio ?>',
-                    'cantidad': '<?= $detalle->cantidad ?>',
-                    'concepto': '<?= $detalle->concepto ?>',
-                    'total': '<?= $detalle->total ?>',
-                }
-                addDetalle(detalle, 1)
-            <?php endforeach; ?>
-
             <?php if(!$nueva) : ?> 
+                <?php foreach($detalles as $detalle) : ?>
+                    detalle = {
+                        'cantidad': '<?= $detalle->cantidad ?>',
+                        'es_kilo': '<?= $detalle->es_kilo ?>',
+                        'clave': '<?= $detalle->clave ?>',
+                        'desc': '<?= $detalle->descripcion ?>',
+                        'producto_id': '<?= $detalle->producto_id ?>',
+                        'stock': '<?= $detalle->stock ?>',
+                        'detalle_id': '<?= $detalle->id ?>',
+                        'precio': '<?= $detalle->precio ?>',
+                        'concepto': '<?= $detalle->concepto ?>',
+                        'total': '<?= $detalle->total ?>',
+                    }
+                    addFirebase(detalle)
+                <?php endforeach; ?>
+
                 $('.ventaPagos').removeClass('hidden')
                 <?php foreach($pagos as $pago) : ?>
                     metodo_pago = '<?= $pago->forma_pago ?>' == 1 ? 'Efectivo' : ('<?= $pago->forma_pago ?>' == 2 ? 'Saldo a favor' : ('<?= $pago->forma_pago ?>' == 3 ? 'Tarjeta' : ('<?= $pago->forma_pago ?>' == 4 ? 'Transferencia' : 'Otro')))
@@ -613,14 +642,16 @@
         }
 
         function addFirebase(data){
+            console.log(data)
             var addProd = db.collection(collection).doc(data.clave);
             addProd.set({
-                'cantidad': ((data.cantidad).toFixed(1)).toString(),
-                'cantidadPorKilo': ((data.es_kilo).toFixed(1)).toString(),
+                'cantidad': data.cantidad,
+                'cantidadPorKilo': data.es_kilo,
                 'clave': data.clave,
                 'descripcion': data.desc,
                 'id': data.producto_id,
                 'stock': data.stock,
+                'detalle_id': data.detalle_id
             });
 
         }
@@ -713,9 +744,12 @@
                         $.unblockUI()
                     },'json')
                 <?php else : ?>
-                    venta_id = '<?= $id ?>'
-                    $.post(apiUrl+'venta/edit/'+id, data, function(resp){
-
+                    venta_id = '<?= $venta_id ?>'
+                    $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
+                        toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
+                        delDocs(data.detalles)
+                        window.open('<?= URL_ROOT ?>/ticket/'+$.md5(venta_id.toString()), '_blank')
+                        window.location.href = '<?= URL_ROOT ?>/venta/cliente'
                     })
                 <?php endif; ?>
             }
@@ -748,7 +782,6 @@
                 $('#'+tbl).DataTable({
                     ajax:{
                         url: apiUrl+'producto/getAllProdsVenta',
-                        // url: apiUrl+'producto/getAllProds/_',
                         type: 'GET',
                     },
                     columns: [
@@ -812,7 +845,6 @@
 
                 // let intervaloBusqueda = null;
                 // $(document).on('keyup', '#bus',  function(e){
-                //     console.log("aqui ando")
                 //     temporal = moment().format('x')+"-"+Math.random();
                 //     evaluar(temporal);
                 //     clearInterval(intervaloBusqueda)
@@ -831,32 +863,32 @@
 
         db.collection(collection).onSnapshot((snapshot) => {
             snapshot.docChanges().forEach((change) => {
-                info = change.doc.data()
+                let info = change.doc.data()
                 if(change.type === 'added'){
+                    let kilo = info['cantidadPorKilo'] != 0 ? info['cantidadPorKilo'] : 0
+                    let data_detalle = {
+                        'detalle_id': info['detalle_id'],
+                        'producto_id': info['id'],
+                        'cantidad': info['cantidad'],
+                        'stock': info['stock'],
+                        'clave': info['clave'],
+                        'desc': info['descripcion'],
+                        'concepto': '('+info['clave']+') '+info['descripcion'],
+                        'es_kilo': kilo
+                    }
+
                     $.get(apiUrl+'producto/getRangos/'+info['id'], function(resp){
                         precio = resp.precio_menudeo
-                        clave = '('+info['clave']+') '
-                        kilo = info['cantidadPorKilo'] != 0 ? 1 : 0
-                        data_detalle = {
-                            'detalle_id': '',
-                            'producto_id': info['id'],
-                            'cantidad': info['cantidad'],
-                            'stock': info['stock'],
-                            'clave': info['clave'],
-                            'desc': info['descripcion'],
-                            'concepto': clave+info['descripcion'],
-                            'precio': precio,
-                            'total': parseFloat(1*precio).toFixed(2), 
-                            'es_kilo': kilo
-                        }
+                        data_detalle['precio'] = precio,
+                        data_detalle['total'] = parseFloat(info['cantidad']*precio).toFixed(2),
                         addDetalle(data_detalle)
                     })
                 }else if(change.type === 'modified'){
-                    $.each($('#tbl-detalles tbody tr'), function(index, item){
-                        if($(item).data('producto_id') == info['id']){
-                            $(item).find('.cant').val(info['cantidad']).trigger('change')
-                        }
-                    })
+                    // $.each($('#tbl-detalles tbody tr'), function(index, item){
+                    //     if($(item).data('producto_id') == info['id']){
+                    //         $(item).find('.cant').val(info['cantidad']).trigger('change')
+                    //     }
+                    // })
                 }else{
                     $.each($('#tbl-detalles tbody tr'), function(index, item){
                         if($(item).data('producto_id') == info['id'])

@@ -5,8 +5,6 @@ use App\Lib\Auth,
 	date_default_timezone_set('America/Mexico_City');
 
 	$app->group('/venta_detalle/', function () use ($app){
-        $sucursal_id = isset($_SESSION['sucursal_id']) ? $_SESSION['sucursal_id'] : 0;
-        $usuario_id = isset($_SESSION['usuario_id']) ? $_SESSION['usuario_id'] : 0;
         
         $this->get('getByVenta/{id}', function($req, $res, $args){
             $detalles = $this->model->venta_detalle->getByVenta($args['id']);
@@ -49,23 +47,22 @@ use App\Lib\Auth,
                 'cantidad' => $parsedBody['cantidad'],
                 'precio' => $parsedBody['precio'],
                 'importe' => $parsedBody['importe'],
-                'descuento' => $parsedBody['descuento'],
                 'total' => $parsedBody['total'],
             ];
-            $addDet = $this->model->venta_detalle->add($dateDet);
+            $addDet = $this->model->venta_detalle->add($dataDet);
             if($addDet->response){
                 $det_id = $addDet->result;
                 $seg_log = $this->model->seg_log->add('Agrega detalle de venta', 'venta_detalle', $det_id, 1);
                 $info_prod = $this->model->producto->get($parsedBody['producto_id'])->result;
                 if($info_prod->es_kilo == 0){
-                    $stock = $this->model->prod_stock->getStock($sucursal_id, $producto_id)->result;
+                    $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto_id)->result;
                     $inicial = $stock->final;
                     if($inicial != 0){
                         if($inicial >= $parsedBody['cantidad']){
                             $final = floatval($inicial-$parsedBody['cantidad']);
                             $dataStock = [
-                                'usuario_id' => $usuario_id,
-                                'sucursal_id' => $sucursal_id,
+                                'usuario_id' => $_SESSION['usuario_id'],
+                                'sucursal_id' => $_SESSION['sucursal_id'],
                                 'producto_id' => $producto_id,
                                 'tipo' => -1,
                                 'inicial' => $inicial,
@@ -99,14 +96,14 @@ use App\Lib\Auth,
                     $info_kilo = $this->model->producto->getKiloBy($producto_id, 'producto_id')->result;
                     $cantidad = ($info_kilo->cantidad * $parsedBody['cantidad']);
                     $prod_origen = $info_kilo->producto_origen;
-                    $stock = $this->model->prod_stock->getStock($sucursal_id, $prod_origen)->result;
+                    $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                     $inicial = $stock->final;
                     if($inicial != 0){
                         if($inicial >= $cantidad){
                             $final = floatval($inicial-$cantidad);
                             $dataStock = [
-                                'usuario_id' => $usuario_id,
-                                'sucursal_id' => $sucursal_id,
+                                'usuario_id' => $_SESSION['usuario_id'],
+                                'sucursal_id' => $_SESSION['sucursal_id'],
                                 'producto_id' => $producto_id,
                                 'tipo' => -1,
                                 'inicial' => $inicial,
@@ -166,13 +163,13 @@ use App\Lib\Auth,
                 $info_prod = $this->model->producto->get($producto_id)->result;
                 if($parsedBody['cantidad'] < $info_det->cantidad){
                     if($info_prod->es_kilo == 0){
-                        $stock = $this->model->prod_stock->getStock($sucursal_id, $producto_id)->result;
+                        $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto_id)->result;
                         $inicial = $stock->final;
                         $cantidad = $info_det->cantidad-$parsedBody['cantidad'];
                         $final = $inicial+$cantidad;
                         $dataStock = [
-                            'usuario_id' => $usuario_id,
-                            'sucursal_id' => $sucursal_id,
+                            'usuario_id' => $_SESSION['usuario_id'],
+                            'sucursal_id' => $_SESSION['sucursal_id'],
                             'producto_id' => $producto_id,
                             'tipo' => 1,
                             'inicial' => $inicial,
@@ -188,13 +185,13 @@ use App\Lib\Auth,
                         $cant_anterior = ($info_kilo->cantidad * $info_det->cantidad);
                         $cant_nueva = ($info_kilo->cantidad * $parsedBody['cantidad']);
                         $prod_origen = $info_kilo->producto_origen;
-                        $stock = $this->model->prod_stock->getStock($sucursal_id, $prod_origen)->result;
+                        $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                         $inicial = $stock->final;
                         $cantidad = $cant_anterior-$cant_nueva;
                         $final = $inicial+$cantidad;
                         $dataStock = [
-                            'usuario_id' => $usuario_id,
-                            'sucursal_id' => $sucursal_id,
+                            'usuario_id' => $_SESSION['sucursal_id'],
+                            'sucursal_id' => $_SESSION['sucursal_id'],
                             'producto_id' => $producto_id,
                             'tipo' => 1,
                             'inicial' => $inicial,
@@ -206,21 +203,21 @@ use App\Lib\Auth,
                             'origen_id' => $args['id']
                         ];
                     }
-                    $addStock = $this->model->prod_stock->add($addStock);
+                    $addStock = $this->model->prod_stock->add($dataStock);
                     if(!$addStock->response){
                         $addStock->state = $this->model->transaction->regresaTransaccion();
                         return $res->withJson($addStock);
                     }
                 }else{
                     if($info_prod->es_kilo == 0){
-                        $stock = $this->model->prod_stock->getStock($sucursal_id, $producto_id)->result;
+                        $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto_id)->result;
                         $inicial = $stock->final;
                         $cant_nueva = $parsedBody['cantidad'] - $info_det->cantidad;
                         if($inicial > 0 && $cant_nueva <= $inicial){
                             $final = $inicial+$cant_nueva;
                             $dataStock = [
-                                'usuario_id' => $usuario_id,
-                                'sucursal_id' => $sucursal_id,
+                                'usuario_id' => $_SESSION['usuario_id'],
+                                'sucursal_id' => $_SESSION['sucursal_id'],
                                 'producto_id' => $producto_id,
                                 'tipo' => -1,
                                 'inicial' => $inicial,
@@ -241,14 +238,14 @@ use App\Lib\Auth,
                         $cant_anterior = ($info_kilo->cantidad * $info_det->cantidad);
                         $cant_nueva = ($info_kilo->cantidad * $parsedBody['cantidad']);
                         $prod_origen = $info_kilo->producto_origen;
-                        $stock = $this->model->prod_stock->getStock($sucursal_id, $prod_origen)->result;
+                        $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                         $inicial = $stock->final;
                         $cantidad = $cant_nueva - $cant_anterior;
                         if($inicial > 0 && $cantidad){
                             $final = $inicial - $cantidad;
                             $dataStock = [
-                                'usuario_id' => $usuario_id,
-                                'sucursal_id' => $sucursal_id,
+                                'usuario_id' => $_SESSION['usuario_id'],
+                                'sucursal_id' => $_SESSION['sucursal_id'],
                                 'producto_id' => $producto_id,
                                 'tipo' => 1,
                                 'inicial' => $inicial,
@@ -265,7 +262,7 @@ use App\Lib\Auth,
                             return $res->withJson($this->response->SetResponse(false, "No hay suficiente stock del producto: $producto_id $info_prod->nombre"));
                         }
                     }
-                    $addStock = $this->model->prod_stock->add($addStock);
+                    $addStock = $this->model->prod_stock->add($dataStock);
                     if(!$addStock->response){
                         $addStock->state = $this->model->transaction->regresaTransaccion();
                         return $res->withJson($addStock);

@@ -395,7 +395,7 @@
                                             </div>
                                         </div>
                                         <div class="modal-footer">
-                                            <div class="buttonsEnd hidden">
+                                            <div class="buttonsEnd hidden buttonsDel">
                                                 <button type="reset" class="btn btn-outline-secondary" data-bs-dismiss="modal">Cancelar</button>
                                                 <button type="button" class="btn btn-danger me-1" id="btnEliminar">Eliminar</button>
                                                 <input  type="hidden" id="prod_id_del" value="0">
@@ -966,7 +966,7 @@
                                     elem.append(tr)
                                 }
                             })
-                            $('.buttonsEnd').addClass('hidden')
+                            $('.buttonsDel').addClass('hidden')
                             $('.confirmacion').addClass('hidden')
                             $('.imposible strong').html(name)
                             $('.imposible').removeClass('hidden')
@@ -975,7 +975,7 @@
                             $('.confirmacion').removeClass('hidden')
                             $('.confirmacion strong').html(name)
                             $('.imposible').addClass('hidden')
-                            $('.buttonsEnd').removeClass('hidden')
+                            $('.buttonsDel').removeClass('hidden')
                             $.unblockUI()
                         }
                     },'json');

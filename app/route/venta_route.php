@@ -19,13 +19,16 @@ use App\Lib\Auth,
             $ventas = $this->model->venta->getAllDataTable()->result;
             $data = [];
             foreach($ventas as $venta){
+                $fecha = explode('-', $venta->date);
+                $fecha = $fecha[0].$fecha[1].$fecha[2];
                 $pagado = $this->model->venta_pago->getTotal($venta->id)->result->total;
                 $pagado = $pagado != null ? $pagado : 0.00;
                 $pendiente = floatval($venta->total-$pagado);
                 $data[] = array(
+                    "id" => $venta->id,
                     "fecha" => $venta->date,
                     "hora" => $venta->hora,
-                    "folio" => $venta->id, 
+                    "folio" => $venta->identificador.'-'.$fecha.'-'.$venta->id, 
                     "usuario" => $venta->usuario, 
                     "cliente_id" => $venta->cliente_id,
                     "cliente" => $venta->cliente, 
@@ -237,6 +240,25 @@ use App\Lib\Auth,
                 return $res->withJson($addVenta);
             }
 		});
+
+        $this->post('edit/{id}', function($req, $res, $args){
+            $this->model->transaction->iniciaTransaccion();
+            $parsedBody = $req->getParsedBody();
+            $venta = [
+                'subtotal' => $parsedBody['subtotal'],
+                'total' => $parsedBody['total'],
+                'comentarios' => $parsedBody['comentarios'],
+            ];
+            $edit = $this->model->venta->edit($venta, $args['id']);
+            if($edit->response){
+                $this->model->seg_log->add('Edita venta', 'venta', $args['id'], 1);
+                $edit->state = $this->model->transaction->confirmaTransaccion();
+                return $res->withJson($edit);
+            }else{
+                $edit->state = $this->model->transaction->regresaTransaccion();
+                return $res->withJson($edit);
+            }
+        });
 
         $this->post('devolucion/{id}', function($req, $res, $args){
             $this->model->transaction->iniciaTransaccion();

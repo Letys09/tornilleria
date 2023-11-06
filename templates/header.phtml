@@ -10,6 +10,8 @@
     // echo($vista);
     switch ($vista) {
         case 'Venta': $icono = 'fas fa-shopping-cart'; $vista = 'Venta'; break;
+        case 'Cotizaciones': $icono = 'fas fa-clipboard-list'; break;
+        case 'Cotización': $icono = 'fas fa-clipboard-list'; break;
         case 'Usuarios': $icono = 'fas fa-user'; break;
         case 'Sucursales': $icono = 'fas fa-store'; break;
         case 'Productos': $icono = 'fas fa-boxes'; $vista = 'Inventario / Precios'; break;
@@ -84,6 +86,11 @@
                 </ul>
             </div>
             <ul class="nav navbar-nav align-items-center ms-auto">
+                <?php if($vista != 'Cotización') : ?>
+                    <li>
+                        <a class="nav-link" href="<?= URL_ROOT ?>/cotizacion/cliente"><i class="fas fa-clipboard nuevaCoti" data-toggle="tooltip" title="Cotización"></i></a>
+                    </li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                <?php endif; ?>
                 <?php if($vista != 'Venta') : ?>
                     <li>
                         <a class="nav-link" href="<?= URL_ROOT ?>/venta/cliente"><i class="fas fa-shopping-cart nuevaVenta" data-toggle="tooltip" title="Nueva Venta"></i></a>

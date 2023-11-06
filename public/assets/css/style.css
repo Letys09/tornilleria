@@ -452,7 +452,7 @@ div.card-header.link{
     margin: 0 auto
 }
 
-.busPrecios, .nuevaVenta{
+.busPrecios, .nuevaVenta, .nuevaCoti{
 	color: #000066 !important;
 	/* text-shadow: 2px 2px rgb(157, 97, 216); */
 	font-size: x-large;
@@ -550,4 +550,10 @@ div.card-header.link{
 .subcategorias{
 	grid-column: 3;
 	grid-row: 1;
+}
+
+@media (max-width: 1399.98px) { 
+	#tbl-rangos_precios > :not(caption) > * > * {
+		padding: .72rem 0.2rem;
+	}
 }
