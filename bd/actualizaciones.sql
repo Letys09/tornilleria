@@ -33,3 +33,9 @@ INSERT INTO `seg_accion` (`id`, `seg_modulo_id`, `nombre`, `descripcion`, `statu
 ALTER TABLE `cotizacion` ADD `sucursal_id` INT(11) NOT NULL AFTER `id`;
 ALTER TABLE `coti_detalle` CHANGE `status` `status` TINYINT(1) NULL DEFAULT '1'; 
 ALTER TABLE `venta_detalle` CHANGE `cantidad` `cantidad` DECIMAL(10,1) NULL DEFAULT NULL;
+ALTER TABLE `coti_detalle` CHANGE `cantidad` `cantidad` DECIMAL(10,1) NULL DEFAULT NULL; 
+ALTER TABLE `cotizacion` ADD `fecha_actualiza` DATETIME NULL DEFAULT NULL AFTER `vigencia`; 
+ALTER TABLE `venta` ADD `fecha_actualiza` DATETIME NULL DEFAULT NULL AFTER `usuario_cancela`;
+ALTER TABLE `producto` CHANGE `clave_sat` `clave_sat` VARCHAR(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL; 
+ALTER TABLE `producto` CHANGE `prod_unidad_medida_id` `prod_unidad_medida_id` INT NULL DEFAULT NULL; 
+ALTER TABLE `seg_session` ADD `tipo_sesion` TINYINT(1) NOT NULL DEFAULT '1' AFTER `user_agent`; 

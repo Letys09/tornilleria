@@ -43,6 +43,7 @@ use App\Lib\Auth,
             $fecha = date('Y-m-d H:i:s');
             $dataDet = [
                 'venta_id' => $venta_id,
+                'fecha' => $fecha,
                 'producto_id' => $producto_id,
                 'cantidad' => $parsedBody['cantidad'],
                 'precio' => $parsedBody['precio'],
@@ -134,6 +135,9 @@ use App\Lib\Auth,
                         return $res->withJson($this->response->SetResponse(false, "No hay stock disponible del producto: $producto_id $info_prod->nombre"));
                     }                            
                 }
+            }else{
+                $addDet->state = $this->model->transaction->regresaTransaccion();
+                return $res->withJson($addDet);
             }
 		});
 

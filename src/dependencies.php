@@ -64,8 +64,8 @@
 					'venta' 				  => new App\Model\VentaModel($c->db),
 					'venta_detalle'			  => new App\Model\VentaDetModel($c->db),
 					'venta_pago'			  => new App\Model\VentaPagoModel($c->db),
-					// 'cotizacion'			  => new App\Model\CotizacionModel($c->db),
-					// 'coti_detalle'			  => new App\Model\CotiDetalleModel($c->db),
+					'cotizacion'			  => new App\Model\CotizacionModel($c->db),
+					'coti_detalle'			  => new App\Model\CotiDetalleModel($c->db),
 				];
 			};
 ?>

@@ -266,6 +266,7 @@
             aplicar = 0,
             desc_cli = 0,
             tipo = 1,
+            eliminarDet = true,
             collection = '<?= $_SESSION['sucursal_id'] ?>-'+'<?= $_SESSION['usuario_id'] ?>-'+'<?= date("Ymd") ?>',
             firebaseConfig = {
                 apiKey: "AIzaSyDnf5WHyP3ifke133Gff5pngMDJXJMZu3E",
@@ -280,6 +281,17 @@
 
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
+
+        
+        // if($('#tbl-detalles tbody tr').lenght != 0){
+        //     detalles_del = []
+        //     $.each($('#tbl-detalles tbody tr'), function(index, tr){
+        //         console.log(tr)
+        //         clave_fila = $(tr).data('clave')
+        //         console.log(clave_fila)
+        //         db.collection(collection).doc(clave_fila).delete()
+        //     })
+        // }
 
         getClientes()
         getItems('tbl-prods')
@@ -430,7 +442,18 @@
                             if(respStock.response){
                                 data['es_kilo'] = respStock.cant_necesaria.toFixed(1)
                                 data['stock'] = respStock.stock_disp
-                                addFirebase(data)
+                                <?php if(!$nueva) : ?>
+                                    data['venta_id'] = '<?= $venta_id ?>'
+                                    data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
+                                    $.post(apiUrl+'venta_detalle/add/', data, function(res){
+                                        if(res.response){
+                                            data['detalle_id'] = res.result
+                                            addFirebase(data)
+                                        }
+                                    },'json')
+                                <?php else : ?>        
+                                    addFirebase(data)
+                                <?php endif; ?>
                                 getTotales() 
                                 $.unblockUI()
                             }else{
@@ -480,45 +503,38 @@
                         }
                     },'json')
                 <?php else : ?>
-                    if(detalle_id != ''){
-                        $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
-                            let precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                            let total = parseFloat(precio*cantidad).toFixed(2)
-                            let cant = (cantidad.toFixed(1)).toString()
-                            $(tr).find('.precio').html('$ '+precio)
-                            $(tr).find('.total').html('$ '+total)
-                            getTotales()
-                            data = {'cantidad': cantidad, 'precio': precio, 'importe': total, 'descuento': 0, 'total': total}
-                            $.post(apiUrl+'venta_detalle/edit/'+detalle_id, data, function(resp){
-                                if(resp.response){
-                                    db.collection(collection).doc(clave).update({'cantidad':cant})
-                                    console.log('hecho')
-                                }else{
-                                    toastr["error"]("¡Ocurrió un error!", resp.msg)
-                                    elem.val(1).trigger('change')
-                                    $.unblockUI()
-                                }
-                            })
-                        },'json')
-                    }
+                    // if(detalle_id != ''){
+                        let cant = (cantidad.toFixed(1)).toString()
+                        console.log(cant)
+                        console.log(collection)
+                        console.log(clave)
+                        db.collection(collection).doc(clave).update({'cantidad':cant})
+                    // }
                 <?php endif; ?>
             }else{
-                $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/'+cantidad, function(resp){
-                    if(resp.response){
-                        $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
-                            precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                            total = parseFloat(precio*cantidad).toFixed(2)
-                            cant = cantidad.toFixed(1).toString()
-                            $(tr).find('.precio').html('$ '+precio)
-                            $(tr).find('.total').html('$ '+total)
-                            db.collection(collection).doc(clave).update({'cantidad':cant})
-                            getTotales()
-                        },'json')
-                    }else{
-                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
-                        $.unblockUI()
+                <?php if($nueva) : ?>
+                    $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/'+cantidad, function(resp){
+                        if(resp.response){
+                            $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                                precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                                total = parseFloat(precio*cantidad).toFixed(2)
+                                cant = cantidad.toFixed(1).toString()
+                                $(tr).find('.precio').html('$ '+precio)
+                                $(tr).find('.total').html('$ '+total)
+                                db.collection(collection).doc(clave).update({'cantidad':cant})
+                                getTotales()
+                            },'json')
+                        }else{
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            $.unblockUI()
+                        }
+                    },'json')
+                <?php else : ?>
+                    if(detalle_id != ''){
+                        let cant = (cantidad.toFixed(1)).toString()
+                        db.collection(collection).doc(clave).update({'cantidad':cant})
                     }
-                },'json')
+                <?php endif; ?>
             }
         })
 
@@ -526,22 +542,6 @@
             e.preventDefault()
             tr = $(this).parents('tr')
             clave = $(tr).data('clave')
-            <?php if($nueva) : ?>
-                $(tr).remove()
-            <?php else : ?>
-                det_id = $(tr).data('detalle_id')
-                $.post(apiUrl+'venta_detalle/del/'+det_id, function(resp){
-                    if(resp.response){
-                        $(tr).remove() 
-                        toastr['success']('¡Hecho!', 'Producto eliminado de la venta')
-                        if($('#tbl-detalles tbody tr').length == 0){
-                            $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
-                        }
-                    }else{
-                        toastr['error']('¡Error!', 'No pudimos eliminar el producto de la venta')
-                    }
-                },'json')
-            <?php endif; ?>
             db.collection(collection).doc(clave).delete()
             getTotales()
         })
@@ -621,6 +621,7 @@
                     }
                     addPago(pago)
                 <?php endforeach; ?>
+                $('#venta-comentarios').val('<?= $venta->comentarios ?>')
             <?php endif; ?>
         }
 
@@ -642,7 +643,6 @@
         }
 
         function addFirebase(data){
-            console.log(data)
             var addProd = db.collection(collection).doc(data.clave);
             addProd.set({
                 'cantidad': data.cantidad,
@@ -653,7 +653,6 @@
                 'stock': data.stock,
                 'detalle_id': data.detalle_id
             });
-
         }
 
         function addPago(data){
@@ -711,6 +710,7 @@
             $.each($('#tbl-detalles tbody tr'), function(index, tr){
                 if($(tr).is(':visible') && !$(tr).hasClass('nodata')){
                     detalle = {
+                        'detalle_id': $(tr).data('detalle_id'), 
                         'clave': $(tr).data('clave'), 
                         'producto_id': $(tr).data('producto_id'), 
                         'cantidad': $(tr).find('.cant').val(),
@@ -734,6 +734,8 @@
                     $.post(apiUrl+'venta/add/', data, function(resp){
                         if(resp.response){
                             toastr['success']('¡Venta realizada!', 'Venta realizada con éxito')
+                            eliminarDet = false
+                            console.log('aquí1')
                             delDocs(data.detalles)
                             window.open('<?= URL_ROOT ?>/ticket/'+$.md5(resp.result.toString()), '_blank')
                             window.location.href = '<?= URL_ROOT ?>/venta/cliente'
@@ -747,6 +749,8 @@
                     venta_id = '<?= $venta_id ?>'
                     $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
                         toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
+                        eliminarDet = false
+                        console.log('aquí2')
                         delDocs(data.detalles)
                         window.open('<?= URL_ROOT ?>/ticket/'+$.md5(venta_id.toString()), '_blank')
                         window.location.href = '<?= URL_ROOT ?>/venta/cliente'
@@ -756,9 +760,18 @@
         }
 
         function delDocs(docs){
-            $.each(docs, function(index, doc){
-                db.collection(collection).doc(doc.clave).delete()
-            })
+            // $.each(docs, function(index, doc){
+            //     db.collection(collection).doc(doc.clave).delete()
+            // })
+            db.collection(collection)
+            .get()
+            .then(res => {
+                res.forEach(element => {
+                    console.log(element)
+                    console.log('eliminar coleccion')
+                element.ref.delete();
+                });
+            });
         }
 
         function cleanTable(tbl){
@@ -835,28 +848,7 @@
                     language: {
                         url:'<?= URL_ROOT ?>/spanish.json'
                     },
-                    // 'processing': true,
-                    // 'serverSide': true,
-                    initComplete: function () {
-                        // $('#tbl-prods_wrapper').addClass('w-100')
-                        // $('#tbl-prods_filter').html('<div class="d-flex"><label>Buscar </label><input type="search" id="bus" placeholder="Buscar por clave o descripción" class="form-control"></div>') 
-                    }
                 });
-
-                // let intervaloBusqueda = null;
-                // $(document).on('keyup', '#bus',  function(e){
-                //     temporal = moment().format('x')+"-"+Math.random();
-                //     evaluar(temporal);
-                //     clearInterval(intervaloBusqueda)
-                //     let valor = this.value;
-                //     intervaloBusqueda = setInterval(function() {
-                //         oTable = $('#tbl-prods').DataTable();
-                //         // Typing finished, now you can Do whatever after 2 sec
-                //         oTable.search( valor ).draw();
-
-                //         clearInterval(intervaloBusqueda)
-                //     }, 1000);
-                // });
 
             }
         }
@@ -884,15 +876,55 @@
                         addDetalle(data_detalle)
                     })
                 }else if(change.type === 'modified'){
-                    // $.each($('#tbl-detalles tbody tr'), function(index, item){
-                    //     if($(item).data('producto_id') == info['id']){
-                    //         $(item).find('.cant').val(info['cantidad']).trigger('change')
-                    //     }
-                    // })
-                }else{
                     $.each($('#tbl-detalles tbody tr'), function(index, item){
-                        if($(item).data('producto_id') == info['id'])
-                            $(item).remove()
+                        if($(item).data('producto_id') == info['id']){
+                            if(info['detalle_id'] == ''){
+                                $(item).find('.cant').val(info['cantidad']).trigger('change')
+                                $.unblockUI()
+                            }else{
+                                $(item).find('.cant').val(info['cantidad'])
+                                let detalle_id = info['detalle_id']
+                                $.get(apiUrl+'producto/getPrecioByCant/'+info['id']+'/'+info['cantidad'], function(resp){
+                                    let precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                                    let total = parseFloat(precio*info['cantidad']).toFixed(2)
+                                    $(tr).find('.precio').html('$ '+precio)
+                                    $(tr).find('.total').html('$ '+total)
+                                    getTotales()
+                                    data = {'cantidad': info['cantidad'], 'precio': precio, 'importe': total, 'descuento': 0, 'total': total}
+                                    $.post(apiUrl+'venta_detalle/edit/'+detalle_id, data, function(resp){
+                                        if(!resp.response){
+                                            toastr["error"]("¡Ocurrió un error!", 'Vuelva a intentarlo más tarde')
+                                            $(item).val(1).trigger('change')
+                                            $.unblockUI()
+                                        }
+                                    })
+                                },'json')
+                            }
+                        }
+                    })
+                }else{
+                    $.each($('#tbl-detalles tbody tr'), function(index, tr){
+                        if($(tr).data('producto_id') == info['id']){
+                            $(tr).remove()
+                        }
+                        if(eliminarDet){
+                            let producto_id = ($(tr).data('producto_id')).toString()
+                            if(info['detalle_id'] != '' && producto_id == info['id'] ){
+                                detalle_id = info['detalle_id']
+                                $.post(apiUrl+'venta_detalle/del/'+detalle_id, function(resp){
+                                    if(resp.response){
+                                        toastr['success']('¡Hecho!', 'Producto eliminado de la venta')
+                                        if($('#tbl-detalles tbody tr').length == 0){
+                                            $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                                        }
+                                    }else{
+                                        toastr['error']('¡Error!', 'No pudimos eliminar el producto de la venta')
+                                    }
+                                },'json')
+                            }
+                        }else{
+                            console.log('no eliminar')
+                        }
                     })
                     if($('#tbl-detalles tbody tr').length == 0)
                         $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')

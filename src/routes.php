@@ -9,6 +9,16 @@
 		$app->get('/[{name}]', function (Request $request, Response $response, array $args) use ($container) {
 			$this->logger->info("Slim-Skeleton '/' ".(isset($args['name'])?$args['name']:''));
 			if(!isset($args['name'])) { $args['name'] = 'login'; }
+			if(isset($_SESSION['logID'])){
+				$sesion_info = $this->model->seg_sesion->get($_SESSION['logID']);
+				if($sesion_info->response){
+					$sesion = $sesion_info->result;
+					if($sesion->finalizada != null){
+						unset($_SESSION['logID']);
+						return $this->response->withRedirect(URL_ROOT.'/login');
+					}
+				}
+			}
 			
 			if(!isset($_SESSION)) { session_start(); }
 			if(isset($_SESSION['logID'])){
@@ -158,23 +168,18 @@
 			$params['permisos'] = $arrPermisos; 
 
 			if(isset($args['id'])){
-				$params['id'] = $args['id'];
 				$params['cotizacion'] = $this->model->cotizacion->getByMd5($args['id']);
-				$params['detalles'] = $this->model->venta_detalle->getByVenta($params['venta']->id)->result;
+				$params['cotizacion_id'] = $params['cotizacion']->id;
+				$params['detalles'] = $this->model->coti_detalle->getByCot($params['cotizacion']->id)->result;
 				foreach($params['detalles'] as $detalle){
 					$prod = $this->model->producto->get($detalle->producto_id)->result;
+					$detalle->clave = $prod->clave;
 					$detalle->concepto = '('.$prod->clave.') '.$prod->descripcion;
 					$detalle->es_kilo = $prod->es_kilo;
+					$detalle->stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id)->result->final;
 				}
-				$params['pagos'] = $this->model->venta_pago->getByVenta($params['venta']->id)->result;
-				// print_r($params['id']);
-				// print_r('<hr>');
-				// print_r($params['venta']);
-				// print_r('<hr>');
-				// print_r($params['detalles']);
-				// print_r('<hr>');
-				// print_r($params['pagos']);exit();
 				$params['nueva'] = false;
+				// print_r($params);exit();
 			}else{
 				$params['nueva'] = true;
 				$params['detalles'] = [];
