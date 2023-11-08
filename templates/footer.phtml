@@ -25,7 +25,7 @@
 <script src="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/js/blockPage.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/plugin/md5/md5.min.js"></script>
-
+<script src="<?= URL_ROOT ?>/app-assets/plugin/session-timeout/jquery.sessionTimeout.min.js"></script>
 
 <script src="<?= URL_ROOT ?>/app-assets/js/core/app-menu.min.js"></script>
 <script src="<?= URL_ROOT ?>/app-assets/js/core/app.min.js"></script>
@@ -59,6 +59,22 @@
         "progressBar": true,
         "timeOut": "5000",
     }
+
+    $.sessionTimeout({
+        heading: 'h5',
+        title: 'Sesión por expirar',
+        message: 'Tu sesión está a punto de expirar. ¿Deseas seguir conectado?',
+        countdownMessage: "Se cerrará en {timer} segundos.",
+        warnAfter: 600000, 
+        redirUrl: '<?= URL_ROOT ?>/usuario/logout', 
+        redirAfter: 650000,
+        keepAlive: true,
+        keepAliveUrl: '<?= URL_ROOT ?>/usuario/renovarToken/', 
+        logoutUrl: '<?= URL_ROOT ?>/usuario/logout', 
+        keepAliveButton: 'Seguir conectado',
+        logoutButton: 'Salir',
+        ignoreUserActivity: false,
+    });
 
     $('.btnSwitch').click(function(e){
         e.preventDefault();
