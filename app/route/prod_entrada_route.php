@@ -32,14 +32,14 @@ use App\Lib\Auth,
 					"hora" => $entrada->hora,
 					"folio" => $entrada->folio,
 					"usuario" => $entrada->usuario,
-					"sucursal_id" => $entrada->sucursal_id,
-					"sucursal" => $entrada->nombre,
+					// "sucursal_id" => $entrada->sucursal_id,
+					// "sucursal" => $entrada->nombre,
 					"importe" => $entrada->importe,
 					"descuento" => $entrada->descuento,
 					"subtotal" => $entrada->subtotal,
 					"iva" => $entrada->iva,
 					"total" => $entrada->total,
-					"data_id" => $entrada->id,
+					"id" => $entrada->id,
 				);
 			}
 

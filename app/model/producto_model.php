@@ -263,7 +263,7 @@ class ProductoModel {
 		if($this->response->result) { 
 			$this->response->SetResponse(true);
 		}else {
-			$this->response->SetResponse(false, 'No existe el registro con esa clave');
+			$this->response->SetResponse(false, 'No existe un producto con esa clave');
 		}
 		return $this->response;
 	}

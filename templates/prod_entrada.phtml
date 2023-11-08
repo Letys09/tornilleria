@@ -37,11 +37,12 @@
                                 <table id="tbl-entradas" class="table">
                                     <thead class="table-light">
                                         <tr class="text-center">
+                                            <th>id</th>
                                             <th>Fecha</th>
                                             <th>Folio</th>
                                             <th>Usuario</th>
-                                            <th>Sucursal id</th>
-                                            <th>Sucursal</th>
+                                            <!-- <th>Sucursal id</th>
+                                            <th>Sucursal</th> -->
                                             <th>Importe</th>
                                             <th>Descuento %</th>
                                             <th>Subtotal</th>
@@ -706,11 +707,12 @@
                             type: 'GET',
                         },
                         columns: [
+                            {data: 'id'},
                             {data: 'fecha'},
                             {data: 'folio'},
                             {data: 'usuario'},
-                            {data: 'sucursal_id'},
-                            {data: 'sucursal'},
+                            // {data: 'sucursal_id'},
+                            // {data: 'sucursal'},
                             {data: 'importe'},
                             {data: 'descuento'},
                             {data: 'subtotal'},
@@ -724,7 +726,7 @@
                                 title: 'Acciones',
                                 orderable: false,
                                 render: function (data, type, full, meta) {
-                                    id = full['data_id'];
+                                    id = full['id'];
                                     return (
                                         '<div class="text-center">' +
                                             '<button type="button" class="btn btn-outline-new-success btn-sm btnVer" data-id="'+id+'" data-toggle="tooltip" title="Detalles" style="margin-right:4px;">'+
@@ -745,7 +747,7 @@
                                 }
                             },
                             {
-                                targets: 0,
+                                targets: 1,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-center">' +
@@ -760,7 +762,7 @@
                                 }
                             },
                             {
-                                targets: 5,
+                                targets: 4,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-end">' +
@@ -770,7 +772,7 @@
                                 }
                             },
                             {
-                                targets: 6,
+                                targets: 5,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-end">' +
@@ -780,7 +782,7 @@
                                 }
                             },
                             {
-                                targets: 7,
+                                targets: 6,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-end">' +
@@ -790,7 +792,7 @@
                                 }
                             },
                             {
-                                targets: 8,
+                                targets: 7,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-end">' +
@@ -800,7 +802,7 @@
                                 }
                             },
                             {
-                                targets: 9,
+                                targets: 8,
                                 render: function (data, type, full, meta) {
                                 var salida =
                                     '<div class="d-flex flex-column text-end">' +
@@ -810,7 +812,7 @@
                                 }
                             },
                             {
-                                visible: false, targets: [3]
+                                visible: false, targets: [0]
                             }
                         ],
                         order: [[0, 'desc']], 
