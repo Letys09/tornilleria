@@ -63,6 +63,7 @@ class SegSesionModel {
 			$this->response->result = $this->db
 				->from("$this->table")
 				->where("usuario_id", $usuario_id)
+				->where("tipo_sesion", 1)
 				->where("DATE_FORMAT(iniciada, '%Y-%m-%d')", date('Y-m-d'))
 				->where("finalizada IS NULL")
 				->fetch();

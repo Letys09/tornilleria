@@ -56,6 +56,7 @@ use Slim\Http\UploadedFile;
 						'usuario_id' => $infoUser->id,
 						'ip_address' => $ipAddr,
 						'user_agent' => $browser,
+						'tipo_sesion' => 1,
 						'token' => $token,
 						'iniciada'    => $date,
 					];
@@ -128,6 +129,7 @@ use Slim\Http\UploadedFile;
 					'usuario_id' => $infoUser->id,
 					'ip_address' => $ipAddr,
 					'user_agent' => $browser,
+					'tipo_sesion' => 2,
 					'token' 	 => $token,
 					'iniciada'   => $date,
 				];
@@ -266,7 +268,7 @@ use Slim\Http\UploadedFile;
 								$add->error = 23000;
 								return $res->withJson($add->SetResponse(false, 'El username ya está registrado, ingrese otro.'));
 							}
-							else return $res->withJson($add->SetResponse(false, 'No se pudo agregar el producto'));
+							else return $res->withJson($add->SetResponse(false, 'No se pudo agregar el usuario'));
 						}
 					}else{
 						$existe->state = $this->model->transaction->regresaTransaccion();
