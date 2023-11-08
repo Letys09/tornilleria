@@ -1,0 +1,217 @@
+<?php 
+	include 'header.phtml';
+    define('MOD_VER_COT',	  43);
+    define('MOD_EDITAR',	  44);
+    define('MOD_CANCELAR',	  45);
+    define('MOD_VENDER',	  46);
+
+    if(!in_array(MOD_VER_COT, $permisos)) {
+		header('Location: '.URL_ROOT.'/403');
+		exit;
+	} 
+?>
+    <link rel="stylesheet" type="text/css" href="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.css">
+
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+    <div class="app-content content ">
+        <div class="content-overlay"></div>
+        <div class="header-navbar-shadow"></div>
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body">
+                <section>
+                    <div class="card">
+                        <div class="card-body border-bottom">
+                            <div class="card-datatable table-responsive pt-0">
+                                <table id="tbl-cotizaciones" class="table">
+                                    <thead class="table-light">
+                                        <tr class="text-center">
+                                            <th>Fecha</th>
+                                            <th>Folio</th>
+                                            <th>Usuario</th>
+                                            <th>Cliente</th>
+                                            <th>Total</th>
+                                            <th></th>
+                                        </tr>
+                                    </thead>
+                                    <tbody></tbody>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+    <script src="<?= URL_ROOT ?>/app-assets/plugin/sweetalert/sweetalert.min.js"></script>
+    <?php include 'footer.phtml'; ?>
+
+    <script>
+        $(function(){
+            var apiUrl = '<?= URL_ROOT ?>/',
+                id_cliente = 0;
+
+            getItems('tbl-cotizaciones')
+
+            // $('#tbl-cotizaciones').on('click', '.btnFinalizar', function(){
+            //     id = $(this).data('id')
+            //     swal({
+			// 		title: "Finalizar",
+			// 		text: "¿Seguro que deseas finalizar esta venta?",
+			// 		type: "warning",
+			// 		showCancelButton: true,
+			// 		cancelButtonText: "Cancelar",
+			// 		confirmButtonColor: "#DD6B55",
+			// 		confirmButtonText: "¡Finalizar!",
+			// 		closeOnConfirm: false 
+			// 	},function(){
+			// 		$.post(apiUrl+'venta/finalizar/'+id, function(response){
+			// 			if(response.response){
+			// 				swal("¡Hecho!",	"Venta finalizada", "success");
+			// 				getItems('tbl-cotizaciones')
+			// 			}else{
+            //                 swal("¡Ocurrió un problema!", "No se pudo finalizar la venta.", "error")
+			// 			}
+			// 		},'json')
+			// 	});
+            // })
+
+            $('#tbl-cotizaciones').on('click', '.btnAbrir', function(){
+                id = $(this).data('id')
+                window.location.href = '<?= URL_ROOT ?>/cotizacion/cliente/'+$.md5(id.toString())
+            })
+
+            $('#tbl-cotizaciones').on('click', '.btnCancelar', function(){
+                id = $(this).data('id')
+                swal({
+					title: "Cancelar",
+					text: "¿Seguro que deseas cancelar esta cotización?",
+					type: "warning",
+					showCancelButton: true,
+					cancelButtonText: "Cancelar",
+					confirmButtonColor: "#DD6B55",
+					confirmButtonText: "¡Si, continuar!",
+					closeOnConfirm: false 
+				},function(){
+					$.post(apiUrl+'cotizacion/cancelar/'+id, function(response){
+						if(response.response){
+							swal("¡Hecho!",	"Cotización cancelada", "success");
+							getItems('tbl-cotizaciones')
+						}else{
+                            swal("¡Ocurrió un problema!", "No se pudo cancelar la cotización.", "error")
+						}
+					},'json')
+				});
+            })
+
+            $('#tbl-cotizaciones').on('click', '.btnVender', function(){
+                id = $(this).data('id')
+                $.post(apiUrl+'cotizacion/convertirVenta/'+id, function(resp){
+                    
+                },'json')
+            })
+
+            function getItems(tbl){
+                cleanTable(tbl)
+                $('#'+tbl+' tbody').empty()
+                createTable(tbl)
+            }
+
+            function cleanTable(tbl){
+                if($.fn.dataTable.isDataTable('#'+tbl)){
+                    table = $('#'+tbl).DataTable()
+                    table.destroy()
+                }
+            }
+
+            function createTable(tbl){
+                if($('#'+tbl).length){
+                    $('#'+tbl).DataTable({
+                        ajax:{
+                            url: apiUrl+'cotizacion/getAllDataTable',
+                            type: 'GET',
+                        },
+                        columns: [
+                            {data: 'fecha'},
+                            {data: 'folio'},
+                            {data: 'usuario'},
+                            {data: 'cliente'},
+                            {data: 'total'},
+                            {data: ''}
+                        ],
+                        columnDefs: [
+                            {
+                                targets: -1,
+                                title: 'Acciones',
+                                orderable: false,
+                                render: function (data, type, full, meta) {
+                                    id = full['id'];
+                                    return (
+                                        '<div class="text-center">'+
+                                            <?php if(in_array(MOD_EDITAR, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnAbrir" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
+                                                    feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_CANCELAR, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-danger btn-sm btnCancelar" data-id="'+id+'" data-toggle="tooltip" title="Cancelar" style="margin-right:4px;">'+
+                                                    feather.icons['x-circle'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_VENDER, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-new-success btn-sm btnVender" data-id="'+id+'" data-toggle="tooltip" title="Realizar Venta" style="margin-right:4px;">'+
+                                                    feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                        '</div>'
+                                    );
+                                }
+                            },
+                            {
+                                targets: 0,
+                                render: function (data, type, full, meta) {
+                                    var salida =
+                                        '<div class="d-flex flex-column text-center">' +
+                                            '<span >' +
+                                                full['fecha'] +
+                                            '</span>' +
+                                            '<small class="emp_post text-muted">' +
+                                            full['hora'] +
+                                            '</small>' +
+                                        '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 4,
+                                render: function (data, type, full, meta) {
+                                    var salida = 
+                                        '<div class="d-flex flex-column text-end">'+
+                                            '<span>'+
+                                                full['total']
+                                            +'</span>'
+                                        +'</div>';
+                                    return salida;
+                                }
+                            },
+                        ],
+                        order: [[0, 'desc']], 
+                        dom:
+                            '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
+                            '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
+                            '<"col-sm-12 col-lg-10 ps-xl-75 ps-0"<"dt-action-buttons d-flex align-items-center justify-content-center justify-content-lg-end flex-lg-nowrap flex-wrap"<"me-1"l>>>' +
+                            '>t' +
+                            '<"d-flex justify-content-between mx-2 row mb-1"' +
+                            '<"col-sm-12 col-md-6"i>' +
+                            '<"col-sm-12 col-md-6"p>' +
+                            '>',
+                        language: {
+                            url:'../spanish.json'
+                        },
+                    });
+                }
+            }
+
+        });
+    </script>
+</html>
