@@ -198,6 +198,8 @@
                                 toastr["success"]("¡Listo!", "Se editó la información de la sucursal.")
                                 getItems('tbl-sucursal')
                                 $('#frm-sucursal').modal('hide')
+                            }else if(resp.code == 1){
+                                toastr["warning"]("¡Verifique la información!", resp.msg)
                             }else{
                                 toastr["error"]("¡Ocurrió un problema!", "No pudimos editar la información de la sucursal.")
                             }

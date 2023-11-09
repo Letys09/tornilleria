@@ -130,7 +130,7 @@ use App\Lib\Auth,
                 }
 			}
             if(!$dirIgual){
-                $editSuc = $this->model->sucursal->editDir($dataDir, $args['id']);
+                $editSuc = $this->model->sucursal->editDir($dataDir, $info->direccion_id);
                 if($editSuc->response){
                         $seg_log = $this->model->seg_log->add('Modifica dirección', 'dirección', $info->direccion_id, 0);
                         if(!$seg_log->response){
@@ -139,6 +139,10 @@ use App\Lib\Auth,
                 }else{
                     $editSuc->state = $this->model->transaction->regresaTransaccion();
                 }
+            }
+
+            if($igual && $dirIgual){
+                $editSuc = ['code' => 1, 'msg' => 'No existen datos diferentes a los antes registrados'];
             }
 
             $this->model->transaction->confirmaTransaccion();
