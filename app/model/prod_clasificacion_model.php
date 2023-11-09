@@ -49,6 +49,29 @@ class ProdClasModel {
         return $this->response;
     }
 
+	// SELECT DISTINCT
+	// 	cat.id as categoria,
+	// 	cat.nombre as cat_nombre,
+	// 	prod_area_id
+	// FROM producto
+	// INNER JOIN prod_categoria ON prod_categoria.id = producto.prod_categoria_id
+	// INNER JOIN prod_categoria AS cat ON cat.id = prod_categoria.prod_categoria_id
+	// WHERE prod_area_id = 1
+	// GROUP BY producto.prod_categoria_id, cat.nombre;
+	public function getCatByArea($area_id){
+		$this->response->result = $this->db
+			->from("producto")
+			->select(null)
+			->select("DISTINCT cat.id as categoria_id, cat.nombre as cat_nombre")
+			->innerJoin("prod_categoria ON prod_categoria.id = producto.prod_categoria_id")
+			->innerJoin("prod_categoria AS cat ON cat.id = prod_categoria.prod_categoria_id")
+			->where("prod_area_id", $area_id)
+			->groupBy("producto.prod_categoria_id")
+			->fetchAll();
+		if($this->response->result) return $this->response->SetResponse(true);
+		else return $this->response->SetResponse(false, 'No hay categorías registradas en el pasillo');
+	}
+
 	public function add($data, $table){
 		$SQL = $this->db
 			->insertInto($table, $data)

@@ -497,7 +497,7 @@
                                                                     <label class="form-label fw-bolder fs-5 text-white" for="precios-area">Área *</label>
                                                                     <select class="form-control" id="precios-area"></select>
                                                                 </div>
-                                                                <div class="col-sm-4">
+                                                                <div class="col-sm-4 preciosCat hidden">
                                                                     <label class="form-label fw-bolder fs-5 text-white" for="precios-cat">Categoría *</label>
                                                                     <select class="form-control" id="precios-cat"></select>
                                                                 </div>
@@ -570,12 +570,16 @@
                 $('#prod-prod_categoria_id').empty();
                 $('#prod-prod_categoria_id').append('<option value="0" selected disabled>Seleccione una opción</option>');
                 cat = $(this).val()
-                $.get(apiUrl+'prod_clasificacion/getSubcategorias/'+cat, function(data){
-                    $.each(data, function(index, elem){
-                        $('#prod-prod_categoria_id').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
-                    })
-                    $.unblockUI()
-                }, 'json')
+                if(cat != 0){
+                    $.get(apiUrl+'prod_clasificacion/getSubcategorias/'+cat, function(data){
+                        $.each(data, function(index, elem){
+                            $('#prod-prod_categoria_id').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
+                        })
+                        $.unblockUI()
+                    }, 'json')
+                }else{
+                    $('#prod-prod_categoria_id').append('<option value="0">Todas</option>')
+                }
                 $('.subcategoria').removeClass('hidden')
             })
 
@@ -1068,12 +1072,36 @@
             <?php endif; ?>
 
             <?php if(in_array(MOD_MODIF_M, $permisos)): ?>
+                $('#precios-area').change(function(){
+                    $.blockUI()
+                    $('#precios-cat').empty()
+                    area = $(this).val()
+                    $('#precios-cat').append('<option value="" selected disabled>Seleccione una opción</option>')
+                    if(area != 0){
+                        $.get(apiUrl+'prod_clasificacion/getCatByArea/'+area, function(data){
+                            if(data.response){
+                                $('#precios-cat').append('<option value="0">Todas</option>')
+                                $.each(data.result, function(index, elem){
+                                    $('#precios-cat').append('<option value="'+elem.categoria_id+'">'+elem.cat_nombre+'</option>')
+                                })
+                            }else{
+                                $('#precios-cat').append('<option value="">No se encontraron categorías en el área seleccionada</option>')
+                            }
+                        }, 'json')
+                    }else{
+                        $('#precios-cat').append('<option value="0">Todas</option>')
+                    }
+                    $('.preciosCat').removeClass('hidden')
+                    // $('#precios-sub').empty()
+                    $.unblockUI()
+                })
+
                 $('#precios-cat').change(function(){
                     $.blockUI()
                     $('#precios-sub').empty()
                     cat = $(this).val()
                     $('#precios-sub').append('<option value="" selected disabled>Seleccione una opción</option>')
-                    $('#precios-sub').append('<option value="0" selected>Todas</option>')
+                    $('#precios-sub').append('<option value="0">Todas</option>')
                     $.get(apiUrl+'prod_clasificacion/getSubcategorias/'+cat, function(data){
                         $.each(data, function(index, elem){
                             $('#precios-sub').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
@@ -1165,6 +1193,7 @@
                     $.each(data, function(index, item){
                         $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
                     })
+                    if(elem == 'precios-cat') $('#'+elem).trigger('change')
                     $.unblockUI()
                 }, 'json')
             }
@@ -1174,7 +1203,7 @@
                 $('#'+elem).empty();
                 if(elem == 'precios-area'){
                     $('#'+elem).append('<option value="" disabled>Seleccione una opción</option>')
-                    $('#'+elem).append('<option value="0" selected>Todas</option>')
+                    $('#'+elem).append('<option value="0">Todas</option>')
                     $.unblockUI()
                 }else{
                     $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
@@ -1185,6 +1214,7 @@
                         $.each(resp, function(index, item) {
                             $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
                         });
+                        if(elem == 'precios-area') $('#'+elem).trigger('change')
                         $.unblockUI()
                     }
                 }, 'json');

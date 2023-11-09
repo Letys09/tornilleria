@@ -20,6 +20,10 @@ use App\Lib\Auth,
             return $res->withJson($this->model->prod_clasificacion->getSubcategorias($args['cat'])->result);
         });
 
+		$this->get('getCatByArea/{area_id}', function($req, $res, $args){
+			return $res->withJson($this->model->prod_clasificacion->getCatByArea($args['area_id']));
+		});
+
         $this->post('add/{tipo}',function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
             $info = $req->getParsedBody();
