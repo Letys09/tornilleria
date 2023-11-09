@@ -428,7 +428,8 @@ use App\Lib\Auth,
                 'minimo' => $parsedBody['minimo'],
                 'venta_kilo' => $parsedBody['venta_kilo'],
                 'es_kilo' => 0,
-                'clave_sat' => $parsedBody['clave_sat']
+                'clave_sat' => $parsedBody['clave_sat'],
+                'status' => 1
             ];
 
             foreach($prod as $field => $value) { 
