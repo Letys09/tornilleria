@@ -721,7 +721,7 @@ use App\Lib\Auth,
     		$hojaActual = $documento->getSheet(0);
 			$fila = 2;
 
-			while(strlen($hojaActual->getCell("A$fila")->getValue()) > 0) {
+			while(strlen(trim($hojaActual->getCell("A$fila")->getValue())) > 0) {
                 $categoria = $hojaActual->getCell("A$fila")->getValue();
                 $existe = $this->model->producto->getByName('prod_categoria', 'nombre', $categoria);
                 if(is_object($existe->result)){
@@ -872,7 +872,7 @@ use App\Lib\Auth,
     		$hojaActual = $documento->getSheet(0);
 			$fila = 2;
 
-			while(strlen($hojaActual->getCell("A$fila")->getValue()) > 0) {
+			while(strlen(trim($hojaActual->getCell("A$fila")->getValue())) > 0) {
                 $precio_id = $hojaActual->getCell("A$fila")->getValue();
                 $id_rango = $this->model->producto->getByName('prod_rango', 'prod_precio_id', $precio_id)->result->id;
                 $rango = [
