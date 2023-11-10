@@ -37,7 +37,7 @@ class VentaModel {
 	public function getByMD5($venta_id) {
 		return $this->db
 			->from($this->table)
-			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d/%m/%Y') as date, CAST(fecha AS TIME) as hora ")
+			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d/%m/%Y') as date, CAST(fecha AS TIME) as hora, DATE_FORMAT(fecha, '%d%m%Y') as fechaFolio")
 			->where("MD5($this->table.id)", $venta_id)
 			->where("$this->table.status != 0")
 			->fetch();
@@ -49,6 +49,7 @@ class VentaModel {
 			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d-%m-%Y') as date, CAST(fecha AS TIME) as hora, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, CONCAT_WS(' ', cliente.nombre, cliente.apellidos) AS cliente")
 			->where("DATE_FORMAT(fecha, '%Y-%m-%d') = '$dia'")
 			->where("tipo", 1)
+			->where("$this->table.sucursal_id", $_SESSION['sucursal_id'])
 			->where("$this->table.status", 1)
 			->fetchAll();
 		if($this->response->result) return $this->response->SetResponse(true);

@@ -10,8 +10,8 @@
     // echo($vista);
     switch ($vista) {
         case 'Venta': $icono = 'fas fa-shopping-cart'; $vista = 'Venta'; break;
-        case 'Cotizaciones': $icono = 'fas fa-clipboard-list'; break;
-        case 'Cotización': $icono = 'fas fa-clipboard-list'; break;
+        case 'Cotizaciones': $icono = 'fas fa-calculator'; break;
+        case 'Cotización': $icono = 'fas fa-calculator'; break;
         case 'Usuarios': $icono = 'fas fa-user'; break;
         case 'Sucursales': $icono = 'fas fa-store'; break;
         case 'Productos': $icono = 'fas fa-boxes'; $vista = 'Inventario / Precios'; break;
@@ -81,14 +81,18 @@
                     <i class="<?= $icono?> titleIcon"></i>
                     </li> &nbsp; &nbsp; <!-- icono del módulo -->
                     <div class="user-nav d-sm-flex d-none title"> 
-                    <span class="name-vista fw-bolder"><h2><?= $vista ?></h2></span>
+                    <?php if($vista == 'Venta' || $vista == 'Cotización') : ?>
+                        <span class="name-vista fw-bolder"><h2></h2></span>
+                    <?php else : ?>
+                        <span class="name-vista fw-bolder"><h2><?= $vista ?></h2></span>
+                    <?php endif; ?>
                     </div> <!-- nombre del módulo -->
                 </ul>
             </div>
             <ul class="nav navbar-nav align-items-center ms-auto">
                 <?php if($vista != 'Cotización') : ?>
                     <li>
-                        <a class="nav-link" href="<?= URL_ROOT ?>/cotizacion/cliente"><i class="fas fa-clipboard nuevaCoti" data-toggle="tooltip" title="Cotización"></i></a>
+                        <a class="nav-link" href="<?= URL_ROOT ?>/cotizacion/cliente"><i class="fas fa-calculator nuevaCoti" data-toggle="tooltip" title="Cotización"></i></a>
                     </li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
                 <?php endif; ?>
                 <?php if($vista != 'Venta') : ?>

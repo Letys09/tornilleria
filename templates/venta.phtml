@@ -8,7 +8,7 @@
                 <div class="container-fluid">
                     <div class="container-venta">
                         <div class="w-100 card">
-                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" data-bs-toggle="collapse" href="#cliente" role="button" aria-expanded="true" aria-controls="cliente" style="background-color: darkgray; color:white;"><span><i class="fas fa-caret-down ms-1 me-1"></i>&nbsp;Cliente</span></div>
+                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" data-bs-toggle="collapse" href="#cliente" role="button" aria-expanded="true" aria-controls="cliente" style="background-color: #04aa6d; color:white;" id="header-cliente"><span><i class="fas fa-caret-down ms-1 me-1"></i>&nbsp;Cliente</span></div>
                             <div class="card-body" id="cliente">
                                 <div class="d-flex">
                                     <div class="col-4">
@@ -38,8 +38,8 @@
                             </div>
                         </div>
                         <div class="d-flex separar">
-                            <div class="col-8 card shadow-lg">
-                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #000066; color:white;">productos</div>
+                            <div class="col-7 card shadow-lg">
+                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" id="header-productos" style="background-color: #04aa6d; color:white;">productos</div>
                                 <div class="card-body">
                                     <div class="w-100 d-flex">
                                         <table id="tbl-prods" class="table table-hover table-striped m-0 w-100 table-sm">
@@ -58,8 +58,8 @@
                                     </div>
                                 </div>
                             </div>
-                            <div class="col-4 card shadow-lg" style="width: calc(33.333% - 1rem);">
-                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #000066; color:white;">rangos de precios</div>
+                            <div class="col-5 card shadow-lg" style="width: calc(41.333% - 1rem);">
+                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" id="header-rangos" style="background-color: #04aa6d; color:white;">rangos de precios</div>
                                 <div class="card-body">
                                     <div class="d-flex">
                                         <div>
@@ -128,7 +128,7 @@
                             </div>
                         </div>
                         <div class="w-100 card">
-                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: darkgray; color:white;">productos agregados</div>
+                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" id="header-prods_agregados" style="background-color: #04aa6d; color:white;">productos agregados</div>
                             <div class="card-body">
                                 <table id="tbl-detalles" class="table table-hover table-striped m-0 w-100 mw-100 table-sm">
                                     <thead>
@@ -149,7 +149,7 @@
                             </div>
                         </div>
                         <div class="w-100 card ventaPagos hidden">
-                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #000066; color:white;">pagos realizados</div>
+                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #04aa6d; color:white;" id="header-pagos">pagos realizados</div>
                             <div class="card-body">
                                 <table id="tbl-pagos" class="table table-hover table-striped m-0 w-100 mw-100 table-sm">
                                     <thead>
@@ -267,6 +267,7 @@
             desc_cli = 0,
             tipo = 1,
             eliminarDet = true,
+            cargarV = true,
             collection = '<?= $_SESSION['sucursal_id'] ?>-'+'<?= $_SESSION['usuario_id'] ?>-'+'<?= date("Ymd") ?>',
             firebaseConfig = {
                 apiKey: "AIzaSyDnf5WHyP3ifke133Gff5pngMDJXJMZu3E",
@@ -282,19 +283,15 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        
-        // if($('#tbl-detalles tbody tr').lenght != 0){
-        //     detalles_del = []
-        //     $.each($('#tbl-detalles tbody tr'), function(index, tr){
-        //         console.log(tr)
-        //         clave_fila = $(tr).data('clave')
-        //         console.log(clave_fila)
-        //         db.collection(collection).doc(clave_fila).delete()
-        //     })
-        // }
+        <?php if(!$nueva) : ?> $('.title h2').html('Venta '+'<?= $folio ?>')
+        <?php else : ?> $('.title h2').html('Venta')
+        <?php endif; ?>
 
-        getClientes()
-        getItems('tbl-prods')
+        delDocs()
+        if(cargarV){
+            getClientes()
+            getItems('tbl-prods')
+        }
 
         $('#clientes').on('change', function(){
             $.blockUI()
@@ -322,6 +319,11 @@
                 $.unblockUI()
             }else{
                 desc_cli = 0; tipo = 1;
+                $('#header-cliente').css('background-color', '#04aa6d')
+                $('#header-productos').css('background-color', '#04aa6d')
+                $('#header-rangos').css('background-color', '#04aa6d')
+                $('#header-prods_agregados').css('background-color', '#04aa6d')
+                $('#header-pagos').css('background-color', '#04aa6d')
                 $('#aplicar').attr('disabled', true).prop('disabled', 'disabled').prop('checked', false)
                 $('.ventaCredito').addClass('hidden')
                 $('#descuento').val('')
@@ -336,8 +338,18 @@
             tipo = $(this).val()
             if(tipo == 1){
                 $('#btnContinuar').html('Cobrar')
+                $('#header-cliente').css('background-color', '#04aa6d')
+                $('#header-productos').css('background-color', '#04aa6d')
+                $('#header-rangos').css('background-color', '#04aa6d')
+                $('#header-prods_agregados').css('background-color', '#04aa6d')
+                $('#header-pagos').css('background-color', '#04aa6d')
             }else{
                 $('#btnContinuar').html('Guardar')
+                $('#header-cliente').css('background-color', '#000099')
+                $('#header-productos').css('background-color', '#000099')
+                $('#header-rangos').css('background-color', '#000099')
+                $('#header-prods_agregados').css('background-color', '#000099')
+                $('#header-pagos').css('background-color', '#000099')
             }
         })
 
@@ -503,13 +515,8 @@
                         }
                     },'json')
                 <?php else : ?>
-                    // if(detalle_id != ''){
-                        let cant = (cantidad.toFixed(1)).toString()
-                        console.log(cant)
-                        console.log(collection)
-                        console.log(clave)
-                        db.collection(collection).doc(clave).update({'cantidad':cant})
-                    // }
+                    let cant = (cantidad.toFixed(1)).toString()
+                    db.collection(collection).doc(clave).update({'cantidad':cant})
                 <?php endif; ?>
             }else{
                 <?php if($nueva) : ?>
@@ -735,10 +742,8 @@
                         if(resp.response){
                             toastr['success']('¡Venta realizada!', 'Venta realizada con éxito')
                             eliminarDet = false
-                            console.log('aquí1')
-                            delDocs(data.detalles)
+                            delAll()
                             window.open('<?= URL_ROOT ?>/ticket/'+$.md5(resp.result.toString()), '_blank')
-                            window.location.href = '<?= URL_ROOT ?>/venta/cliente'
                         }else{
                             toastr['error']('¡Error!', resp.message)
                         }
@@ -750,28 +755,36 @@
                     $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
                         toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
                         eliminarDet = false
-                        console.log('aquí2')
-                        delDocs(data.detalles)
+                        delAll()
                         window.open('<?= URL_ROOT ?>/ticket/'+$.md5(venta_id.toString()), '_blank')
-                        window.location.href = '<?= URL_ROOT ?>/venta/cliente'
                     })
                 <?php endif; ?>
             }
         }
 
-        function delDocs(docs){
-            // $.each(docs, function(index, doc){
-            //     db.collection(collection).doc(doc.clave).delete()
-            // })
+        function delAll(){
+            cargarV = false
             db.collection(collection)
             .get()
             .then(res => {
                 res.forEach(element => {
-                    console.log(element)
-                    console.log('eliminar coleccion')
+                element.ref.delete();
+                window.location.href = '<?= URL_ROOT ?>/venta/cliente';
+                });
+            });
+            cargarV = true
+        }
+
+        function delDocs(){
+            cargarV = false
+            db.collection(collection)
+            .get()
+            .then(res => {
+                res.forEach(element => {
                 element.ref.delete();
                 });
             });
+            cargarV = true
         }
 
         function cleanTable(tbl){
@@ -869,8 +882,8 @@
                         'es_kilo': kilo
                     }
 
-                    $.get(apiUrl+'producto/getRangos/'+info['id'], function(resp){
-                        precio = resp.precio_menudeo
+                    $.get(apiUrl+'producto/getPrecioByCant/'+info['id']+'/'+info['cantidad'], function(resp){
+                        precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
                         data_detalle['precio'] = precio,
                         data_detalle['total'] = parseFloat(info['cantidad']*precio).toFixed(2),
                         addDetalle(data_detalle)
@@ -922,8 +935,6 @@
                                     }
                                 },'json')
                             }
-                        }else{
-                            console.log('no eliminar')
                         }
                     })
                     if($('#tbl-detalles tbody tr').length == 0)

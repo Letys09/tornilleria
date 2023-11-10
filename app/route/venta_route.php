@@ -36,6 +36,7 @@ use App\Lib\Auth,
                     "pagado" => number_format($pagado, 2, ".", ","),
                     "pendiente" => number_format($pendiente, 2, ".", ","),
                     "saldo" => $venta->saldo,
+                    "en_uso" => $venta->en_uso,
                 );
             }
             echo json_encode(array(
@@ -246,17 +247,18 @@ use App\Lib\Auth,
             $this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();
             $detalles = $parsedBody['detalles'];
+            $pago = isset($parsedBody['pago']) ? $parsedBody['pago'] : ''; unset($parsedBody['pago']);
             $fecha = date('Y-m-d H:i:s');
             $venta = [
                 'subtotal' => $parsedBody['subtotal'],
                 'total' => $parsedBody['total'],
                 'comentarios' => $parsedBody['comentarios'],
-                'fecha_actualiza' =>$fecha,
+                'fecha_actualiza' => $fecha,
+                'en_uso' => 0,
             ];
             $edit = $this->model->venta->edit($venta, $args['id']);
             if($edit->response){
                 foreach($detalles as $detalle){
-                    // print_r($detalle['detalle_id']);
                     if($detalle['detalle_id'] == ''){
                         $producto_id = $detalle['producto_id'];
                         $info_prod = $this->model->producto->get($producto_id)->result;
@@ -354,7 +356,22 @@ use App\Lib\Auth,
                         }
                     }
                 } 
-                // exit();
+                if($pago != ''){
+                    $dataPago = [
+                        'venta_id' => $args['id'],
+                        'usuario_id' => $_SESSION['usuario_id'],
+                        'fecha' => $fecha, 
+                        'monto' => $pago['monto'],
+                        'forma_pago' => $pago['forma_pago']
+                    ];
+                    $addPago = $this->model->venta_pago->add($dataPago);
+                    if(!$addPago->response){
+                        $addPago->state = $this->model->transaction->regresaTransaccion();
+                        return $res->withJson($addPago);
+                    }else{
+                        $seg_log = $this->model->seg_log->add('Agrega pago', 'venta_pago', $addPago->result, 1);
+                    }
+                }
                 $this->model->seg_log->add('Edita venta', 'venta', $args['id'], 1);
                 $edit->state = $this->model->transaction->confirmaTransaccion();
                 return $res->withJson($edit);
