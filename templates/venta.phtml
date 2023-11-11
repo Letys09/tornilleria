@@ -287,11 +287,11 @@
         <?php else : ?> $('.title h2').html('Venta')
         <?php endif; ?>
 
-        delDocs()
-        if(cargarV){
+        // delDocs()
+        // if(cargarV){
             getClientes()
             getItems('tbl-prods')
-        }
+        // }
 
         $('#clientes').on('change', function(){
             $.blockUI()
@@ -916,29 +916,31 @@
                         }
                     })
                 }else{
-                    $.each($('#tbl-detalles tbody tr'), function(index, tr){
-                        if($(tr).data('producto_id') == info['id']){
-                            $(tr).remove()
-                        }
-                        if(eliminarDet){
-                            let producto_id = ($(tr).data('producto_id')).toString()
-                            if(info['detalle_id'] != '' && producto_id == info['id'] ){
-                                detalle_id = info['detalle_id']
-                                $.post(apiUrl+'venta_detalle/del/'+detalle_id, function(resp){
-                                    if(resp.response){
-                                        toastr['success']('¡Hecho!', 'Producto eliminado de la venta')
-                                        if($('#tbl-detalles tbody tr').length == 0){
-                                            $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
-                                        }
-                                    }else{
-                                        toastr['error']('¡Error!', 'No pudimos eliminar el producto de la venta')
-                                    }
-                                },'json')
+                    if($('#tbl-detalles tbody tr').length != 0){
+                        $.each($('#tbl-detalles tbody tr'), function(index, tr){
+                            if($(tr).data('producto_id') == info['id']){
+                                $(tr).remove()
                             }
-                        }
-                    })
-                    if($('#tbl-detalles tbody tr').length == 0)
+                            if(eliminarDet){
+                                let producto_id = ($(tr).data('producto_id')).toString()
+                                if(info['detalle_id'] != '' && producto_id == info['id'] ){
+                                    detalle_id = info['detalle_id']
+                                    $.post(apiUrl+'venta_detalle/del/'+detalle_id, function(resp){
+                                        if(resp.response){
+                                            toastr['success']('¡Hecho!', 'Producto eliminado de la venta')
+                                            if($('#tbl-detalles tbody tr').length == 0){
+                                                $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                                            }
+                                        }else{
+                                            toastr['error']('¡Error!', 'No pudimos eliminar el producto de la venta')
+                                        }
+                                    },'json')
+                                }
+                            }
+                        })
+                    }else{
                         $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                    }
                 }
             })
         });

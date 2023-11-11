@@ -21,48 +21,47 @@
 		</div>
     </div><br><br><br><br><br><br><br><hr>
     <div class="shadow-bottom"></div>
-        <div class="main-menu-content">
-            <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
-                <?php
-                    $modulos = $_SESSION['permisos'];
-                    foreach ($modulos as $modulo) {
-                        $urlModulo = '#';
-                        if($modulo->accionesUrl == 0){
-                            $urlModulo = URL_ROOT.$modulo->url;
-                            if($modulo->url != ''){
-                                echo '<li class=" nav-item"><a class="d-flex align-items-center" href="'.$urlModulo.'"><i class="'.$modulo->icono.'"></i><span class="menu-title text-truncate" data-i18n="Kanban">'.$modulo->nombre.'</span></a></li>';
-                            }
-                        }else{
-                ?>
-                            <li class=" nav-item">
-                                <a class="d-flex align-items-center" href="<?= $urlModulo ?>">
-                                    <i class="<?php echo $modulo->icono?>"></i>
-                                    <span class="menu-title text-truncate" data-i18n="Kanban"><?php echo $modulo->nombre ?></span>
-                                </a>
-							    <ul class="menu-content">
-                                    <?php
-                                        $acciones = $modulo->acciones;
-                                        foreach ($acciones as $accion) {
-                                            $nombre = str_replace("Ver ", "", $accion->nombre);
-                                            if($accion->url != ""){
-                                    ?>          
-                                                <li>
-                                                    <a href="<?= URL_ROOT.$accion->url ?>">
-                                                        <i class="fas fa-<?=$accion->iconoA?>"></i>
-                                                        <?= $nombre?>
-                                                    </a>
-                                                </li>
-                                    <?php
-                                            }
-                                        }
-                                    ?>
-                                </ul>
-                            </li>
-                            <?php
+    <div class="main-menu-content">
+        <ul class="navigation navigation-main" id="main-menu-navigation" data-menu="menu-navigation">
+            <?php
+                $modulos = $_SESSION['permisos'];
+                foreach ($modulos as $modulo) {
+                    $urlModulo = '#';
+                    if($modulo->accionesUrl == 0){
+                        $urlModulo = URL_ROOT.$modulo->url;
+                        if($modulo->url != ''){
+                            echo '<li class=" nav-item"><a class="d-flex align-items-center" href="'.$urlModulo.'"><i class="'.$modulo->icono.'"></i><span class="menu-title text-truncate" data-i18n="Kanban">'.$modulo->nombre.'</span></a></li>';
                         }
+                    }else{
+            ?>
+                        <li class=" nav-item">
+                            <a class="d-flex align-items-center" href="<?= $urlModulo ?>">
+                                <i class="<?php echo $modulo->icono?>"></i>
+                                <span class="menu-title text-truncate" data-i18n="Kanban"><?php echo $modulo->nombre ?></span>
+                            </a>
+                            <ul class="menu-content">
+                                <?php
+                                    $acciones = $modulo->acciones;
+                                    foreach ($acciones as $accion) {
+                                        $nombre = str_replace("Ver ", "", $accion->nombre);
+                                        if($accion->url != ""){
+                                ?>          
+                                            <li>
+                                                <a href="<?= URL_ROOT.$accion->url ?>">
+                                                    <i class="fas fa-<?=$accion->iconoA?>"></i>
+                                                    <?= $nombre?>
+                                                </a>
+                                            </li>
+                                <?php
+                                        }
+                                    }
+                                ?>
+                            </ul>
+                        </li>
+                        <?php
                     }
-                ?>
-            </ul>
-        </div>
+                }
+            ?>
+        </ul>
     </div>
 </div>
