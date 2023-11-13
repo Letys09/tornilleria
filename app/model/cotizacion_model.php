@@ -51,6 +51,22 @@ class CotizacionModel {
 		return $this->response->SetResponse(true);
 	}
 
+	public function desbloquear($id){
+		try {
+            $data['en_uso'] = 0;
+			$this->response->result = $this->db
+				->update($this->table, $data)
+				->where('id', $id)
+				->execute();
+			if($this->response->result) { $this->response->SetResponse(true); }
+			else { $this->response->SetResponse(false, 'No se desbloqueó la cotización'); }
+		} catch(\PDOException $ex) {
+			$this->response->errors = $ex;
+			$this->response->SetResponse(false, "catch: desbloquear cotización");
+		}
+		return $this->response;
+	}
+
 	public function add($data){
 		$SQL = $this->db
 			->insertInto($this->table, $data)

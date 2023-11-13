@@ -219,6 +219,18 @@
                 },'json')
             })
 
+            $('#tbl-ventas').on('click', '.btnDesbloquear', function(){
+                id = $(this).data('id')
+                $.post(apiUrl+'venta/desbloquear/'+id, function(resp){
+                    if(resp.response){
+                        toastr['success']('¡Hecho!', 'Venta desbloqueada, ya puede utilizarla otro usuario')
+                        getItems('tbl-ventas')
+                    }else{
+                        toastr['danger']('¡Ocurrió algo extraño!', 'No pudimos desbloquear la venta')
+                    }
+                },'json')
+            })
+
             function getItems(tbl){
                 cleanTable(tbl)
                 $('#'+tbl+' tbody').empty()
@@ -256,6 +268,7 @@
                                 orderable: false,
                                 render: function (data, type, full, meta) {
                                     id = full['id']; saldo = full['saldo']; cliente_id = full['cliente_id'];
+                                    unlock = full['en_uso'] == 1 ? '' : 'hidden'
                                     return (
                                         '<div class="text-center">'+
                                             <?php if(in_array(MOD_EDITAR, $permisos)) : ?>
@@ -273,6 +286,9 @@
                                                     feather.icons['check'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
+                                            '<button type="button" class="btn btn-outline-warning btn-sm btnDesbloquear '+unlock+'" data-id="'+id+'" data-toggle="tooltip" title="Desbloquear" style="margin-right:4px;">'+
+                                                feather.icons['unlock'].toSvg({ class: 'font-small-4 me-20' })+
+                                            '</button>'+
                                         '</div>'
                                     );
                                 }

@@ -45,6 +45,12 @@ use App\Lib\Auth,
             return $res->withJson($this->model->cotizacion->enUso($args['id'])->result);
         });
 
+        $this->post('desbloquear/{id}', function($req, $res, $args){
+            $desbloquear = $this->model->cotizacion->desbloquear($args['id']);
+            $this->model->seg_log->add('Desbloquea cotización', 'cotizacion', $args['id'], 1);
+            return $res->withJson($desbloquear);
+        });
+
         $this->post('add/', function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();

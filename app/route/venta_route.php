@@ -61,6 +61,7 @@ use App\Lib\Auth,
                     "cliente_id" => $venta->cliente_id, 
                     "cliente" => $venta->cliente,
                     "total" => $venta->total,
+                    "en_uso" => $venta->en_uso,
                 );
             }
             echo json_encode(array(
@@ -99,6 +100,12 @@ use App\Lib\Auth,
 
         $this->get('enUso/{id}', function($req, $res, $args){
             return $res->withJson($this->model->venta->enUso($args['id'])->result);
+        });
+
+        $this->post('desbloquear/{id}', function($req, $res, $args){
+            $desbloquear = $this->model->venta->desbloquear($args['id']);
+            $this->model->seg_log->add('Desbloquea venta', 'venta', $args['id'], 1);
+            return $res->withJson($desbloquear);
         });
 
         $this->post('add/', function($req, $res, $args){
