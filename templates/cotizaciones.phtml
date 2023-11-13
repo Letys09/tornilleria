@@ -55,64 +55,71 @@
 
             $('#tbl-cotizaciones').on('click', '.btnAbrir', function(){
                 id = $(this).data('id')
-                en_uso = $(this).data('uso')
-                if(en_uso) toastr['warning']('¡Sin acceso a la cotización!', '¡La cotización está siendo modificada por otro usuario!')
-                else window.location.href = '<?= URL_ROOT ?>/cotizacion/cliente/'+$.md5(id.toString())
+                $.get(apiUrl+'cotizacion/enUso/'+id, function(resp){
+                    if(resp.en_uso == 1)
+                        toastr['warning']('¡Sin acceso a la cotización!', '¡La cotización está siendo modificada por otro usuario!')
+                    else
+                        window.location.href = '<?= URL_ROOT ?>/cotizacion/cliente/'+$.md5(id.toString())
+                },'json')
             })
 
             $('#tbl-cotizaciones').on('click', '.btnCancelar', function(){
                 id = $(this).data('id')
-                en_uso = $(this).data('uso')
-                if(en_uso) toastr['warning']('¡Sin acceso a la cotización!', '¡La cotización está siendo modificada por otro usuario!')
-                else{
-                    swal({
-                        title: "Cancelar",
-                        text: "¿Seguro que deseas cancelar esta cotización?",
-                        type: "warning",
-                        showCancelButton: true,
-                        cancelButtonText: "Cancelar",
-                        confirmButtonColor: "#DD6B55",
-                        confirmButtonText: "¡Si, continuar!",
-                        closeOnConfirm: false 
-                    },function(){
-                        $.post(apiUrl+'cotizacion/cancelar/'+id, function(response){
-                            if(response.response){
-                                swal("¡Hecho!",	"Cotización cancelada", "success");
-                                getItems('tbl-cotizaciones')
-                            }else{
-                                swal("¡Ocurrió un problema!", "No se pudo cancelar la cotización.", "error")
-                            }
-                        },'json')
-                    })
-                }
+                $.get(apiUrl+'cotizacion/enUso/'+id, function(resp){
+                    if(resp.en_uso == 1)
+                        toastr['warning']('¡Sin acceso a la cotización!', '¡La cotización está siendo modificada por otro usuario!')
+                    else{
+                        swal({
+                            title: "Cancelar",
+                            text: "¿Seguro que deseas cancelar esta cotización?",
+                            type: "warning",
+                            showCancelButton: true,
+                            cancelButtonText: "Cancelar",
+                            confirmButtonColor: "#DD6B55",
+                            confirmButtonText: "¡Si, continuar!",
+                            closeOnConfirm: false 
+                        },function(){
+                            $.post(apiUrl+'cotizacion/cancelar/'+id, function(response){
+                                if(response.response){
+                                    swal("¡Hecho!",	"Cotización cancelada", "success");
+                                    getItems('tbl-cotizaciones')
+                                }else{
+                                    swal("¡Ocurrió un problema!", "No se pudo cancelar la cotización.", "error")
+                                }
+                            },'json')
+                        })
+                    }
+                },'json')
             })
 
             $('#tbl-cotizaciones').on('click', '.btnVender', function(){
                 id = $(this).data('id')
-                en_uso = $(this).data('uso')
-                if(en_uso) toastr['warning']('¡Sin acceso a la cotización!', '¡La cotización está siendo modificada por otro usuario!')
-                else{
-                    swal({
-                        title: "Realizar Venta",
-                        text: "¿Seguro que deseas realizar la venta de esta cotización?",
-                        type: "warning",
-                        showCancelButton: true,
-                        cancelButtonText: "Cancelar",
-                        confirmButtonColor: "#DD6B55",
-                        confirmButtonText: "¡Si, vender!",
-                        closeOnConfirm: false 
-                    },function(){
-                        $.post(apiUrl+'cotizacion/convertirVenta/'+id, function(resp){
-                            if(resp.response){
-                                venta_id = resp.result
-                                swal("¡Hecho!",	"Venta realizada", "success");
-                                window.location.href = '<?= URL_ROOT ?>/venta/cliente/'+$.md5(venta_id.toString())
-                            }else{
-                                swal("¡Ocurrió un problema!", "No se pudo realizar la venta de la cotización. \n\n"+resp.message, "error")
-                            }
-                        },'json')
-                    })
-                }
+                $.get(apiUrl+'cotizacion/enUso/'+id, function(resp){
+                    if(resp.en_uso == 1)
+                        toastr['warning']('¡Sin acceso a la cotización!', '¡La cotización está siendo modificada por otro usuario!')
+                    else{
+                        swal({
+                            title: "Realizar Venta",
+                            text: "¿Seguro que deseas realizar la venta de esta cotización?",
+                            type: "warning",
+                            showCancelButton: true,
+                            cancelButtonText: "Cancelar",
+                            confirmButtonColor: "#DD6B55",
+                            confirmButtonText: "¡Si, vender!",
+                            closeOnConfirm: false 
+                        },function(){
+                            $.post(apiUrl+'cotizacion/convertirVenta/'+id, function(resp){
+                                if(resp.response){
+                                    venta_id = resp.result
+                                    swal("¡Hecho!",	"Venta realizada", "success");
+                                    window.location.href = '<?= URL_ROOT ?>/venta/cliente/'+$.md5(venta_id.toString())
+                                }else{
+                                    swal("¡Ocurrió un problema!", "No se pudo realizar la venta de la cotización. \n\n"+resp.message, "error")
+                                }
+                            },'json')
+                        })
+                    }
+                },'json')
             })
 
             function getItems(tbl){
@@ -149,21 +156,21 @@
                                 title: 'Acciones',
                                 orderable: false,
                                 render: function (data, type, full, meta) {
-                                    id = full['id']; uso = full['en_uso'];
+                                    id = full['id'];
                                     return (
                                         '<div class="text-center">'+
                                             <?php if(in_array(MOD_EDITAR, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnAbrir" data-id="'+id+'" data-uso="'+uso+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnAbrir" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
                                                     feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
                                             <?php if(in_array(MOD_CANCELAR, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-danger btn-sm btnCancelar" data-id="'+id+'" data-uso="'+uso+'" data-toggle="tooltip" title="Cancelar" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-danger btn-sm btnCancelar" data-id="'+id+'" data-toggle="tooltip" title="Cancelar" style="margin-right:4px;">'+
                                                     feather.icons['x-circle'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
                                             <?php if(in_array(MOD_VENDER, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-new-success btn-sm btnVender" data-id="'+id+'" data-uso="'+uso+'" data-toggle="tooltip" title="Realizar Venta" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-new-success btn-sm btnVender" data-id="'+id+'" data-toggle="tooltip" title="Realizar Venta" style="margin-right:4px;">'+
                                                     feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>

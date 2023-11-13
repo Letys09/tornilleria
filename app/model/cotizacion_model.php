@@ -41,6 +41,16 @@ class CotizacionModel {
 			->fetch();
 	}
 
+	public function enUso($id){
+		$this->response->result = $this->db
+			->from($this->table)
+			->select(null)
+			->select('en_uso')
+			->where("id", $id)
+			->fetch();
+		return $this->response->SetResponse(true);
+	}
+
 	public function add($data){
 		$SQL = $this->db
 			->insertInto($this->table, $data)

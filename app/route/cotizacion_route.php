@@ -41,6 +41,10 @@ use App\Lib\Auth,
 			exit(0);
         });
 
+        $this->get('enUso/{id}', function($req, $res, $args){
+            return $res->withJson($this->model->cotizacion->enUso($args['id'])->result);
+        });
+
         $this->post('add/', function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();
