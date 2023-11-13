@@ -128,7 +128,7 @@
             $('#tbl-ventas').on('click', '.btnDevParcial', function(){
                 id = $(this).data('id')
                 venta = $.md5(id.toString())
-                window.location.href = '<?= URL_ROOT ?>/venta/cliente/'+venta;              
+                window.location.href = '<?= URL_ROOT ?>/venta/cambio/'+venta;              
             })
 
             function getItems(tbl, fecha){
@@ -170,10 +170,10 @@
                                     return (
                                         '<div class="text-center">'+
                                             <?php if(in_array(MOD_REABRIR, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnDevParcial" data-id="'+id+'" data-toggle="tooltip" title="Devolución Parcial" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnDevParcial" data-id="'+id+'" data-toggle="tooltip" title="Cambio" style="margin-right:4px;">'+
                                                     feather.icons['rotate-ccw'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
-                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDevolucion" data-id="'+id+'" data-cliente="'+cliente_id+'" data-toggle="tooltip" title="Devolución total" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDevolucion" data-id="'+id+'" data-cliente="'+cliente_id+'" data-toggle="tooltip" title="Devolución" style="margin-right:4px;">'+
                                                     feather.icons['refresh-ccw'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>

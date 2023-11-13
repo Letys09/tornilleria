@@ -361,6 +361,73 @@ use App\Lib\Auth,
             }
         });
 
+        $this->post('cambio/{id}', function($req, $res, $args){
+            $this->model->transaction->iniciaTransaccion();
+            $fecha = date('Y-m-d H:i:s');
+            $detalle = $this->model->venta_detalle->get($args['id'])->result;
+            $producto_id = $detalle->producto_id;
+            $info_prod = $this->model->producto->get($producto_id)->result;
+            if($info_prod->es_kilo == 0){
+                $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto_id)->result;
+                $inicial = $stock->final;
+                $cantidad = $detalle->cantidad;
+                $final = floatval($inicial+$cantidad);
+                $data_stock = [
+                    'usuario_id' => $_SESSION['usuario_id'],
+                    'sucursal_id' => $_SESSION['sucursal_id'],
+                    'producto_id' => $detalle->producto_id,
+                    'tipo' => 1,
+                    'inicial' => $inicial,
+                    'cantidad' => $detalle->cantidad,
+                    'final' => $final,
+                    'fecha' => $fecha,
+                    'origen_tipo' => 15,
+                    'origen_tabla' => 'venta_detalle',
+                    'origen_id' => $args['id']
+                ];
+            }else{
+                $info_kilo = $this->model->producto->getKiloBy($producto_id, 'producto_id')->result;
+                $cantidad = floatval($info_kilo->cantidad * $detalle->cantidad);
+                $prod_origen = $info_kilo->producto_origen;
+                $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
+                $inicial = $stock->final;
+                $final = floatval($inicial+$cantidad);
+                $data_stock = [
+                    'usuario_id' => $_SESSION['usuario_id'],
+                    'sucursal_id' => $_SESSION['sucursal_id'],
+                    'producto_id' => $prod_origen,
+                    'tipo' => 1,
+                    'inicial' => $inicial,
+                    'cantidad' => $cantidad,
+                    'final' => $final,
+                    'fecha' => $fecha,
+                    'origen_tipo' => 15,
+                    'origen_tabla' => 'venta_detalle',
+                    'origen_id' => $args['id']
+                ];
+            }
+            $addStock = $this->model->prod_stock->add($data_stock);
+            if($addStock->response){
+                $del_detalle = $this->model->venta_detalle->cambio($args['id']);
+                if($del_detalle->response){
+                    $seg_log = $this->model->seg_log->add('Elimina detalle de venta por cambio de producto', 'venta_detalle', $args['id'], 1);
+                    if($seg_log->response){
+                        $del_detalle->state = $this->model->transaction->confirmaTransaccion();	
+                        return $res->withJson($del_detalle);
+                    }else{
+                        $seg_log->state = $this->model->transaction->regresaTransaccion();	
+                        return $res->withJson($sucursal->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
+                    }
+                }else{
+                    $del_detalle->state = $this->model->transaction->regresaTransaccion();	
+                    return $res->withJson($del_detalle->SetResponse(false, 'No se pudo eliminar el detalle de venta para cambio de producto'));
+                }
+            }else{
+                $addStock->state = $this->model->transaction->regresaTransaccion();
+                return $res->withJson($addStock);
+            }
+        });
+
 	});
 
 ?>

@@ -78,7 +78,10 @@
 			if(isset($args['id'])){
 				$params['venta'] = $this->model->venta->getByMd5($args['id']);
 				$params['venta_id'] = $params['venta']->id;
+				$params['folio'] = $params['venta']->identificador.'-'.$params['venta']->fechaFolio.'-'.$params['venta']->id;
 				$params['detalles'] = $this->model->venta_detalle->getByVenta($params['venta']->id)->result;
+				$data = ['en_uso' => 1];
+				$this->model->venta->edit($data, $params['venta']->id);
 				foreach($params['detalles'] as $detalle){
 					$prod = $this->model->producto->get($detalle->producto_id)->result;
 					$detalle->es_kilo = $prod->es_kilo;
@@ -87,7 +90,15 @@
 					}
 					$detalle->clave = $prod->clave;
 					$detalle->concepto = '('.$prod->clave.') '.$prod->descripcion;
-					$detalle->stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id)->result->final;
+					if($prod->es_kilo == 0){
+						$info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id)->result->final;
+						$detalle->stock = number_format($info_stock, 1);
+					}else{
+						$info_kilo = $this->model->producto->getKiloBy($detalle->producto_id, 'producto_id')->result;
+						$prod_origen = $info_kilo->producto_origen;
+						$info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result->final;
+						$detalle->stock = number_format($info_stock, 1);
+					}
 					$detalle->descripcion = $prod->descripcion;
 				}
 				$params['pagos'] = $this->model->venta_pago->getByVenta($params['venta']->id)->result;
@@ -99,6 +110,58 @@
 			}
 
 			return $this->renderer->render($response, 'venta.phtml', $params);
+		});
+
+		$app->get('/venta/cambio/{id}', function(Request $request, Response $response, array $args) use ($container){
+			if(isset($_SESSION['logID'])){
+				$sesion_info = $this->model->seg_sesion->get($_SESSION['logID']);
+				if($sesion_info->response){
+					$sesion = $sesion_info->result;
+					if($sesion->finalizada != null){
+						unset($_SESSION['logID']);
+						return $this->response->withRedirect(URL_ROOT.'/login');
+					}
+				}
+			}
+			$params['vista'] = 'Venta';
+			$user = $_SESSION['usuario']->id;
+			$permisos = $this->model->usuario->getAcciones($user, 0);
+			$arrPermisos = getPermisos($permisos); 
+			$params['permisos'] = $arrPermisos; 
+
+			if(isset($args['id'])){
+				$params['venta'] = $this->model->venta->getByMd5($args['id']);
+				$params['venta_id'] = $params['venta']->id;
+				$params['folio'] = $params['venta']->identificador.'-'.$params['venta']->fechaFolio.'-'.$params['venta']->id;
+				$params['detalles'] = $this->model->venta_detalle->getByVenta($params['venta']->id)->result;
+				$data = ['en_uso' => 1];
+				$this->model->venta->edit($data, $params['venta']->id);
+				foreach($params['detalles'] as $detalle){
+					$prod = $this->model->producto->get($detalle->producto_id)->result;
+					$detalle->es_kilo = $prod->es_kilo;
+					if($prod->es_kilo){
+						$detalle->es_kilo = $this->model->producto->getKiloBy($detalle->producto_id, 'producto_id')->result->cantidad;
+					}
+					$detalle->clave = $prod->clave;
+					$detalle->concepto = '('.$prod->clave.') '.$prod->descripcion;
+					if($prod->es_kilo == 0){
+						$info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id)->result->final;
+						$detalle->stock = number_format($info_stock, 1);
+					}else{
+						$info_kilo = $this->model->producto->getKiloBy($detalle->producto_id, 'producto_id')->result;
+						$prod_origen = $info_kilo->producto_origen;
+						$info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result->final;
+						$detalle->stock = number_format($info_stock, 1);
+					}
+					$detalle->descripcion = $prod->descripcion;
+				}
+				$params['pagos'] = $this->model->venta_pago->getByVenta($params['venta']->id)->result;
+				$params['nueva'] = false;
+				return $this->renderer->render($response, 'venta_cambio.phtml', $params);
+			}else{
+				return $this->renderer->render($response, '404.phtml', $params);
+			}
+
 		});
 
 		$app->get('/ventas/dia[/{dia}]', function(Request $request, Response $response, array $args) use ($container){
@@ -170,7 +233,10 @@
 			if(isset($args['id'])){
 				$params['cotizacion'] = $this->model->cotizacion->getByMd5($args['id']);
 				$params['cotizacion_id'] = $params['cotizacion']->id;
+				$params['folio'] = $params['cotizacion']->identificador.'-'.$params['cotizacion']->fechaFolio.'-'.$params['cotizacion']->id;
 				$params['detalles'] = $this->model->coti_detalle->getByCot($params['cotizacion']->id)->result;
+				$data = ['en_uso' => 1];
+				$this->model->cotizacion->edit($data, $params['cotizacion']->id);
 				foreach($params['detalles'] as $detalle){
 					$prod = $this->model->producto->get($detalle->producto_id)->result;
 					$detalle->clave = $prod->clave;
@@ -179,12 +245,10 @@
 					$detalle->stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id)->result->final;
 				}
 				$params['nueva'] = false;
-				// print_r($params);exit();
 			}else{
 				$params['nueva'] = true;
 				$params['detalles'] = [];
 			}
-			// print_r($params);exit();
 
 			return $this->renderer->render($response, 'cotizacion.phtml', $params);
 		});
