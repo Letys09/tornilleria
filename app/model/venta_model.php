@@ -65,6 +65,7 @@ class VentaModel {
 			->where("DATE_FORMAT(fecha, '%Y-%m-%d') BETWEEN '$desde' AND '$hasta'")
 			->where("DATE_FORMAT(fecha_finaliza, '%Y-%m-%d') BETWEEN '$desde' AND '$hasta'")
 			->where("$this->table.sucursal_id", $_SESSION['sucursal_id'])
+			->where("$this->table.status in(1,2)")
 			->orderBy("$this->table.id DESC")
 			->fetchAll();
 		return $this->response->SetResponse(true);
