@@ -22,7 +22,7 @@
                     <div class="card">
                         <div class="card-body border-bottom">
                             <div class="card-body border-bottom filtroFechas">
-                                <div class="col-md-4 col-12">
+                                <div class="col-sm-4 col-md-6 col-12">
                                     <div class="input-group input-daterange">
                                         <select class="form-control text-center" id="mes">
                                             <?php foreach($meses as $mes) : ?>
@@ -40,8 +40,22 @@
                                 </div>
                             </div>
                             <div class="row">
-                                <div class="col-sm-12">
-                                    <canvas id="grafica" style="width: 100%; height: 400px; overflow: visible;"></canvas>
+                                <div class="col-sm-12 mt-1">
+                                    <center><h4 class="txtTitle"></h4></center>
+                                </div>
+                                <div class="col-sm-6">
+                                    <canvas class="doughnut-chart-ex chartjs" id="grafica" style="width: 100%; height: 300px; overflow: visible;"></canvas>
+                                </div>
+                                <div class="col-sm-6">
+                                    <table class="table table-bordered mt-2" id="table-desc">
+                                        <thead>
+                                            <tr>
+                                                <th>Forma de Pago</th>
+                                                <th>Monto</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody></tbody>
+                                    </table>
                                 </div>
                             </div>
                         </div>
@@ -52,7 +66,7 @@
                     <div class="card">
                         <div class="card-body border-bottom">
                             <div class="card-body border-bottom filtroFechas">
-                                <div class="col-md-4 col-12">
+                                <div class="col-sm-4 col-md-6 col-12">
                                     <div class="input-group input-daterange">
                                         <span class="input-group-text">Del</span>
                                         <input type="date" id="desde" class="form-control" value="<?= date('Y-m-01') ?>"/>
@@ -83,8 +97,9 @@
             </div>
         </div>
     </div>
-    <script src="<?= URL_ROOT ?>/app-assets/plugin/Chart.js/Chart.min.js"></script>
-    <script src="<?= URL_ROOT ?>/app-assets/plugin/Chart.js/chartjs-plugin-datalabels.min.js"></script>
+    <script src="<?= URL_ROOT ?>/app-assets/vendors/js/vendors.min.js"></script>
+    <script src="<?= URL_ROOT ?>/app-assets/vendors/js/charts/chart.min.js"></script>
+
     <?php include 'footer.phtml'; ?>
 
     <script>
@@ -92,7 +107,14 @@
             var apiUrl = '<?= URL_ROOT ?>/',
                 id_cliente = 0,
                 desde = $('#desde').val()
-                hasta = $('#hasta').val();
+                hasta = $('#hasta').val()
+                primaryColorShade = '#836AF9',
+                yellowColor = '#ffe800',
+                successColorShade = '#28dac6',
+                tooltipShadow = 'rgba(0, 0, 0, 0.25)',
+                black = 'rgb(0, 0, 0)',
+                white = 'rgb(255, 255, 255)',
+                grafica = document.getElementById('grafica');
 
             getItems('tbl_pagos', desde, hasta)
 
@@ -100,13 +122,12 @@
             mes = $('#mes').val()
             anio = $('#anio').val()
 		    txtTitle = 'MÉTODOS DE PAGO UTILIZADOS DURANTE ' + meses[mes] + ' DEL ' + anio
+            $('.txtTitle').html(txtTitle)
             labels = []
             data = []
             colors = []
-            totalVentas = 0
             <?php 
-                $colors = ['#836AF9', '#f1a929', '#1ed3be', '#ed7f37', '#58da3e', '#299AFF', '#5276a7', '#8976dc', '#08659f', '#f0b3ec', '#98356b', '#ff4961'];
-
+                $colors = ['#0089ff', '#00b7ff', '#00d472', '#cd97b1', '#ffb9a6', '#423156', '#683b62', '#9e4e72', '#e36f82', '#ffa48e', '#ee2ee4', '#ff5e87', '#4b7045'];
                 $monto_metodo = 0;
                 foreach($metodos as $metodo):
                     $color = $colors[intval(rand(0, count($colors)-1))];
@@ -114,91 +135,54 @@
             ?>
                     labels.push('<?= $metodo->metodo ?>');
                     data.push(<?= $monto_metodo ?>);
-                    colors.push('<?= $color ?>')
+                    colors.push('<?= $color ?>');
+
+                    container = $('#table-desc')
+                    tr = $('<tr></tr>')
+                    tr.append('<td class="fw-bolder"><span class="badge bg-label rounded-pill" style="background-color: <?= $color ?>";><?= $metodo->metodo ?></span></td>')
+                    tr.append('<td>$ <?= $monto_metodo ?></td>')
+                    container.append(tr)
                 <?php endforeach; ?>
-                    
-            
-            var ctx = document.getElementById('grafica');
-            var chart = new Chart(ctx, {
-                type: 'bar',
-                data: {
-                    labels: labels,
-                    datasets: [{
-                        label: 'MONTO',
-                        backgroundColor: colors,
-                        data: data,
-                        datalabels: {
-                            anchor: 'middle'
-                        }
-                    }]
-                },
-                plugins: [ChartDataLabels],
+
+            var doughnutExample = new Chart(grafica, {
+                type: 'doughnut',
                 options: {
                     responsive: true,
-                    legend: {
-                        position: 'bottom',
-                        display: false,
-                        onHover: function(event, item) {
-                            this.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                colors[index] = index === item.index || color.length === 9 ? color : color + '4D';
-                            });
-                            this.chart.update();
-                        },
-                        onLeave: function() {
-                            this.chart.data.datasets[0].backgroundColor.forEach((color, index, colors) => {
-                                colors[index] = color.length === 9 ? color.slice(0, -2) : color;
-                            });
-                            this.chart.update();
-                        }
-                    },
-                    title: {
-                        display: true,
-                        text: txtTitle,
-                        fontSize: 16,
-                        padding: 20
-                    },
+                    maintainAspectRatio: false,
+                    responsiveAnimationDuration: 500,
+                    cutoutPercentage: 60,
+                    legend: { display: false },
                     tooltips: {
-                        callbacks: {
-                            label: function(item, data) {
-                                dataset = data.datasets[item.datasetIndex];
-                                var label = dataset.label || '';
-                                if(label) { label += ': '; }
-
-                                return label += new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(dataset.data[item.index]);;
-                            }
+                    callbacks: {
+                        label: function (tooltipItem, data) {
+                            var label = data.datasets[0].labels[tooltipItem.index] || '',
+                                value = data.datasets[0].data[tooltipItem.index];
+                            var output = ' ' + label + ' : $' + parseFloat(value).toFixed(2) + '';
+                            return output;
                         }
                     },
-                    plugins: {
-                        datalabels: {
-                            backgroundColor: function(context) {
-                                return context.dataset.backgroundColor;
-                            },
-                            borderColor: 'white',
-                            borderRadius: 25,
-                            borderWidth: 1,
-                            color: 'white',
-                            display: function(context) {
-                                var dataset = context.dataset;
-                                var count = dataset.data.length;
-                                var value = dataset.data[context.dataIndex];
-                                total = context.dataset.data.reduce((a, b) => a+b);
-
-                                return Math.round(value / total * 100);
-                            },
-                            font: {
-                                weight: 'bold'
-                            },
-                            padding: 6,
-                            formatter: function(value, context) {
-                                total = context.chart.data.datasets[0].data.reduce((a, b) => a+b);
-                                return parseFloat(value / total * 100).toFixed(1) + '%';
-                            },
-                        },
+                    // Updated default tooltip UI
+                    shadowOffsetX: 1,
+                    shadowOffsetY: 1,
+                    shadowBlur: 8,
+                    shadowColor: tooltipShadow,
+                        backgroundColor: white,
+                        titleFontColor: black,
+                        bodyFontColor: black
                     }
                 },
+                data: {
+                    datasets: [
+                        {
+                            labels: labels,
+                            data: data,
+                            backgroundColor: colors,
+                            borderWidth: 0,
+                            pointStyle: 'rectRounded'
+                        }
+                    ]
+                }
             });
-
-            
 
             $('#btnBuscar').click(function(e){
                 e.preventDefault()
