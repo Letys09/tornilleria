@@ -132,7 +132,6 @@
             })
 
             function getItems(tbl, fecha){
-                console.log(fecha)
                 cleanTable(tbl)
                 $('#'+tbl+' tbody').empty()
                 createTable(tbl, fecha)
@@ -167,13 +166,14 @@
                                 orderable: false,
                                 render: function (data, type, full, meta) {
                                     id = full['id']; saldo = full['saldo']; cliente_id = full['cliente_id'];
+                                    mostrar = full['fecha'] == '<?= date('d-m-Y') ?>' ? '' : 'hidden' 
                                     return (
                                         '<div class="text-center">'+
                                             <?php if(in_array(MOD_REABRIR, $permisos)) : ?>
                                                 '<button type="button" class="btn btn-outline-new-info btn-sm btnDevParcial" data-id="'+id+'" data-toggle="tooltip" title="Cambio" style="margin-right:4px;">'+
                                                     feather.icons['rotate-ccw'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
-                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDevolucion" data-id="'+id+'" data-cliente="'+cliente_id+'" data-toggle="tooltip" title="Devolución" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDevolucion '+mostrar+'" data-id="'+id+'" data-cliente="'+cliente_id+'" data-toggle="tooltip" title="Devolución" style="margin-right:4px;">'+
                                                     feather.icons['refresh-ccw'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
