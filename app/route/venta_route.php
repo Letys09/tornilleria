@@ -533,7 +533,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             $sheet->getColumnDimension('B')->setAutoSize(true);
             $sheet->getColumnDimension('C')->setAutoSize(true);
             $sheet->getColumnDimension('D')->setAutoSize(true);
-           
+            
             $sheet->setCellValue("A1", 'Fecha');
             $sheet->setCellValue("B1", 'Folio Venta');
             $sheet->setCellValue("C1", 'Producto');
@@ -542,12 +542,18 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             $fila = 2;
 
             $cambios = $this->model->venta_detalle->getCambios($args['fecha'])->result;
-            foreach($cambios as $cambio){
-                $sheet->setCellValue("A$fila", $cambio->fecha.' '.$cambio->hora);
-                $sheet->setCellValue("B$fila", $cambio->identificador.'-'.$cambio->date.'-'.$cambio->id);
-                $sheet->setCellValue("C$fila", '( '.$cambio->clave.' )'.$cambio->descripcion.' '.$cambio->medida);
-                $sheet->setCellValue("D$fila", $cambio->cantidad);
-                $fila++;
+            $total = COUNT($cambios);
+            if($total > 0){
+                foreach($cambios as $cambio){
+                    $sheet->setCellValue("A$fila", $cambio->fecha.' '.$cambio->hora);
+                    $sheet->setCellValue("B$fila", $cambio->identificador.'-'.$cambio->date.'-'.$cambio->id);
+                    $sheet->setCellValue("C$fila", '( '.$cambio->clave.' )'.$cambio->descripcion.' '.$cambio->medida);
+                    $sheet->setCellValue("D$fila", $cambio->cantidad);
+                    $fila++;
+                }
+            }else{
+                $sheet->mergeCells("A2:D2");
+                $sheet->setCellValue("A2", 'No se realizaron cambios el día '.$args['fecha']);
             }
 
             $writer = new Xlsx($spreadsheet);
