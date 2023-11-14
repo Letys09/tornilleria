@@ -2,6 +2,13 @@
 use App\Lib\Auth,
 	App\Lib\Response;
 
+use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Spreadsheet;
+use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
+
     date_default_timezone_set('America/Mexico_City');
 
 	$app->group('/venta/', function () use ($app){
@@ -517,6 +524,36 @@ use App\Lib\Auth,
                 $finaliza->state = $this->model->transaction->regresaTransaccion();
             }
             return $res->withJson($finaliza);
+        });
+
+        $this->get('exportar/cambios/{fecha}', function($req, $res, $args){
+            $spreadsheet = new Spreadsheet();
+            $sheet = $spreadsheet->getActiveSheet();
+            $sheet->getColumnDimension('A')->setAutoSize(true);
+            $sheet->getColumnDimension('B')->setAutoSize(true);
+            $sheet->getColumnDimension('C')->setAutoSize(true);
+            $sheet->getColumnDimension('D')->setAutoSize(true);
+           
+            $sheet->setCellValue("A1", 'Fecha');
+            $sheet->setCellValue("B1", 'Folio Venta');
+            $sheet->setCellValue("C1", 'Producto');
+            $sheet->setCellValue("D1", 'Cantidad');
+            $sheet->setTitle('Hoja 1');
+            $fila = 2;
+
+            $cambios = $this->model->venta_detalle->getCambios($args['fecha'])->result;
+            foreach($cambios as $cambio){
+                $sheet->setCellValue("A$fila", $cambio->fecha.' '.$cambio->hora);
+                $sheet->setCellValue("B$fila", $cambio->identificador.'-'.$cambio->date.'-'.$cambio->id);
+                $sheet->setCellValue("C$fila", '( '.$cambio->clave.' )'.$cambio->descripcion.' '.$cambio->medida);
+                $sheet->setCellValue("D$fila", $cambio->cantidad);
+                $fila++;
+            }
+
+            $writer = new Xlsx($spreadsheet);
+            header('Content-Type: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+            header("Content-Disposition: attachment; filename=\"Cambios_".$args['fecha'].".xlsx\"");
+            $writer->save('php://output');
         });
 
 	});

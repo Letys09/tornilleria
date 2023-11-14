@@ -57,7 +57,22 @@ class VentaDetModel {
 		->where("venta.status", 1)
 		->where("$this->table.status", 1)
 		->fetchAll();
-	return $this->response->SetResponse(true);
+		return $this->response->SetResponse(true);
+	}
+
+	public function getCambios($fecha){
+		$this->response->result = $this->db
+			->from($this->table)
+			->select(null)
+			->select("DATE_FORMAT(fecha_cambio, '%d-%m-%Y') AS fecha, CAST(fecha_cambio AS time) AS hora, sucursal.identificador, DATE_FORMAT(venta.fecha, '%d%m%Y') AS date, venta.id, producto.clave, producto.descripcion, producto.medida,
+					  venta_detalle.cantidad")
+			->innerJoin("venta ON venta.id = venta_detalle.venta_id")
+			->innerJoin("sucursal ON sucursal.id = venta.sucursal_id")
+			->innerJoin("producto ON venta_detalle.producto_id =  producto.id")
+			->where("$this->table.status", 2)
+			->where("DATE_FORMAT(fecha_cambio, '%Y-%m-%d') = '$fecha'")
+			->fetchAll();
+		return $this->response->SetResponse(true);
 	}
 
 	public function add($data){
@@ -111,7 +126,7 @@ class VentaDetModel {
 
     public function cambio($id) {
 		try {
-            $data['status'] = 2;
+            $data = ['fecha_cambio' => date('Y-m-d H:i:s'), 'status' => 2];
 			$this->response->result = $this->db
 				->update($this->table, $data)
 				->where('id', $id)

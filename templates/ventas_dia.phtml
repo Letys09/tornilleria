@@ -24,6 +24,9 @@
                                 <div class="dt-buttons btn-group">
                                     <input type="date" id="fecha" class="form-control" data-toggle="tooltip" title="Fecha" value="<?= date('Y-m-d')?>">
                                 </div>
+                                <button type="button "id="btnExportar" class="btn btn-success buttonModal">
+                                    <i class="fas fa-file-excel"></i>&nbsp;&nbsp;<span>Cambios</span>
+                                </button>
                             </div>
                             <div class="card-datatable table-responsive pt-0">
                                 <table id="tbl-ventas" class="table">
@@ -99,6 +102,12 @@
                 
             $('#fecha').change(function(){
                 getItems('tbl-ventas', $(this).val())
+            })
+
+            $('#btnExportar').click(function(e){
+                fecha = $('#fecha').val()
+                e.preventDefault
+                window.open(apiUrl+'venta/exportar/cambios/'+fecha, '_blank')
             })
 
             $('#tbl-ventas').on('click', '.btnDevolucion', function(){
