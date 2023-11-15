@@ -268,7 +268,8 @@
             tipo = 1,
             eliminarDet = true,
             cargarV = true,
-            collection = '<?= $_SESSION['sucursal_id'] ?>-'+'<?= $_SESSION['usuario_id'] ?>-'+'<?= date("Ymd") ?>',
+            recargar = false,
+            collection =  '<?php echo !$nueva ? 'venta-'.$venta_id : $_SESSION['sucursal_id'].'-'.$_SESSION['usuario_id'].'-'.date("YmdHis") ?>',
             firebaseConfig = {
                 apiKey: "AIzaSyDnf5WHyP3ifke133Gff5pngMDJXJMZu3E",
                 authDomain: "tornilleria-e631b.firebaseapp.com",
@@ -283,15 +284,28 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
-        <?php if(!$nueva) : ?> $('.title h2').html('Venta '+'<?= $folio ?>')
-        <?php else : ?> $('.title h2').html('Venta')
-        <?php endif; ?>
+        addEventListener("beforeunload", onbeforeunload);
+        onbeforeunload = (event) => {
+            // event.preventDefault()
+            eliminarDet = false
+            delAll()
+        };
 
-        // delDocs()
-        // if(cargarV){
+        var change_name = db.collection('venta_app').doc('<?= $_SESSION['sucursal_id'].'-'.$_SESSION['usuario_id'] ?>');
+        change_name.set({
+            'venta_id': collection
+        });
+
+        <?php if(!$nueva) : ?>
+            $('.title h2').html('Venta '+'<?= $folio ?>')
             getClientes()
             getItems('tbl-prods')
-        // }
+        <?php else : ?> 
+            eliminarDet = false
+            $('.title h2').html('Venta')
+            getClientes()
+            getItems('tbl-prods')
+        <?php endif; ?>
 
         $('#btnCancel').click(function(e){
             e.preventDefault()
@@ -345,6 +359,7 @@
                         $('#aplicar').attr('disabled', true).prop('disabled', true).trigger('change')
                     <?php endif; ?>
                     $("input[type='radio'][name='venta-tipo'][value='"+tipo+"']").prop('checked',true).trigger('change');
+                    // cargarVenta()
                 },'json')
                 $('#btnContinuar').html('Guardar')
                 $.unblockUI()
@@ -360,9 +375,9 @@
                 $('#descuento').val('')
                 $("input[type='radio'][name='venta-tipo'][value='1']").prop('checked',true);
                 $('#btnContinuar').html('Cobrar')
+                // cargarVenta()
                 $.unblockUI()
             }
-            cargarVenta()
         })
 
         $('input[type=radio][name=venta-tipo]').on('change', function(){
@@ -618,6 +633,7 @@
                     $('#clientes').val(<?= $venta->cliente_id ?>).attr('disabled', true).prop('disabled', true).addClass('deshabilitado')
                 <?php endif; ?>
                 $('#clientes').trigger('change')
+                cargarVenta()
                 $.unblockUI()
             },'json')
         }
@@ -630,37 +646,20 @@
 
         function cargarVenta(){
             <?php if(!$nueva) : ?> 
-                <?php foreach($detalles as $detalle) : ?>
-                    detalle = {
-                        'cantidad': '<?= $detalle->cantidad ?>',
-                        'es_kilo': '<?= $detalle->es_kilo ?>',
-                        'clave': '<?= $detalle->clave ?>',
-                        'desc': '<?= $detalle->descripcion ?>',
-                        'producto_id': '<?= $detalle->producto_id ?>',
-                        'stock': '<?= $detalle->stock ?>',
-                        'detalle_id': '<?= $detalle->id ?>',
-                        'precio': '<?= $detalle->precio ?>',
-                        'concepto': '<?= $detalle->concepto ?>',
-                        'total': '<?= $detalle->total ?>',
-                    }
-                    addFirebase(detalle)
-                <?php endforeach; ?>
-
-                $('.ventaPagos').removeClass('hidden')
-                <?php foreach($pagos as $pago) : ?>
-                    metodo_pago = '<?= $pago->forma_pago ?>' == 1 ? 'Efectivo' : ('<?= $pago->forma_pago ?>' == 2 ? 'Saldo a favor' : ('<?= $pago->forma_pago ?>' == 3 ? 'Tarjeta' : ('<?= $pago->forma_pago ?>' == 4 ? 'Transferencia' : 'Otro')))
-                    pago = {
-                        'id': '<?= $pago->id ?>',
-                        'fecha': '<?= $pago->date ?>',
-                        'hora': '<?= $pago->hora ?>',
-                        'usuario': '<?= $pago->usuario ?>',
-                        'monto': '<?= $pago->monto ?>',
-                        'metodo': '<?= $pago->forma_pago ?>',
-                    }
-                    addPago(pago)
-                <?php endforeach; ?>
-                $('#venta-comentarios').val('<?= $venta->comentarios ?>')
+                $.get(apiUrl+'venta_detalle/getByVenta/<?= $venta_id ?>', function(resp){
+                    $.each(resp.result, function(index, detalle){
+                        addFirebase(detalle)
+                    })
+                },'json')
+                
+                $.get(apiUrl+'venta_pago/getByVenta/<?= $venta_id ?>', function(resp){
+                    $.each(resp.result, function(index, pago){
+                        addPago(pago)
+                    })
+                    $('.ventaPagos').removeClass('hidden')
+                },'json')
             <?php endif; ?>
+                firebaseChanges()
         }
 
         function addDetalle(data, tipo=0){
@@ -694,10 +693,11 @@
         }
 
         function addPago(data){
+            metodo_pago = data.forma_pago == 1 ? 'Efectivo' : (data.forma_pago == 3 ? 'Tarjeta' : (data.forma_pago == 4 ? 'Transferencia' : ''))
             container = $('#tbl-pagos tbody')
             $('#tbl-pagos tbody .nodataPagos').remove();
             tr = $('<tr class="pago" data-pago_id="'+data.id+'"></tr>')
-            tr.append('<td width="10%"><div class="d-flex flex-column"><span >'+data.fecha+'</span>'+'<small class="emp_post text-muted">'+data.hora+'</small></div></td>')
+            tr.append('<td width="10%"><div class="d-flex flex-column"><span>'+data.date+'</span>'+'<small class="emp_post text-muted">'+data.hora+'</small></div></td>')
             tr.append('<td width="45%">'+data.usuario+'</td>')
             tr.append('<td class="text-center monto" width="15%">$ '+data.monto+'</td>')
             tr.append('<td class="text-center" width="15%">'+metodo_pago+'</td>')
@@ -768,6 +768,7 @@
                 btn.attr('disabled', false).prop('disabled', false)
                 $.unblockUI()
             }else{
+                recargar = true
                 <?php if($nueva) : ?>
                     $.post(apiUrl+'venta/add/', data, function(resp){
                         if(resp.response){
@@ -794,28 +795,15 @@
         }
 
         function delAll(){
-            cargarV = false
             db.collection(collection)
             .get()
             .then(res => {
                 res.forEach(element => {
                 element.ref.delete();
-                window.location.href = '<?= URL_ROOT ?>/venta/cliente';
-                });
             });
-            cargarV = true
-        }
-
-        function delDocs(){
-            cargarV = false
-            db.collection(collection)
-            .get()
-            .then(res => {
-                res.forEach(element => {
-                element.ref.delete();
-                });
+                if(recargar)
+                    window.location.href = '<?= URL_ROOT ?>/venta/cliente';
             });
-            cargarV = true
         }
 
         function cleanTable(tbl){
@@ -897,85 +885,87 @@
             }
         }
 
-        db.collection(collection).onSnapshot((snapshot) => {
-            snapshot.docChanges().forEach((change) => {
-                let info = change.doc.data()
-                if(change.type === 'added'){
-                    let kilo = info['cantidadPorKilo'] != 0 ? info['cantidadPorKilo'] : 0
-                    let data_detalle = {
-                        'detalle_id': info['detalle_id'],
-                        'producto_id': info['id'],
-                        'cantidad': info['cantidad'],
-                        'stock': info['stock'],
-                        'clave': info['clave'],
-                        'desc': info['descripcion'],
-                        'concepto': '('+info['clave']+') '+info['descripcion'],
-                        'es_kilo': kilo
-                    }
-
-                    $.get(apiUrl+'producto/getPrecioByCant/'+info['id']+'/'+info['cantidad'], function(resp){
-                        precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                        data_detalle['precio'] = precio,
-                        data_detalle['total'] = parseFloat(info['cantidad']*precio).toFixed(2),
-                        addDetalle(data_detalle)
-                    })
-                }else if(change.type === 'modified'){
-                    $.each($('#tbl-detalles tbody tr'), function(index, item){
-                        if($(item).data('producto_id') == info['id']){
-                            if(info['detalle_id'] == ''){
-                                $(item).find('.cant').val(info['cantidad']).trigger('change')
-                                getTotales()
-                                $.unblockUI()
-                            }else{
-                                $(item).find('.cant').val(info['cantidad'])
-                                let detalle_id = info['detalle_id']
-                                $.get(apiUrl+'producto/getPrecioByCant/'+info['id']+'/'+info['cantidad'], function(resp){
-                                    let precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                                    let total = parseFloat(precio*info['cantidad']).toFixed(2)
-                                    $(tr).find('.precio').html('$ '+precio)
-                                    $(tr).find('.total').html('$ '+total)
-                                    getTotales()
-                                    data = {'cantidad': info['cantidad'], 'precio': precio, 'importe': total, 'descuento': 0, 'total': total}
-                                    $.post(apiUrl+'venta_detalle/edit/'+detalle_id, data, function(resp){
-                                        if(!resp.response){
-                                            toastr["error"]("¡Ocurrió un error!", 'Vuelva a intentarlo más tarde')
-                                            $(item).val(1).trigger('change')
-                                            $.unblockUI()
-                                        }
-                                    })
-                                },'json')
-                            }
+        function firebaseChanges(){
+            db.collection(collection).onSnapshot((snapshot) => {
+                snapshot.docChanges().forEach((change) => {
+                    let info = change.doc.data()
+                    if(change.type === 'added'){
+                        let kilo = info['cantidadPorKilo'] != 0 ? info['cantidadPorKilo'] : 0
+                        let data_detalle = {
+                            'detalle_id': info['detalle_id'],
+                            'producto_id': info['id'],
+                            'cantidad': info['cantidad'],
+                            'stock': info['stock'],
+                            'clave': info['clave'],
+                            'desc': info['descripcion'],
+                            'concepto': '('+info['clave']+') '+info['descripcion'],
+                            'es_kilo': kilo
                         }
-                    })
-                }else{
-                    if($('#tbl-detalles tbody tr').length != 0){
-                        $.each($('#tbl-detalles tbody tr'), function(index, tr){
-                            if($(tr).data('producto_id') == info['id']){
-                                $(tr).remove()
-                            }
-                            if(eliminarDet){
-                                let producto_id = ($(tr).data('producto_id')).toString()
-                                if(info['detalle_id'] != '' && producto_id == info['id'] ){
-                                    detalle_id = info['detalle_id']
-                                    $.post(apiUrl+'venta_detalle/del/'+detalle_id, function(resp){
-                                        if(resp.response){
-                                            toastr['success']('¡Hecho!', 'Producto eliminado de la venta')
-                                            if($('#tbl-detalles tbody tr').length == 0){
-                                                $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+
+                        $.get(apiUrl+'producto/getPrecioByCant/'+info['id']+'/'+info['cantidad'], function(resp){
+                            precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                            data_detalle['precio'] = precio,
+                            data_detalle['total'] = parseFloat(info['cantidad']*precio).toFixed(2),
+                            addDetalle(data_detalle)
+                        })
+                    }else if(change.type === 'modified'){
+                        $.each($('#tbl-detalles tbody tr'), function(index, item){
+                            if($(item).data('producto_id') == info['id']){
+                                if(info['detalle_id'] == ''){
+                                    $(item).find('.cant').val(info['cantidad']).trigger('change')
+                                    getTotales()
+                                    $.unblockUI()
+                                }else{
+                                    $(item).find('.cant').val(info['cantidad'])
+                                    let detalle_id = info['detalle_id']
+                                    $.get(apiUrl+'producto/getPrecioByCant/'+info['id']+'/'+info['cantidad'], function(resp){
+                                        let precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                                        let total = parseFloat(precio*info['cantidad']).toFixed(2)
+                                        $(tr).find('.precio').html('$ '+precio)
+                                        $(tr).find('.total').html('$ '+total)
+                                        getTotales()
+                                        data = {'cantidad': info['cantidad'], 'precio': precio, 'importe': total, 'descuento': 0, 'total': total}
+                                        $.post(apiUrl+'venta_detalle/edit/'+detalle_id, data, function(resp){
+                                            if(!resp.response){
+                                                toastr["error"]("¡Ocurrió un error!", 'Vuelva a intentarlo más tarde')
+                                                $(item).val(1).trigger('change')
+                                                $.unblockUI()
                                             }
-                                        }else{
-                                            toastr['error']('¡Error!', 'No pudimos eliminar el producto de la venta')
-                                        }
+                                        })
                                     },'json')
                                 }
                             }
                         })
                     }else{
-                        $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                        if($('#tbl-detalles tbody tr').length != 0){
+                            $.each($('#tbl-detalles tbody tr'), function(index, tr){
+                                if($(tr).data('producto_id') == info['id']){
+                                    $(tr).remove()
+                                }
+                                if(eliminarDet){
+                                    let producto_id = ($(tr).data('producto_id')).toString()
+                                    if(info['detalle_id'] != '' && producto_id == info['id'] ){
+                                        detalle_id = info['detalle_id']
+                                        $.post(apiUrl+'venta_detalle/del/'+detalle_id, function(resp){
+                                            if(resp.response){
+                                                toastr['success']('¡Hecho!', 'Producto eliminado de la venta')
+                                                if($('#tbl-detalles tbody tr').length == 0){
+                                                    $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                                                }
+                                            }else{
+                                                toastr['error']('¡Error!', 'No pudimos eliminar el producto de la venta')
+                                            }
+                                        },'json')
+                                    }
+                                }
+                            })
+                        }else{
+                            $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                        }
                     }
-                }
-            })
-        });
+                })
+            });
+        }
 
     });
 </script>

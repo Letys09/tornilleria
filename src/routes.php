@@ -79,29 +79,8 @@
 				$params['venta'] = $this->model->venta->getByMd5($args['id']);
 				$params['venta_id'] = $params['venta']->id;
 				$params['folio'] = $params['venta']->identificador.'-'.$params['venta']->fechaFolio.'-'.$params['venta']->id;
-				$params['detalles'] = $this->model->venta_detalle->getByVenta($params['venta']->id)->result;
 				$data = ['en_uso' => 1];
 				$this->model->venta->edit($data, $params['venta']->id);
-				foreach($params['detalles'] as $detalle){
-					$prod = $this->model->producto->get($detalle->producto_id)->result;
-					$detalle->es_kilo = $prod->es_kilo;
-					if($prod->es_kilo){
-						$detalle->es_kilo = $this->model->producto->getKiloBy($detalle->producto_id, 'producto_id')->result->cantidad;
-					}
-					$detalle->clave = $prod->clave;
-					$detalle->concepto = '('.$prod->clave.') '.$prod->descripcion;
-					if($prod->es_kilo == 0){
-						$info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id)->result->final;
-						$detalle->stock = number_format($info_stock, 1);
-					}else{
-						$info_kilo = $this->model->producto->getKiloBy($detalle->producto_id, 'producto_id')->result;
-						$prod_origen = $info_kilo->producto_origen;
-						$info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result->final;
-						$detalle->stock = number_format($info_stock, 1);
-					}
-					$detalle->descripcion = $prod->descripcion;
-				}
-				$params['pagos'] = $this->model->venta_pago->getByVenta($params['venta']->id)->result;
 				$params['nueva'] = false;
 			}else{
 				$params['nueva'] = true;

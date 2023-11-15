@@ -249,7 +249,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <div class="buttonsEnd">
-                                        <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                        <button type="button" class="btn btn-outline-secondary mb-1" id="btnCancel">Cancelar</button>
                                         <button type="button" class="btn btn-success mb-1" id="btnSave">Guardar</button>
                                         <input type="hidden" id="pago_id" value="0">
                                     </div>
@@ -297,6 +297,37 @@
 
         getClientes()
         getItems('tbl-prods')
+
+        $('#btnCancel').click(function(e){
+            e.preventDefault()
+            $.blockUI()
+            <?php if($nueva) : ?> 
+                swal({
+                    title: "SALIR",
+                    text: "Se perderán todos los datos de la venta</br>¿Qué desea hacer?",
+                    type: "warning",
+                    html: true,
+                    showCancelButton: true,
+                    cancelButtonText: "Permanecer",
+                    confirmButtonColor: "#DD6B55",
+                    confirmButtonText: "Salir",
+                    closeOnConfirm: true 
+                }, function(respuesta) {
+                    if(respuesta) {
+                        window.location.href = '<?= URL_ROOT ?>/ventas/dia'
+                    }
+                    $.unblockUI();
+                })
+            <?php else : ?>
+                $.post(apiUrl+'venta/desbloquear/<?= $venta_id ?>', function(resp){
+                    if(resp.response){
+                        window.location.href = '<?= URL_ROOT ?>/ventas/dia'
+                    }else{
+                        toastr['danger']('¡Ocurrió algo extraño!', 'Vuelve a intentarlo más tarde.')
+                    }
+                },'json')
+            <?php endif; ?>
+        })
 
         $('#clientes').on('change', function(){
             $.blockUI()
