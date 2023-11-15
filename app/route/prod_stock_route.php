@@ -92,9 +92,11 @@ use App\Lib\Auth,
             $data = ['cant_necesaria' => $cant_necesaria, 'stock_disp' => $stock_disp];
             if($cant_necesaria <= $stock_disp){
                 $data['response'] = true;
+                $data['max'] = intdiv($stock_disp, $info_kilo->cantidad);
                 return $res->withJson($data);
             }else{
                 $data['response'] = false;
+                $data['max'] = intdiv($stock_disp, $info_kilo->cantidad);
                 return $res->withJson($data);
             }
         });

@@ -216,7 +216,7 @@ use App\Lib\Auth,
                         $cantidad = $cant_anterior-$cant_nueva;
                         $final = $inicial+$cantidad;
                         $dataStock = [
-                            'usuario_id' => $_SESSION['sucursal_id'],
+                            'usuario_id' => $_SESSION['usuario_id'],
                             'sucursal_id' => $_SESSION['sucursal_id'],
                             'producto_id' => $producto_id,
                             'tipo' => 1,

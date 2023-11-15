@@ -123,6 +123,26 @@
 										</tr>
 									<?php endif; ?>
 								<?php else : ?>
+									<?php if(isset($pagos)) : ?>
+										<?php if(COUNT($pagos) != 0 ) : ?>
+											<tr><td>Pagos realizados</td></tr>
+											<?php 
+												$pagado = 0;
+												foreach($pagos as $pago) :
+													$metodo = $pago->forma_pago == 1 ? 'Efectivo' : ($pago->forma_pago == 3 ? 'Tarjeta' : ($pago->forma_pago == 4 ? 'Transf' : ''));
+													$pagado += $pago->monto;
+											?>
+												<tr>
+													<td><?= $metodo?></td>
+													<td class="cantEnd">$<?= $pago->monto ?></td>
+												</tr>
+											<?php endforeach; ?>
+											<tr>
+												<td>Resta</td>
+												<td class="cantEnd">$<?= number_format(floatval($venta->total-$pagado), 2) ?></td>
+											</tr>
+										<?php endif; ?>
+									<?php endif; ?>
 									<tr>
 										<td>Venta a crédito</td>
 									</tr>

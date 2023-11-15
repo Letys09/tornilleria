@@ -81,14 +81,14 @@
 				$params['folio'] = $params['venta']->identificador.'-'.$params['venta']->fechaFolio.'-'.$params['venta']->id;
 				$data = ['en_uso' => 1];
 				$this->model->venta->edit($data, $params['venta']->id);
-				$params['nueva'] = false;
+				return $this->renderer->render($response, 'venta_credito.phtml', $params);
 			}else{
 				$params['nueva'] = true;
 				$params['detalles'] = [];
 				$params['pagos'] = [];
+				return $this->renderer->render($response, 'venta.phtml', $params);
 			}
 
-			return $this->renderer->render($response, 'venta.phtml', $params);
 		});
 
 		$app->get('/venta/cambio/{id}', function(Request $request, Response $response, array $args) use ($container){
@@ -188,7 +188,11 @@
 				$detalle->producto = '('.$producto->clave.') '.$producto->descripcion;
 			}
 			$params['detalles'] = $detalles;
-			// print_r($params['venta']);exit();
+			if($params['venta']->tipo == 2){
+				$params['pagos'] = [];
+				$pagos = $this->model->venta_pago->getByVenta($params['venta']->id);
+				$params['pagos'] = $pagos->result;
+			}
 			return $this->renderer->render($response, 'ticket.phtml', $params);
 		});
 
