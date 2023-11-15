@@ -456,10 +456,10 @@ use App\Lib\Auth,
                     }
                 }else{ 
                     // era 0 y ahora es 1
-                    // verficiar, si ya existía un prod_kilo del producto original poner en status 1 prod_kilo y producto
+                    // verificar, si ya existía un prod_kilo del producto original poner en status 1 prod_kilo y producto
                     $infoKilo = $this->model->producto->getKiloBy($args['id'], 'producto_origen')->result;
                     if(is_object($infoKilo)){
-                        $dataKilo = ['cantidad' => $parsedBody['cant_kilo'], 'precio' => $parsedBody['precio_kilo'], 'status' => 1];
+                        $dataKilo = ['cantidad' => $parsedBody['cant_kilo'], 'status' => 1];
                         $editKilo = $this->model->producto->edit('prod_kilo', 'id', $dataKilo, $infoKilo->id);
                         if($editKilo->response){
                             $dataP = ['status' => 1];
@@ -499,6 +499,20 @@ use App\Lib\Auth,
                                 $kilo->state = $this->model->transaction->confirmaTransaccion();	
                                 return $res->withJson($kilo->setResponse(false, 'No se pudo agregar el kilo (prod_kilo)'));
                             }else{
+                                $sucursales = $this->model->sucursal->getAll()->result;
+                                foreach($sucursales as $sucursal){              
+                                    $sucursal_id = $sucursal->id;
+                                    $dataPrecio = [ 'producto_id' => $kilo_id, ];
+                                    $addPrecio = $this->model->producto->add($dataPrecio, 'prod_precio');
+                                    if($addPrecio->response){
+                                        $dataRango = [ 
+                                            'sucursal_id' => $sucursal_id, 
+                                            'producto_id' => $kilo_id, 
+                                            'prod_precio_id' => $addPrecio->result, 
+                                        ];
+                                        $addRango = $this->model->producto->add($dataRango, 'prod_rango');
+                                    }
+                                }
                                 $seg_log = $this->model->seg_log->add('Venta del producto por kilo', 'producto', $args['id'], 1);
                             }
                         }else{

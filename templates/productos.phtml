@@ -640,6 +640,9 @@
 
             $('#tbl-producto').on('click', '.btnlistadoP', function(){
                 $.blockUI()
+                $.each($('#tbl-listadoP input'), function(index, elem){
+                    $(elem).val('')
+                })
                 prod_id = $(this).data('id')
                 producto = $(this).data('producto')
                 medida = $(this).data('medida')
