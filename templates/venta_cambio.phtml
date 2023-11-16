@@ -217,7 +217,7 @@
                             </div>
                         </div>
                         <div class="buttonsEnd">
-                            <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                        <button type="button" class="btn btn-outline-secondary mb-1" id="btnCancel">Cancelar</button>
                             <button type="button" class="btn btn-new-info mb-1 data-submit" id="btnContinuar"></button>
                             <input type="hidden" id="prod_id" value="0">
                         </div>
@@ -249,7 +249,7 @@
                                 </div>
                                 <div class="modal-footer">
                                     <div class="buttonsEnd">
-                                        <button type="button" class="btn btn-outline-secondary mb-1" id="btnCancel">Cancelar</button>
+                                    <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
                                         <button type="button" class="btn btn-success mb-1" id="btnSave">Guardar</button>
                                         <input type="hidden" id="pago_id" value="0">
                                     </div>
@@ -276,7 +276,8 @@
             tipo = 1,
             eliminarDet = true,
             cargarV = true,
-            collection = '<?= $_SESSION['sucursal_id'] ?>-'+'<?= $_SESSION['usuario_id'] ?>-'+'<?= date("Ymd") ?>',
+            recargar = false,
+            collection = 'venta-'+<?= $venta_id ?>,
             firebaseConfig = {
                 apiKey: "AIzaSyDnf5WHyP3ifke133Gff5pngMDJXJMZu3E",
                 authDomain: "tornilleria-e631b.firebaseapp.com",
@@ -367,7 +368,6 @@
                 $('#btnContinuar').html('Cobrar')
                 $.unblockUI()
             }
-            cargarVenta()
         })
 
         $('input[type=radio][name=venta-tipo]').on('change', function(){
@@ -392,16 +392,12 @@
         $('#aplicar').change(function(){
             aplicar = $(this).is(':checked') ? 1 : 0;
             if(aplicar){
-                $('.ventaSub').removeClass('hidden')
-                $('.ventaDesc').removeClass('hidden')
                 $('#descuento').val(desc_cli)
                 $('#venta-descuento').val(desc_cli)
                 getTotales()
             }else{
-                $('.ventaSub').addClass('hidden')
-                $('.ventaDesc').addClass('hidden')
                 $('#descuento').val('').addClass('deshabilitado').attr('disabled', true).prop('disabled', 'disabled')
-                $('#venta-descuento').val('')
+                $('#venta-descuento').val(0)
                 getTotales()
             }
         })
@@ -416,7 +412,6 @@
             clave = $(tr).find('td:eq(1)').text()
             desc = $(tr).find('td:eq(2)').text()
             concepto = '('+clave+') '+desc;
-            stock = $(tr).find('td:eq(0)').text()
             if($('#tbl-detalles tbody tr').length != 0) {
                 $('.nodata').remove()
                 $.each($('#tbl-detalles tbody tr'), function(index, tr){
@@ -432,32 +427,36 @@
            
             if(agregar){
                 if(es_kilo == 0){
-                    if(stock != 0){
-                        $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
-                            $.each(resp, function(index, item){
-                                $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
-                            })
-                            mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
-                            $('#precio-distribuidor').val(parseInt(mayoreo)+1)
-                            data = {
-                                'detalle_id': '', 
-                                'producto_id': prod_id, 
-                                'cantidad': '1.0', 
-                                'stock': stock, 
-                                'clave': clave, 
-                                'desc': desc, 
-                                'concepto': concepto, 
-                                'precio': resp.precio_menudeo, 
-                                'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
-                                'es_kilo': '0'
-                            }     
-                            addFirebase(data)
-                            getTotales()
-                        })
-                    }else{
-                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
-                        $.unblockUI()
-                    }
+                    $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(respStock){
+                        if(respStock.final != 1){
+                            stockDisp = parseFloat(respStock.final)
+                            let stock = (stockDisp.toFixed(1)).toString()
+                            $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                                $.each(resp, function(index, item){
+                                    $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
+                                })
+                                mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                                $('#precio-distribuidor').val(parseInt(mayoreo)+1)
+                                data = {
+                                    'detalle_id': '', 
+                                    'producto_id': prod_id, 
+                                    'cantidad': '1.0', 
+                                    'stock': stock, 
+                                    'clave': clave, 
+                                    'desc': desc, 
+                                    'concepto': concepto, 
+                                    'precio': resp.precio_menudeo, 
+                                    'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
+                                    'es_kilo': '0'
+                                }
+                                addFirebase(data)
+                                getTotales()
+                            },'json')
+                        }else{
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            $.unblockUI()
+                        }
+                    },'json')
                 }else{
                     $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
                         $.each(resp, function(index, item){
@@ -502,7 +501,6 @@
             prod_id = $(tr).data('producto_id')
             detalle_id = $(tr).data('detalle_id')
             clave = $(tr).data('clave')
-            stock = $(tr).data('stock')
             kilo = $(tr).data('kilo')
             if(cantidad < 1){
                 toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
@@ -512,7 +510,7 @@
             if(kilo == 0){
                 $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(resp){
                     if(cantidad <= resp.final){
-                        cant = (cantidad.toFixed(1)).toString()
+                        let cant = (cantidad.toFixed(1)).toString()
                         $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
                             precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
                             total = parseFloat(precio*cantidad).toFixed(2)
@@ -753,7 +751,6 @@
                 btn.attr('disabled', false).prop('disabled', false)
                 $.unblockUI()
             }else{
-                console.log(data)
                 venta_id = '<?= $venta_id ?>'
                 $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
                     toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
@@ -765,7 +762,6 @@
         }
 
         function delAll(){
-            cargarV = false
             db.collection(collection)
             .get()
             .then(res => {
@@ -774,19 +770,6 @@
                 window.location.href = '<?= URL_ROOT ?>/venta/cliente';
                 });
             });
-            cargarV = true
-        }
-
-        function delDocs(){
-            cargarV = false
-            db.collection(collection)
-            .get()
-            .then(res => {
-                res.forEach(element => {
-                element.ref.delete();
-                });
-            });
-            cargarV = true
         }
 
         function cleanTable(tbl){

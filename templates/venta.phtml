@@ -178,7 +178,7 @@
                             </div>
                             <div class="col-4 card" style="width: calc(33.333% - 1rem);">
                                 <div class="form-group row m-1">
-                                    <div class="mt-1 mb-1 ventaSub hidden">
+                                    <div class="mt-1 mb-1">
                                         <label class="form-label fw-bolder fs-5" for="venta-subtotal">Subtotal</label>
                                         <div class="input-group">
                                             <div class="input-group-text">
@@ -187,13 +187,22 @@
                                             <input type="text" class="form-control text-end" id="venta-subtotal" readonly>
                                         </div>
                                     </div>
-                                    <div class="mb-1 ventaDesc hidden">
+                                    <div class="mb-1">
                                         <label class="form-label fw-bolder fs-5" for="venta-descuento">Descuento</label>
                                         <div class="input-group">
                                             <div class="input-group-text">
                                                 <span>%</span>
                                             </div>
                                             <input type="text" class="form-control text-end" id="venta-descuento" readonly>
+                                        </div>
+                                    </div>
+                                    <div class="mb-1 ventaPagado hidden">
+                                        <label class="form-label fw-bolder fs-5" for="venta-pagado">Pagado</label>
+                                        <div class="input-group">
+                                            <div class="input-group-text">
+                                                <span><i class="fas fa-dollar-sign"></i></span>
+                                            </div>
+                                            <input type="text" class="form-control text-end" id="venta-pagado" readonly>
                                         </div>
                                     </div>
                                     <div class="mb-1">
@@ -359,7 +368,6 @@
                         $('#aplicar').attr('disabled', true).prop('disabled', true).trigger('change')
                     <?php endif; ?>
                     $("input[type='radio'][name='venta-tipo'][value='"+tipo+"']").prop('checked',true).trigger('change');
-                    // cargarVenta()
                 },'json')
                 $('#btnContinuar').html('Guardar')
                 $.unblockUI()
@@ -375,7 +383,6 @@
                 $('#descuento').val('')
                 $("input[type='radio'][name='venta-tipo'][value='1']").prop('checked',true);
                 $('#btnContinuar').html('Cobrar')
-                // cargarVenta()
                 $.unblockUI()
             }
         })
@@ -402,16 +409,12 @@
         $('#aplicar').change(function(){
             aplicar = $(this).is(':checked') ? 1 : 0;
             if(aplicar){
-                $('.ventaSub').removeClass('hidden')
-                $('.ventaDesc').removeClass('hidden')
                 $('#descuento').val(desc_cli)
                 $('#venta-descuento').val(desc_cli)
                 getTotales()
             }else{
-                $('.ventaSub').addClass('hidden')
-                $('.ventaDesc').addClass('hidden')
                 $('#descuento').val('').addClass('deshabilitado').attr('disabled', true).prop('disabled', 'disabled')
-                $('#venta-descuento').val('')
+                $('#venta-descuento').val(0)
                 getTotales()
             }
         })
@@ -426,7 +429,6 @@
             clave = $(tr).find('td:eq(1)').text()
             desc = $(tr).find('td:eq(2)').text()
             concepto = '('+clave+') '+desc;
-            stock = $(tr).find('td:eq(0)').text()
             if($('#tbl-detalles tbody tr').length != 0) {
                 $('.nodata').remove()
                 $.each($('#tbl-detalles tbody tr'), function(index, tr){
@@ -442,43 +444,47 @@
            
             if(agregar){
                 if(es_kilo == 0){
-                    if(stock != 0){
-                        $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
-                            $.each(resp, function(index, item){
-                                $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
-                            })
-                            mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
-                            $('#precio-distribuidor').val(parseInt(mayoreo)+1)
-                            data = {
-                                'detalle_id': '', 
-                                'producto_id': prod_id, 
-                                'cantidad': '1.0', 
-                                'stock': stock, 
-                                'clave': clave, 
-                                'desc': desc, 
-                                'concepto': concepto, 
-                                'precio': resp.precio_menudeo, 
-                                'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
-                                'es_kilo': '0'
-                            }
-                            <?php if(!$nueva) : ?>
-                                data['venta_id'] = '<?= $venta_id ?>'
-                                data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
-                                $.post(apiUrl+'venta_detalle/add/', data, function(res){
-                                    if(res.response){
-                                        data['detalle_id'] = res.result
-                                        addFirebase(data)
-                                    }
-                                },'json')
-                            <?php else : ?>        
-                                addFirebase(data)
-                            <?php endif; ?>
-                            getTotales()
-                        })
-                    }else{
-                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
-                        $.unblockUI()
-                    }
+                    $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(respStock){
+                        if(respStock.final != 1){
+                            stockDisp = parseFloat(respStock.final)
+                            let stock = (stockDisp.toFixed(1)).toString()
+                            $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                                $.each(resp, function(index, item){
+                                    $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
+                                })
+                                mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                                $('#precio-distribuidor').val(parseInt(mayoreo)+1)
+                                data = {
+                                    'detalle_id': '', 
+                                    'producto_id': prod_id, 
+                                    'cantidad': '1.0', 
+                                    'stock': stock, 
+                                    'clave': clave, 
+                                    'desc': desc, 
+                                    'concepto': concepto, 
+                                    'precio': resp.precio_menudeo, 
+                                    'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
+                                    'es_kilo': '0'
+                                }
+                                <?php if(!$nueva) : ?>
+                                    data['venta_id'] = '<?= $venta_id ?>'
+                                    data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
+                                    $.post(apiUrl+'venta_detalle/add/', data, function(res){
+                                        if(res.response){
+                                            data['detalle_id'] = res.result
+                                            addFirebase(data)
+                                        }
+                                    },'json')
+                                <?php else : ?>        
+                                    addFirebase(data)
+                                <?php endif; ?>
+                                getTotales()
+                            },'json')
+                        }else{
+                            toastr['error']('¡Stock insuficiente!', 'No hay suficiente stock del producto')
+                            $.unblockUI()
+                        }
+                    },'json')
                 }else{
                     $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
                         $.each(resp, function(index, item){
@@ -534,60 +540,47 @@
             prod_id = $(tr).data('producto_id')
             detalle_id = $(tr).data('detalle_id')
             clave = $(tr).data('clave')
-            stock = $(tr).data('stock')
             kilo = $(tr).data('kilo')
             if(cantidad < 1){
                 toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
-                $(elem).val(1)
+                $(elem).val('1.0')
                 $.unblockUI()
             }
             if(kilo == 0){
-                <?php if($nueva) : ?>
-                    $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(resp){
-                        if(cantidad <= resp.final){
-                            cant = (cantidad.toFixed(1)).toString()
-                            $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
-                                precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                                total = parseFloat(precio*cantidad).toFixed(2)
-                                $(tr).find('.precio').html('$ '+precio)
-                                $(tr).find('.total').html('$ '+total)
-                                db.collection(collection).doc(clave).update({'cantidad':cant})
-                                getTotales()
-                            },'json')
-                        }else{
-                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
-                            elem.val(1).trigger('change')
-                            $.unblockUI()
-                        }
-                    },'json')
-                <?php else : ?>
-                    let cant = (cantidad.toFixed(1)).toString()
-                    db.collection(collection).doc(clave).update({'cantidad':cant})
-                <?php endif; ?>
-            }else{
-                <?php if($nueva) : ?>
-                    $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/'+cantidad, function(resp){
-                        if(resp.response){
-                            $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
-                                precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                                total = parseFloat(precio*cantidad).toFixed(2)
-                                cant = cantidad.toFixed(1).toString()
-                                $(tr).find('.precio').html('$ '+precio)
-                                $(tr).find('.total').html('$ '+total)
-                                db.collection(collection).doc(clave).update({'cantidad':cant})
-                                getTotales()
-                            },'json')
-                        }else{
-                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
-                            $.unblockUI()
-                        }
-                    },'json')
-                <?php else : ?>
-                    if(detalle_id != ''){
+                $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(resp){
+                    if(cantidad <= resp.final){
                         let cant = (cantidad.toFixed(1)).toString()
-                        db.collection(collection).doc(clave).update({'cantidad':cant})
+                        $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                            precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                            total = parseFloat(precio*cantidad).toFixed(2)
+                            $(tr).find('.precio').html('$ '+precio)
+                            $(tr).find('.total').html('$ '+total)
+                            db.collection(collection).doc(clave).update({'cantidad':cant})
+                            getTotales()
+                        },'json')
+                    }else{
+                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                        elem.val(1).trigger('change')
                     }
-                <?php endif; ?>
+                    $.unblockUI()
+                },'json')
+            }else{
+                $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/'+cantidad, function(resp){
+                    if(resp.response){
+                        $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                            precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                            total = parseFloat(precio*cantidad).toFixed(2)
+                            cant = cantidad.toFixed(1).toString()
+                            $(tr).find('.precio').html('$ '+precio)
+                            $(tr).find('.total').html('$ '+total)
+                            db.collection(collection).doc(clave).update({'cantidad':cant})
+                            getTotales()
+                        },'json')
+                    }else{
+                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                    }
+                    $.unblockUI()
+                },'json')
             }
         })
 
@@ -710,25 +703,25 @@
             $.blockUI()
             subtotal = 0; total = 0; pagado = 0;
             $.each($('#tbl-detalles tbody tr.detalle'), function(index, tr){
-                // if(!$(tr).hasClass('nodata')){
-                    val = parseFloat($(tr).find('.total').text().replace('$', ''))
-                    subtotal += val
-                // }
+                val = parseFloat($(tr).find('.total').text().replace('$', ''))
+                subtotal += val
             })
             $.each($('#tbl-pagos tbody tr.pago'), function(index, tr){
-                // if(!$(tr).hasClass('nodataPagos')){
-                    val = parseFloat($(tr).find('.monto').text().replace('$', ''))
-                    pagado += val
-                // }
+                val = parseFloat($(tr).find('.monto').text().replace('$', ''))
+                pagado += val
             })
+            $('#venta-subtotal').val(subtotal.toFixed(2))
             if(aplicar == 1){
                 porcentaje = desc_cli
-                $('#venta-subtotal').val(subtotal.toFixed(2))
                 cantDesc = parseFloat((porcentaje*subtotal)/100)
                 total = parseFloat(subtotal-cantDesc-pagado)
             }else{
                 total = parseFloat(subtotal-pagado)
             }
+            <?php if(!$nueva) : ?>
+                $('.ventaPagado').removeClass('hidden')
+                $('#venta-pagado').val(pagado)
+            <?php endif; ?>
             $('#venta-total').val(total.toFixed(2))
             $.unblockUI()
         }
@@ -736,12 +729,19 @@
         function guardar(){
             subtotal = $('#venta-subtotal').is(':visible') ? $('#venta-subtotal').val() : $('#venta-total').val()
             descuento = $('#venta-descuento').is(':visible') ? $('#venta-descuento').val() : 0
+            <?php if(!$nueva) : ?>
+                pagado = parseFloat($('#venta-pagado').val()).toFixed(2)
+                resta = parseFloat($('#venta-total').val()).toFixed(2)
+                total = (parseFloat(pagado)+parseFloat(resta)).toFixed(2)
+            <?php else : ?>
+                total = $('#venta-total').val()
+            <?php endif; ?>
             data = {
                 cliente_id: $('#clientes').val(),
                 tipo: tipo,
                 subtotal: subtotal,
                 descuento: descuento,
-                total: $('#venta-total').val(),
+                total: total,
                 comentarios: $.trim($('#venta-comentarios').val()),
             }
             data.detalles = []
@@ -903,7 +903,7 @@
                         }
 
                         $.get(apiUrl+'producto/getPrecioByCant/'+info['id']+'/'+info['cantidad'], function(resp){
-                            precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                            let precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
                             data_detalle['precio'] = precio,
                             data_detalle['total'] = parseFloat(info['cantidad']*precio).toFixed(2),
                             addDetalle(data_detalle)

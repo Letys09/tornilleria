@@ -81,13 +81,13 @@
 				$params['folio'] = $params['venta']->identificador.'-'.$params['venta']->fechaFolio.'-'.$params['venta']->id;
 				$data = ['en_uso' => 1];
 				$this->model->venta->edit($data, $params['venta']->id);
-				return $this->renderer->render($response, 'venta_credito.phtml', $params);
+				$params['nueva'] = false;
 			}else{
 				$params['nueva'] = true;
 				$params['detalles'] = [];
 				$params['pagos'] = [];
-				return $this->renderer->render($response, 'venta.phtml', $params);
 			}
+			return $this->renderer->render($response, 'venta.phtml', $params);
 
 		});
 
