@@ -24,7 +24,12 @@ use App\Lib\Auth,
             ];
             $addAjuste = $this->model->prod_ajuste->add($dataAjuste);
             if($addAjuste->response){
-                $inicial = $this->model->prod_stock->getStock($sucursal, $producto_id)->result->final;
+                $inicial = $this->model->prod_stock->getStock($sucursal, $producto_id);
+                if(is_object($inicial->result)){
+                    $inicial = $inicial->result->final;
+                }else{
+                    $inicial = 0;
+                }
                 $txt = $accion == 1 ? 'alta de stock' : 'baja de stock';
                 $tipo = $accion == 1 ? 1 : -1;
                 $final = $accion == 1 ? floatval($inicial + $parsedBody['cantidad']) : floatval($inicial - $parsedBody['cantidad']);

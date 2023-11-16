@@ -337,7 +337,7 @@
                                                     <select class="form-control" id="ajuste-accion">
                                                         <option value="0" selected disabled>Seleccione una opción</option>
                                                         <option value="1">Alta</option>
-                                                        <option value="2">Baja</option>
+                                                        <option clas="hidden" value="2">Baja</option>
                                                     </select>
                                                 </div>
                                             </div>                                        
@@ -702,13 +702,9 @@
                     $('#existencia').val(stock)
                     $('#prod_id_ajuste').val(prod_id)
                     if(stock == 0){
-                        error('existencia', 'No hay stock disponible para dar de baja')
-                        $('#ajuste-fecha').prop('disabled', true).attr('disabled', 'disabled')
-                        $('#ajuste-accion').prop('disabled', true).attr('disabled', 'disabled')
-                        $('#ajuste-cantidad').prop('disabled', true).attr('disabled', 'disabled')
-                        $('#ajuste-comentarios').prop('disabled', true).attr('disabled', 'disabled')
-                        $('#btnAjustar').prop('disabled', true).attr('disabled', 'disabled')
+                        $('#ajuste-accion option[value="2"]').addClass('hidden')
                     }else{
+                        $('#ajuste-accion option[value="2"]').removeClass('hidden')
                         $('#ajuste-fecha').prop('disabled', false).attr('disabled', false)
                         $('#ajuste-accion').prop('disabled', false).attr('disabled', false)
                         $('#ajuste-cantidad').prop('disabled', false).attr('disabled', false)
