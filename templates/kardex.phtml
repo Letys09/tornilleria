@@ -26,11 +26,11 @@
                                     </div>
                                     <div class="col-sm me-2">
                                         <!-- <label class="form-label fw-bolder fs-5" for="desde">Desde</label> -->
-                                        <input type="date" id="desde" class="form-control" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-d')?>">
+                                        <input type="date" id="desde" class="form-control" data-toggle="tooltip" title="Desde" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-d')?>">
                                     </div>
                                     <div class="col-sm me-2">
                                         <!-- <label class="form-label fw-bolder fs-5" for="hasta">Hasta</label> -->
-                                        <input type="date" id="hasta" class="form-control" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-d')?>">
+                                        <input type="date" id="hasta" class="form-control" data-toggle="tooltip" title="Hasta" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-d')?>">
                                     </div>
                                     <div class="col-sm-12">
                                         <button type="button" class="btn btn-s btn-success" id="btnBuscar"><i class="fas fa-search"></i> Buscar</button>
@@ -42,12 +42,13 @@
                                 <table id="tbl-kardex" class="table">
                                     <thead class="table-light">
                                         <tr class="text-center">
+                                            <th>ID</th>
                                             <th>Fecha</th>
-                                            <th>Folio</th>
+                                            <th width="25%">Folio</th>
                                             <th>Entrada</th>
                                             <th>Salida</th>
                                             <th>Existencia</th>
-                                            <th>Usuario</th>
+                                            <th width="15%">Usuario</th>
                                             <th>Notas</th>
                                         </tr>
                                     </thead>
@@ -125,6 +126,7 @@
                             type: 'GET',
                         },
                         columns: [
+                            {data: 'id'},
                             {data: 'fecha'},
                             {data: 'folio'},
                             {data: 'entrada'},
@@ -134,7 +136,54 @@
                             {data: 'notas'}
                         ],
                         columnDefs: [
-                            
+                            {
+                                targets: 1,
+                                render: function (data, type, full, meta) {
+                                    var salida =
+                                        '<div class="d-flex flex-column text-center">' +
+                                            '<span >' +
+                                                full['fecha'] +
+                                            '</span>' +
+                                            '<small class="emp_post text-muted">' +
+                                            full['hora'] +
+                                            '</small>' +
+                                        '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 3,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-center">' +
+                                        full['entrada'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 4,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-center">' +
+                                        full['salida'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                targets: 5,
+                                render: function (data, type, full, meta) {
+                                var salida =
+                                    '<div class="d-flex flex-column text-center">' +
+                                        full['existencia'] +
+                                    '</div>';
+                                    return salida;
+                                }
+                            },
+                            {
+                                visible: false, targets: [0]
+                            }
                         ],
                         order: [[0, 'desc']], 
                         dom:

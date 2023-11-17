@@ -36,7 +36,7 @@ class VentaDetModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->where($column, $dato)
-			->where("status", 1)
+			// ->where("status in(1,2)")
 			->fetch();
 		return $this->response->SetResponse(true);
 	}

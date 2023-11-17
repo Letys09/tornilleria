@@ -271,14 +271,15 @@
 
 <script>
     $(function(){
-        var apiUrl = '<?= URL_ROOT ?>/',
+        var collection =  '<?php echo !$nueva ? 'venta-'.$venta_id : $_SESSION['sucursal_id'].'-'.$_SESSION['usuario_id'].'-'.date("YmdHis") ?>',
+            apiUrl = '<?= URL_ROOT ?>/',
             aplicar = 0,
             desc_cli = 0,
             tipo = 1,
             eliminarDet = true,
             cargarV = true,
             recargar = false,
-            collection =  '<?php echo !$nueva ? 'venta-'.$venta_id : $_SESSION['sucursal_id'].'-'.$_SESSION['usuario_id'].'-'.date("YmdHis") ?>',
+            num_docs = 0,
             firebaseConfig = {
                 apiKey: "AIzaSyDnf5WHyP3ifke133Gff5pngMDJXJMZu3E",
                 authDomain: "tornilleria-e631b.firebaseapp.com",
@@ -445,41 +446,47 @@
             if(agregar){
                 if(es_kilo == 0){
                     $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(respStock){
-                        if(respStock.final != 1){
-                            stockDisp = parseFloat(respStock.final)
-                            let stock = (stockDisp.toFixed(1)).toString()
-                            $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
-                                $.each(resp, function(index, item){
-                                    $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
-                                })
-                                mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
-                                $('#precio-distribuidor').val(parseInt(mayoreo)+1)
-                                data = {
-                                    'detalle_id': '', 
-                                    'producto_id': prod_id, 
-                                    'cantidad': '1.0', 
-                                    'stock': stock, 
-                                    'clave': clave, 
-                                    'desc': desc, 
-                                    'concepto': concepto, 
-                                    'precio': resp.precio_menudeo, 
-                                    'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
-                                    'es_kilo': '0'
-                                }
-                                <?php if(!$nueva) : ?>
-                                    data['venta_id'] = '<?= $venta_id ?>'
-                                    data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
-                                    $.post(apiUrl+'venta_detalle/add/', data, function(res){
-                                        if(res.response){
-                                            data['detalle_id'] = res.result
-                                            addFirebase(data)
-                                        }
-                                    },'json')
-                                <?php else : ?>        
-                                    addFirebase(data)
-                                <?php endif; ?>
-                                getTotales()
-                            },'json')
+                        console.log(respStock)
+                        if(respStock){
+                            if(respStock.final > 1){
+                                stockDisp = parseFloat(respStock.final)
+                                let stock = (stockDisp.toFixed(1)).toString()
+                                $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                                    $.each(resp, function(index, item){
+                                        $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
+                                    })
+                                    mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                                    $('#precio-distribuidor').val(parseInt(mayoreo)+1)
+                                    data = {
+                                        'detalle_id': '', 
+                                        'producto_id': prod_id, 
+                                        'cantidad': '1.0', 
+                                        'stock': stock, 
+                                        'clave': clave, 
+                                        'desc': desc, 
+                                        'concepto': concepto, 
+                                        'precio': resp.precio_menudeo, 
+                                        'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
+                                        'es_kilo': '0'
+                                    }
+                                    <?php if(!$nueva) : ?>
+                                        data['venta_id'] = '<?= $venta_id ?>'
+                                        data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
+                                        $.post(apiUrl+'venta_detalle/add/', data, function(res){
+                                            if(res.response){
+                                                data['detalle_id'] = res.result
+                                                addFirebase(data)
+                                            }
+                                        },'json')
+                                    <?php else : ?>        
+                                        addFirebase(data)
+                                    <?php endif; ?>
+                                    getTotales()
+                                },'json')
+                            }else{
+                                toastr['error']('¡Stock insuficiente!', 'No hay suficiente stock del producto')
+                                $.unblockUI()
+                            }
                         }else{
                             toastr['error']('¡Stock insuficiente!', 'No hay suficiente stock del producto')
                             $.unblockUI()
@@ -768,6 +775,7 @@
                 btn.attr('disabled', false).prop('disabled', false)
                 $.unblockUI()
             }else{
+                num_docs = data.detalles.length
                 recargar = true
                 <?php if($nueva) : ?>
                     $.post(apiUrl+'venta/add/', data, function(resp){
@@ -795,13 +803,15 @@
         }
 
         function delAll(){
+            docs = 0
             db.collection(collection)
             .get()
-            .then(res => {
-                res.forEach(element => {
-                element.ref.delete();
-            });
-                if(recargar)
+                .then(res => {
+                    res.forEach(element => {
+                    element.ref.delete(); 
+                    docs++;
+                });
+                if(recargar && docs == num_docs)
                     window.location.href = '<?= URL_ROOT ?>/venta/cliente';
             });
         }

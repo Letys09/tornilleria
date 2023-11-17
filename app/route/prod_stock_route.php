@@ -54,6 +54,49 @@ use App\Lib\Auth,
                         $folio = 'Salida por ajuste de inventario';
                         $dato->motivo = $ajuste->comentarios;
                         break;
+                    case 7: // venta por kilo
+                        $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
+                        $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
+                        $folio = 'Venta de producto por kilo. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        break;
+                    case 8: // entrada por devolución de producto vendido por unidad
+                        $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
+                        $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
+                        $folio = 'Entrada por devolución de producto vendido por unidad. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        break;
+                    case 9: // entrada por devolución de producto vendido por kilo
+                        $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
+                        $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
+                        $folio = 'Entrada por devolución de producto vendido por kilo. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        break;
+                    case 10: // entrada por modificación de entrada de productos
+                        $det_entrada = $this->model->prod_entrada->getDet($dato->origen_id)->result;
+                        $entrada = $this->model->prod_entrada->get($det_entrada->prod_entarda_id)->result;
+                        $folio = 'Entrada por modificación de entrada de productos. Folio de entrada: '.$entrada->folio;
+                        break;
+                    case 11: // salida por modificación de entrada de productos
+                        $det_entrada = $this->model->prod_entrada->getDet($dato->origen_id)->result;
+                        $entrada = $this->model->prod_entrada->get($det_entrada->prod_entarda_id)->result;
+                        $folio = 'Salida por modificación de entrada de productos. Folio de entrada: '.$entrada->folio;
+                        break;
+                    case 12: // salida por cancelación de entrada de productos
+                        $folio = 'Salida por cancelación de entrada de productos.';
+                        break;
+                    case 13: // de cotización a venta pieza
+                        $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
+                        $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
+                        $folio = 'Salida por venta de producto por pieza. Se concreta venta de cotización. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        break;
+                    case 14: // de cotización a venta kilo
+                        $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
+                        $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
+                        $folio = 'Salida por venta de producto por kilo. Se concreta venta de cotización. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        break;
+                    case 15: // entrada por cambio de producto
+                        $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
+                        $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
+                        $folio = 'Entrada por cambio de producto. Se concreta venta de cotización. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        break;
                     default:
                         # code...
                         break;
