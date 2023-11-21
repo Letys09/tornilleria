@@ -62,7 +62,7 @@ use App\Lib\Auth,
                     case 8: // entrada por devolución de producto vendido por unidad
                         $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
                         $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
-                        $folio = 'Entrada por devolución de producto vendido por unidad. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        $folio = 'Entrada por devolución de producto vendido por pieza. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
                         break;
                     case 9: // entrada por devolución de producto vendido por kilo
                         $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
@@ -131,7 +131,9 @@ use App\Lib\Auth,
             $info_kilo = $this->model->producto->getKiloBy($prod_id, 'producto_id')->result;
             $cant_necesaria = floatval($cantidad * $info_kilo->cantidad);
             $prod_origen = $info_kilo->producto_origen;
-            $stock_disp = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result->final;
+            $info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
+            if(is_object($info_stock)) $stock_disp = $info_stock->final;
+            else $stock_disp = 0;
             $data = ['cant_necesaria' => $cant_necesaria, 'stock_disp' => $stock_disp];
             if($cant_necesaria <= $stock_disp){
                 $data['response'] = true;
