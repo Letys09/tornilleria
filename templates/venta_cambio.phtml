@@ -217,7 +217,7 @@
                             </div>
                         </div>
                         <div class="buttonsEnd">
-                        <button type="button" class="btn btn-outline-secondary mb-1" id="btnCancel">Cancelar</button>
+                        <!-- <button type="button" class="btn btn-outline-secondary mb-1" id="btnCancel">Cancelar</button> -->
                             <button type="button" class="btn btn-new-info mb-1 data-submit" id="btnContinuar"></button>
                             <input type="hidden" id="prod_id" value="0">
                         </div>
@@ -292,43 +292,17 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        var change_name = db.collection('venta_app').doc('<?= $_SESSION['sucursal_id'].'-'.$_SESSION['usuario_id'] ?>');
+        change_name.set({
+            'venta_id': collection
+        });
+
         <?php if(!$nueva) : ?> $('.title h2').html('Venta '+'<?= $folio ?>')
         <?php else : ?> $('.title h2').html('Venta')
         <?php endif; ?>
 
         getClientes()
         getItems('tbl-prods')
-
-        $('#btnCancel').click(function(e){
-            e.preventDefault()
-            $.blockUI()
-            <?php if($nueva) : ?> 
-                swal({
-                    title: "SALIR",
-                    text: "Se perderán todos los datos de la venta</br>¿Qué desea hacer?",
-                    type: "warning",
-                    html: true,
-                    showCancelButton: true,
-                    cancelButtonText: "Permanecer",
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "Salir",
-                    closeOnConfirm: true 
-                }, function(respuesta) {
-                    if(respuesta) {
-                        window.location.href = '<?= URL_ROOT ?>/ventas/dia'
-                    }
-                    $.unblockUI();
-                })
-            <?php else : ?>
-                $.post(apiUrl+'venta/desbloquear/<?= $venta_id ?>', function(resp){
-                    if(resp.response){
-                        window.location.href = '<?= URL_ROOT ?>/ventas/dia'
-                    }else{
-                        toastr['danger']('¡Ocurrió algo extraño!', 'Vuelve a intentarlo más tarde.')
-                    }
-                },'json')
-            <?php endif; ?>
-        })
 
         $('#clientes').on('change', function(){
             $.blockUI()
@@ -569,6 +543,8 @@
             if(total < 0){
                 toastr['error']('El total de la venta debe ser igual o mayor que $0.00')
                 btn.attr('disabled', false).prop('disabled', false)
+            }else if(total == 0){
+                guardar()
             }else{
                 $('#frm-pago h4').html('agregar pago')
                 $('#pago-monto').val((total).toFixed(2))
@@ -596,6 +572,7 @@
                     $('#clientes').val(<?= $venta->cliente_id ?>).attr('disabled', true).prop('disabled', true).addClass('deshabilitado')
                 <?php endif; ?>
                 $('#clientes').trigger('change')
+                cargarVenta()
                 $.unblockUI()
             },'json')
         }
