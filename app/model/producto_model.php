@@ -34,15 +34,16 @@ class ProductoModel {
 		return $this->response;
 	}
 
-	public function getBy($param){
+	public function getBy($parametro){
 		$this->response->result = $this->db
 			->from("$this->table")
 			->select(null)
 			->select("id, clave, descripcion, medida")
-			->where("CONCAT_WS(' ', $this->table.descripcion, $this->table.clave, $this->table.medida) LIKE '%$param%'")
-			->where("$this->table.es_kilo",0)
+			->where("CONCAT_WS(' ', {$this->table}.descripcion, {$this->table}.clave, {$this->table}.medida) LIKE ?", "%$parametro%")
+			->where("$this->table.es_kilo", 0)
 			->where("status", 1)
 			->fetchAll();
+	
 		return $this->response->setResponse(true);
 	}
 
