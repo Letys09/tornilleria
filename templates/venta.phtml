@@ -298,7 +298,6 @@
         onbeforeunload = (event) => {
             // event.preventDefault()
             eliminarDet = false
-            delAll()
         };
 
         var change_name = db.collection('venta_app').doc('<?= $_SESSION['sucursal_id'].'-'.$_SESSION['usuario_id'] ?>');
@@ -782,7 +781,7 @@
                         if(resp.response){
                             toastr['success']('¡Venta realizada!', 'Venta realizada con éxito')
                             eliminarDet = false
-                            delAll()
+                            window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
                             window.open('<?= URL_ROOT ?>/ticket/'+$.md5(resp.result.toString()), '_blank')
                         }else{
                             toastr['error']('¡Error!', resp.message)
@@ -795,25 +794,11 @@
                     $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
                         toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
                         eliminarDet = false
-                        delAll()
                         window.open('<?= URL_ROOT ?>/ticket/'+$.md5(venta_id.toString()), '_blank')
+                        window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
                     })
                 <?php endif; ?>
             }
-        }
-
-        function delAll(){
-            docs = 0
-            db.collection(collection)
-            .get()
-                .then(res => {
-                    res.forEach(element => {
-                    element.ref.delete(); 
-                    docs++;
-                });
-                if(recargar && docs == num_docs)
-                    window.location.href = '<?= URL_ROOT ?>/venta/cliente';
-            });
         }
 
         function cleanTable(tbl){
