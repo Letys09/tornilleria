@@ -41,6 +41,24 @@
                             <div class="col-7 card shadow-lg">
                                 <div class="card-header-venta fw-bolder fs-5 text-uppercase" id="header-productos" style="background-color: #04aa6d; color:white;">productos</div>
                                 <div class="card-body">
+                                    <div class="form-group row d-flex">
+                                        <div class="col-8 busqueda hidden">
+                                            <div class="row">
+                                                <label class="col-4 label-control text-end" for="bus">Buscar</label>
+                                                <div class="col-8">
+                                                    <input class="form-control input-sm" id="bus" placeholder="Buscar por clave o descripción"></input>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="col-4 busqueda hidden">
+                                            <div class="row" style="justify-content: end;">
+                                                <label class="col-6 label-control text-end" for="cuantos">Mostrar</label>
+                                                <div class="col-6">
+                                                    <select class="form-control" id="cuantos"><option value="10">10</option><option value="25">25</option><option value="50">50</option><option value="100">100</option></select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
                                     <div class="w-100 d-flex">
                                         <table id="tbl-prods" class="table table-hover table-striped m-0 w-100 table-sm">
                                             <thead>
@@ -445,7 +463,6 @@
             if(agregar){
                 if(es_kilo == 0){
                     $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(respStock){
-                        console.log(respStock)
                         if(respStock){
                             if(respStock.final > 1){
                                 stockDisp = parseFloat(respStock.final)
@@ -809,13 +826,13 @@
         }
 
         var temporal = null;
-			function evaluar(time) {
-				setTimeout(() => {
-					if(time == temporal) {
-						$("#tbl-prods_filter label input").val($.trim($('#bus').val())).trigger('keyup');
-					}
-				}, 1000);
-			}
+        function evaluar(time) {
+            setTimeout(() => {
+                if(time == temporal) {
+                    $("#tbl-prods_filter label input").val($.trim($('#bus').val())).trigger('keyup');
+                }
+            }, 1000);
+        }
 
         function createTable(tbl){
             if($('#'+tbl).length){
@@ -875,8 +892,30 @@
                     language: {
                         url:'<?= URL_ROOT ?>/spanish.json'
                     },
+                    initComplete: function () {
+                        $('#cuantos').on('change', function () {
+                            $('#tbl-prods').DataTable().page.len( $(this).val() ).draw();
+                        });
+                        $('#tbl-prods_filter label:eq(0)').addClass('hidden');
+                        $('#tbl-prods_length label:eq(0)').addClass('hidden');
+                        $('.busqueda').removeClass('hidden');
+                    }
                 });
 
+                let intervaloBusqueda = null;
+                $(document).on('keyup', '#bus',  function(e){
+                    temporal = moment().format('x')+"-"+Math.random();
+                    evaluar(temporal);
+                    clearInterval(intervaloBusqueda)
+                    let valor = this.value;
+                    intervaloBusqueda = setInterval(function() {
+                        oTable = $('#tbl-prods').DataTable();
+                        // Typing finished, now you can Do whatever after 2 sec
+                        oTable.search( valor ).draw();
+
+                        clearInterval(intervaloBusqueda)
+                    }, 1000);
+                });
             }
         }
 
