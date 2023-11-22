@@ -81,6 +81,7 @@
                                 <div class="card-body">
                                     <div class="d-flex">
                                         <div>
+                                            <center><h5 class="name_prod"></h5></center><br>
                                             <table id="tbl-rangos_precios" class="table">
                                                 <thead class="table-light">
                                                     <tr class="text-center">
@@ -468,6 +469,7 @@
                                 stockDisp = parseFloat(respStock.final)
                                 let stock = (stockDisp.toFixed(1)).toString()
                                 $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                                    $('.name_prod').html('<b>'+concepto+'</b>')
                                     $.each(resp, function(index, item){
                                         $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
                                     })
@@ -526,6 +528,7 @@
                             'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
                         }
                         $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/1', function(respStock){
+                            $('.name_prod').html('<b>'+concepto+'</b>')
                             if(respStock.response){
                                 data['es_kilo'] = respStock.cant_necesaria.toFixed(1)
                                 data['stock'] = respStock.stock_disp
@@ -637,6 +640,21 @@
             guardar()           
         })
 
+        $('#tbl-detalles').on('click', '.btnConcepto', function(e){
+            e.preventDefault()
+            tr = $(this).closest('tr')
+            prod_id = tr.data('producto_id')
+            concepto = $(this).text()
+            $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                $('.name_prod').html('<b>'+concepto+'</b>')
+                $.each(resp, function(index, item){
+                    $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
+                })
+                mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                $('#precio-distribuidor').val(parseInt(mayoreo)+1)
+            },'json')
+        })
+
         function getClientes(){
             $.blockUI()
             $.get(apiUrl+'cliente/getCli', function(resp){
@@ -684,7 +702,7 @@
             $('#tbl-detalles tbody .nodata').remove();
             tr = $('<tr class="detalle" data-detalle_id="'+data.detalle_id+'" data-producto_id="'+data.producto_id+'" data-clave="'+data.clave+'" data-stock="'+data.stock+'" data-kilo="'+data.es_kilo+'"></tr>')
             tr.append('<td class="text-start venta-cantidad" width="10%"><input type="text" class="form-control text-center cant" value="'+data.cantidad+'"></td>')
-            tr.append('<td width="45%">'+data.concepto+'</td>')
+            tr.append('<td width="45%"><button type="button" class="btn btn-light btnConcepto">'+data.concepto+'</button></td>')
             tr.append('<td class="text-center precio" width="15%">$ '+precio+'</td>')
             tr.append('<td class="text-center total" width="15%">$ '+data.total+'</td>')
             td = $('<td class="text-center" width="15%"></td>').appendTo(tr)

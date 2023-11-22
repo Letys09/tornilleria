@@ -88,22 +88,23 @@ use App\Lib\Auth,
 			$data = [];
 			if(!isset($_SESSION)) { session_start(); }
 			foreach($productos->result as $producto) {
-                $stockMin = $producto->es_kilo ? 'N/A' : $producto->minimo;
-                $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto->id)->result;
-                $stock = $producto->es_kilo ? 'N/A' : (is_object($stock) ? $stock->final : 0);
-                $minimo = $producto->es_kilo ? 'N/A' : (floatval($stock) <= $producto->minimo ? 'Mínimo' : 'Suficiente');
+                if($producto->es_kilo){
+                    $info_kilo = $this->model->producto->getKiloBy($producto->id, 'producto_id')->result;
+                    $cant_kilo = $info_kilo->cantidad;
+                    $stock_prod_origen = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $info_kilo->producto_origen)->result;
+                    if(is_object($stock_prod_origen)) $stock = number_format(intdiv($stock_prod_origen->final, $cant_kilo),1);
+                    else $stock = '0.0';
+                }else{
+                    $info = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto->id)->result;
+                    if(is_object($info)) $stock = number_format($info->final,1);
+                    else $stock = '0.0';
+                }
                 $data[] = array(
 					"venta" => $producto->venta,
 					"clave" => $producto->clave,
 					"descripcion" => $producto->descripcion,
 					"medida" => $producto->medida,
-					"codigo_barras" => '*'.$producto->clave.'*',
-					// "categoria" => $producto->cat,
-					// "subcategoria" => $producto->sub,
-                    "area" => $producto->area,
-					"minimo" => $stockMin,
 					"stock" => $stock,
-					"enMinimo" => $minimo,
 					"data_id" => $producto->id,
                     "es_kilo" => $producto->es_kilo,
 				);
@@ -123,7 +124,6 @@ use App\Lib\Auth,
             foreach($productos->result as $producto) {
                 $stock = $producto->es_kilo ? 'N/A' : ($producto->cantidad != null ? $producto->cantidad : 0.00);
                 $data[] = array(
-					// "id" => $producto->id,
 					"stock" => $stock,
 					"clave" => $producto->clave,
 					"descripcion" => $producto->descripcion,
@@ -153,14 +153,25 @@ use App\Lib\Auth,
 
         $this->get('getRangos/{id}', function($req, $res, $args){
             $rangos = $this->model->producto->getRangos($_SESSION['sucursal_id'], $args['id'])->result;
+            if(is_object($rangos)){
+                $menudeo = $rangos->menudeo;  $precio_menudeo = $rangos->precio_menudeo;
+                $medio = $rangos->medio; $precio_medio = $rangos->precio_medio;
+                $mayoreo = $rangos->mayoreo; $precio_mayoreo = $rangos->precio_mayoreo;
+                $precio_distribuidor = $rangos->precio_distribuidor;
+            }else{
+                $menudeo = 0;  $precio_menudeo = 0;
+                $medio = 0; $precio_medio = 0;
+                $mayoreo = 0; $precio_mayoreo = 0;
+                $precio_distribuidor = 0;
+            }
             $prod = [
-                'menudeo' => $rangos->menudeo,
-                'precio_menudeo' => $rangos->precio_menudeo,
-                'medio' => $rangos->medio,
-                'precio_medio' => $rangos->precio_medio,
-                'mayoreo' => $rangos->mayoreo,
-                'precio_mayoreo' => $rangos->precio_mayoreo,
-                'precio_distribuidor' => $rangos->precio_distribuidor,
+                'menudeo' => $menudeo,
+                'precio_menudeo' => $precio_menudeo,
+                'medio' => $medio,
+                'precio_medio' => $precio_medio,
+                'mayoreo' => $mayoreo,
+                'precio_mayoreo' => $precio_mayoreo,
+                'precio_distribuidor' => $precio_distribuidor,
             ];
             return $res->withJson($prod);
         });
@@ -234,17 +245,22 @@ use App\Lib\Auth,
         $this->get('getPrecioByCant/{prod_id}/{cant}', function($req, $res, $args){
             $cant = $args['cant']; 
             $rangos = $this->model->producto->getRangos($_SESSION['sucursal_id'], $args['prod_id'])->result;
-            switch ($cant) {
-                case $cant <= $rangos->menudeo:
-                    $precio = $rangos->precio_menudeo; break;
-                case $cant > $rangos->menudeo && $cant <= $rangos->medio:
-                    $precio = $rangos->precio_medio; break;
-                case $cant > $rangos->medio && $cant <= $rangos->mayoreo:
-                    $precio = $rangos->precio_mayoreo; break;
-                case $cant > $rangos->mayoreo:
-                    $precio = $rangos->precio_distribuidor; break;
-                default: $precio = 0; break;
+            if(is_object($rangos)){
+                switch ($cant) {
+                    case $cant <= $rangos->menudeo:
+                        $precio = $rangos->precio_menudeo; break;
+                    case $cant > $rangos->menudeo && $cant <= $rangos->medio:
+                        $precio = $rangos->precio_medio; break;
+                    case $cant > $rangos->medio && $cant <= $rangos->mayoreo:
+                        $precio = $rangos->precio_mayoreo; break;
+                    case $cant > $rangos->mayoreo:
+                        $precio = $rangos->precio_distribuidor; break;
+                    default: $precio = 0; break;
+                }
+            }else{
+                $precio = 0;
             }
+            
             return $res->withJson($precio);
         });
 

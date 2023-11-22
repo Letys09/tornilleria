@@ -23,7 +23,7 @@
                         </div>
                         <div class="d-flex separar">
                             <div class="col-7 card shadow-lg">
-                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #000066; color:white;">productos</div>
+                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: darkgray; color:white;">productos</div>
                                 <div class="card-body">
                                     <div class="form-group row d-flex">
                                         <div class="col-8 busqueda hidden">
@@ -61,10 +61,11 @@
                                 </div>
                             </div>
                             <div class="col-5 card shadow-lg" style="width: calc(41.333% - 1rem);">
-                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #000066; color:white;">rangos de precios</div>
+                                <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: darkgray; color:white;">rangos de precios</div>
                                 <div class="card-body">
                                     <div class="d-flex">
                                         <div>
+                                            <center><h5 class="name_prod"></h5></center><br>
                                             <table id="tbl-rangos_precios" class="table">
                                                 <thead class="table-light">
                                                     <tr class="text-center">
@@ -265,6 +266,7 @@
            
             if(agregar){
                 $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                    $('.name_prod').html('<b>'+concepto+'</b>')
                     $.each(resp, function(index, item){
                         $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
                     })
@@ -376,6 +378,21 @@
             guardar()
         })
 
+        $('#tbl-detalles').on('click', '.btnConcepto', function(e){
+            e.preventDefault()
+            tr = $(this).closest('tr')
+            prod_id = tr.data('producto_id')
+            concepto = $(this).text()
+            $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                $('.name_prod').html('<b>'+concepto+'</b>')
+                $.each(resp, function(index, item){
+                    $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
+                })
+                mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                $('#precio-distribuidor').val(parseInt(mayoreo)+1)
+            },'json')
+        })
+
         function getClientes(){
             $.blockUI()
             $.get(apiUrl+'cliente/getCli', function(resp){
@@ -424,7 +441,7 @@
             $('#tbl-detalles tbody .nodata').remove();
             tr = $('<tr class="detalle" data-detalle_id="'+data.detalle_id+'" data-producto_id="'+data.producto_id+'" data-clave="'+data.clave+'" data-stock="'+data.stock+'" data-kilo="'+data.es_kilo+'"></tr>')
             tr.append('<td class="text-start cotizacion-cantidad" width="10%"><input type="text" class="form-control text-center cant" value="'+data.cantidad+'"></td>')
-            tr.append('<td width="45%">'+data.concepto+'</td>')
+            tr.append('<td width="45%"><button type="button" class="btn btn-light btnConcepto">'+data.concepto+'</button></td>')
             tr.append('<td class="text-center precio" width="15%">$ '+precio+'</td>')
             tr.append('<td class="text-center total" width="15%">$ '+data.total+'</td>')
             td = $('<td class="text-center" width="15%"></td>').appendTo(tr)

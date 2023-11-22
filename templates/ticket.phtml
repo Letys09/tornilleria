@@ -106,12 +106,7 @@
 								<?php if($venta->tipo == 1) : ?>
 									<?php if($venta->metodo == 1) : ?>
 										<tr>
-											<td>Efectivo</td>
-											<td class="cantEnd">$<?= $venta->total ?></td>
-										</tr>
-										<tr>
-											<td>Cambio</td>
-											<td class="cantEnd">$0.00</td>
+											<td>Método pago: Efectivo</td>
 										</tr>
 									<?php elseif($venta->metodo == 3) : ?>
 										<tr>
