@@ -80,13 +80,10 @@ class ProductoModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.descripcion, medida, $this->tableRango.prod_precio_id as id, $this->tableRango.menudeo, $this->tableRango.medio, $this->tableRango.mayoreo, $this->tablePrecio.menudeo as precio_menudeo, $this->tablePrecio.medio as precio_medio, $this->tablePrecio.mayoreo as precio_mayoreo, $this->tablePrecio.distribuidor as precio_distribuidor")
-			->innerJoin("$this->tableRango ON $this->tableRango.producto_id = $this->table.id")
-			->innerJoin("$this->tablePrecio ON $this->tablePrecio.id = $this->tableRango.prod_precio_id")
+			->select("$this->table.id, $this->table.descripcion, medida")
 			->where($sub)
 			->where($area)
 			->where("$this->table.status", 1)
-			->where("$this->tableRango.sucursal_id", $_SESSION['sucursal_id'])
 			->orderBy("$this->table.descripcion ASC")
 			->fetchAll();
 		return $this->response;

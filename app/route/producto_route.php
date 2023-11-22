@@ -698,16 +698,35 @@ use App\Lib\Auth,
 
             $prods = $this->model->producto->getAll($args['cat'], $args['sub'], $args['area'])->result;
             foreach($prods as $prod){
-                $sheet->setCellValue("A$fila", $prod->id);
+                $rangos = $this->model->producto->getRangos($_SESSION['sucursal_id'], $prod->id)->result;
+                if(is_object($rangos)){
+                    $id = $rangos->id; $menudeo = $rangos->menudeo;
+                    $precio_menudeo = $rangos->precio_menudeo; $medio = $rangos->medio;
+                    $precio_medio = $rangos->precio_medio; $mayoreo = $rangos->mayoreo;
+                    $precio_mayoreo = $rangos->precio_mayoreo; $precio_distribuidor = $rangos->precio_distribuidor;
+                }else{
+                    $dataPrecio = [ 'producto_id' => $prod->id ];
+                    $addPrecio = $this->model->producto->add($dataPrecio, 'prod_precio');
+                    $dataRango = [
+                        'sucursal_id' => $_SESSION['sucursal_id'],
+                        'producto_id' => $prod->id,
+                        'prod_precio_id' => $addPrecio->result,
+                    ];
+                    $addRangos = $this->model->producto->add($dataRango, 'prod_rango');
+                    $id = $addRangos->result; $menudeo = ''; $precio_menudeo = ''; $medio = '';
+                    $precio_medio = ''; $mayoreo = ''; $precio_mayoreo = ''; $precio_distribuidor = '';
+                }
+
+                $sheet->setCellValue("A$fila", $id);
                 $sheet->setCellValue("B$fila", $prod->descripcion);
                 $sheet->setCellValue("C$fila", $prod->medida);
-                $sheet->setCellValue("D$fila", $prod->menudeo);
-                $sheet->setCellValue("E$fila", $prod->precio_menudeo);
-                $sheet->setCellValue("F$fila", $prod->medio);
-                $sheet->setCellValue("G$fila", $prod->precio_medio);
-                $sheet->setCellValue("H$fila", $prod->mayoreo);
-                $sheet->setCellValue("I$fila", $prod->precio_mayoreo);
-                $sheet->setCellValue("J$fila", $prod->precio_distribuidor);
+                $sheet->setCellValue("D$fila", $menudeo);
+                $sheet->setCellValue("E$fila", $precio_menudeo);
+                $sheet->setCellValue("F$fila", $medio);
+                $sheet->setCellValue("G$fila", $precio_medio);
+                $sheet->setCellValue("H$fila", $mayoreo);
+                $sheet->setCellValue("I$fila", $precio_mayoreo);
+                $sheet->setCellValue("J$fila", $precio_distribuidor);
                 $fila++;
             }
 
@@ -887,15 +906,15 @@ use App\Lib\Auth,
 			$fila = 2;
 
 			while(strlen(trim($hojaActual->getCell("A$fila")->getValue())) > 0) {
-                $precio_id = $hojaActual->getCell("A$fila")->getValue();
-                $id_rango = $this->model->producto->getByName('prod_rango', 'prod_precio_id', $precio_id)->result->id;
+                $rango_id = $hojaActual->getCell("A$fila")->getValue();
+                $precio_id = $this->model->producto->getByName('prod_rango', 'id', $rango_id)->result->prod_precio_id;
                 $rango = [
                     'menudeo' => $hojaActual->getCell("D$fila")->getValue(),
                     'medio' => $hojaActual->getCell("F$fila")->getValue(),
                     'mayoreo' => $hojaActual->getCell("H$fila")->getValue(),   
                     'actualiza' => $fecha,
                 ];
-                $edit = $this->model->producto->edit('prod_rango', 'id', $rango, $precio_id);
+                $edit = $this->model->producto->edit('prod_rango', 'id', $rango, $rango_id);
                 $precio = [  
                     'menudeo' => $hojaActual->getCell("E$fila")->getValue(),
                     'medio' => $hojaActual->getCell("G$fila")->getValue(),
