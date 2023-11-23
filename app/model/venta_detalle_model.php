@@ -69,6 +69,7 @@ class VentaDetModel {
 			->innerJoin("venta ON venta.id = venta_detalle.venta_id")
 			->innerJoin("sucursal ON sucursal.id = venta.sucursal_id")
 			->innerJoin("producto ON venta_detalle.producto_id =  producto.id")
+			->where("venta.sucursal_id", $_SESSION['sucursal_id'])
 			->where("$this->table.status", 2)
 			->where("DATE_FORMAT(fecha_cambio, '%Y-%m-%d') = '$fecha'")
 			->fetchAll();
