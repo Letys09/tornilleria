@@ -152,6 +152,11 @@
                 },'json')
             })
 
+            $('#tbl-ventas').on('click', '.btnTicket', function(){
+                id = $(this).data('id')
+                window.open('<?= URL_ROOT ?>/ticket/'+$.md5(id.toString()), '_blank')
+            })
+
             function getItems(tbl, fecha){
                 cleanTable(tbl)
                 $('#'+tbl+' tbody').empty()
@@ -202,6 +207,9 @@
                                                     feather.icons['unlock'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
+                                            '<button type="button" class="btn btn-outline-dark btn-sm btnTicket" data-id="'+id+'" data-toggle="tooltip" title="Imprimir ticket" style="margin-right:4px;">'+
+                                                feather.icons['file-text'].toSvg({ class: 'font-small-4 me-20' })+
+                                            '</button>'+
                                         '</div>'
                                     );
                                 }
