@@ -248,6 +248,13 @@
                 })
             <?php endif; ?>
 
+            document.addEventListener ("keydown", function (e) {
+                if(e.which === 27) {
+                    $('#frm-sucursal').modal('hide');
+                    $('#frm-del').modal('hide');
+                }
+            })
+
             function clear(){
                 $.each($('#frm-sucursal input'), function(index, elem){
                     ide = $(elem).attr('id')

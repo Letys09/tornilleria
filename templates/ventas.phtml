@@ -231,6 +231,12 @@
                 },'json')
             })
 
+            document.addEventListener ("keydown", function (e) {
+                if(e.which === 27) {
+                    $('#frm-addpago').modal('hide');
+                }
+            })
+
             function getItems(tbl){
                 cleanTable(tbl)
                 $('#'+tbl+' tbody').empty()

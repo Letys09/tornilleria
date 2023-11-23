@@ -1177,6 +1177,19 @@
                 });
             <?php endif; ?>
 
+            document.addEventListener ("keydown", function (e) {
+                if(e.which === 27) {
+                    $('#frm-sucursales').modal('hide');
+                    $('#frm-listadoP').modal('hide');
+                    $('#frm-ajuste').modal('hide');
+                    $('#frm-producto').modal('hide');
+                    $('#frm-barcode').modal('hide');
+                    $('#frm-del').modal('hide');
+                    $('#frm-masiva').modal('hide');
+                    $('#frm-precios').modal('hide');
+                }
+            })
+
             function categorias(elem){
                 $.unblockUI()
                 $('#'+elem).empty();

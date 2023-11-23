@@ -603,6 +603,13 @@
                 })
             <?php endif; ?>
 
+            document.addEventListener ("keydown", function (e) {
+                if(e.which === 27) {
+                    $('#frm-entrada').modal('hide');
+                    $('#frm-ver_entrada').modal('hide');
+                }
+            })
+
             function clear(){
                 $('#entrada-producto').focus().val('')
                 $('#entrada-cantidad').val('')

@@ -161,6 +161,14 @@
         $('#buscarPrecios').modal('show')
     })
 
+    document.addEventListener ("keydown", function (e) {
+        if(e.which === 27) {
+            $('#buscarPrecios').modal('hide');
+            $('#frm-datos').modal('hide');
+            $('#frm-contrasena').modal('hide');
+        }
+    })
+
     $('#menuDatos').click(function(e){
         e.preventDefault();
         id = $.trim($('#usuario-id_actualizar').val());

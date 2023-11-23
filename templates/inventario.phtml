@@ -103,6 +103,12 @@
                 window.open('<?= URL_ROOT ?>/prod_inventario/exportar/'+id, '_blank');              
             })
 
+            document.addEventListener ("keydown", function (e) {
+                if(e.which === 27) {
+                    $('#frm-detalles').modal('hide');
+                }
+            })
+
             function getDetalles(id){
                 $('#tbl-detalles tbody').empty()
                 $.get(apiUrl+'prod_det_inventario/getByInv/'+id, function(resp){

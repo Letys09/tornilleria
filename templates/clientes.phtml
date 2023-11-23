@@ -275,6 +275,13 @@
                 })
             <?php endif; ?>
 
+            document.addEventListener ("keydown", function (e) {
+                if(e.which === 27) {
+                    $('#frm-cliente').modal('hide');
+                    $('#frm-del').modal('hide');
+                }
+            })
+
             function clear(){
                 $.each($('#frm-cliente input'), function(index, elem){
                     ide = $(elem).attr('id')

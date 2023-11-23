@@ -578,6 +578,12 @@
             },'json')
         })
 
+        document.addEventListener ("keydown", function (e) {
+            if(e.which === 27) {
+                $('#frm-pago').modal('hide');
+            }
+        })
+
         function getClientes(){
             $.blockUI()
             $.get(apiUrl+'cliente/getCli', function(resp){

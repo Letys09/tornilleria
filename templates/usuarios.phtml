@@ -875,6 +875,19 @@
                 });
             <?php endif; ?>
 
+            document.addEventListener ("keydown", function (e) {
+                if(e.which === 27) {
+                    $('#frm-usuario').modal('hide');
+                    $('#frm-type-user').modal('hide');
+                    $('#frm-type-user-acciones').modal('hide');
+                    $('#frm-permisos-type-user').modal('hide');
+                    $('#frm-del-user').modal('hide');
+                    $('#frm-activar-user').modal('hide');
+                    $('#frm-permisos').modal('hide');
+                    $('#frm-user-foto').modal('hide');
+                }
+            })
+
             function getItems(tbl){
                 cleanTable(tbl);
                 $('#'+tbl+' tbody').empty();
