@@ -210,7 +210,15 @@
                                         <div class="modal-body flex-grow-1">
                                             <div class="mb-1">
                                                 ¿Estas seguro de inactivar a <strong></strong>?
-                                            </div><br>
+                                            </div>
+                                            <div class="mt-1 mb-1">
+                                                <label for="tipo_baja" class="form-label"><h5>Tipo de Baja</h5></label>
+                                                <select class="form-control" id="tipo_baja">
+                                                    <option value="0" selected disabled>Selecciona un opción</option>
+                                                    <option value="1">Baja temporal</option>
+                                                    <option value="2">Baja definitiva</option>
+                                                </select>
+                                            </div>
                                             <div>
                                                 <label for="observaciones_baja" class="form-label"><h5>Observaciones</h5></label>
                                                 <textarea id="observaciones_baja" name="observaciones_baja" rows="5" cols="40" placeholder="Observaciones de la baja del usuario"></textarea>
@@ -731,6 +739,7 @@
 
                     $('#frm-del-user strong').html(name);
                     $('#id_user_del').val(id);
+                    $('#tipo_baja').val(0);
                     $('#observaciones_baja').val('');
                     $('#frm-del-user').modal('show');
                 });
@@ -738,13 +747,17 @@
                 $('#btnInactivar').on('click', function(){
                     btn = $(this);
                     btn.addClass('disabled');
-                    if($('#observaciones_baja').val()==''){
+                    if($('#tipo_baja').val() == null || $('#tipo_baja').val() == 0){
+                        error('tipo_baja', 'Debe seleccionar una opción.')
+                        btn.removeClass('disabled');
+                    }else if($('#observaciones_baja').val()==''){
                         error('observaciones_baja', 'Agregue las observaciones de la baja del usuario.')
                         btn.removeClass('disabled');
                     }else{
                         id = $('#id_user_del').val();
+                        status = $('#tipo_baja').val() == 1 ? 2 : 0
                         data = {
-                            status: 0,
+                            status: status,
                             observaciones: sinDiacriticos($('#observaciones_baja').val())
                         }
 

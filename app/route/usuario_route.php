@@ -413,14 +413,14 @@ use Slim\Http\UploadedFile;
 			$parsedBody = $request->getParsedBody();
 				if(isset($arguments['id'])){
 					$id = $arguments['id'];
-					$accion = $parsedBody['status'] == 1 ? 'Alta' : 'Baja';
+					$accion = $parsedBody['status'] == 0 ? 'Baja definitiva' : ($parsedBody['status'] == 1 ? 'Reactiva usuario' : 'Baja temporal');
 					$data = array('status' => $parsedBody['status']);
 					
 					$edit = $this->model->usuario->estatusUser($data, $arguments['id']);
 					$obs = isset($parsedBody['observaciones']) ? $parsedBody['observaciones'] : '';
-					$motivo = $parsedBody['status'] == 0 ? ' Motivo: '.$obs : '';
+					$motivo = $parsedBody['status'] == 0 || $parsedBody['status'] == 2 ? ' Motivo: '.$obs : '';
 					if($edit->response){
-						$seg_log = $this->model->seg_log->add($accion.' usuario.'.$motivo, 'usuario', $arguments['id'], 1);
+						$seg_log = $this->model->seg_log->add($accion.$motivo, 'usuario', $arguments['id'], 1);
 						if($seg_log->response){
 							$seg_log->state = $this->model->transaction->confirmaTransaccion();
 						}else{

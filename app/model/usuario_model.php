@@ -223,8 +223,7 @@ class UsuarioModel {
 			->from($this->table)
 			->select(null)
 			->select("usuario.id, usuario_tipo_id, usuario.nombre, apellidos, email, celular, usuario.status, $this->tableTU.nombre as tipo_usuario")
-			// ->innerJoin("$this->tableTU ON id_tipo_usuario = $this->table.usuario_tipo_id")
-			// ->where('usuario_tipo_id != 3')
+			->where("$this->table.status != 0")
 			->fetchAll(); 
 					
 		return $this->response->SetResponse(true);
