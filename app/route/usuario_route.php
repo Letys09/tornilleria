@@ -634,6 +634,48 @@ use Slim\Http\UploadedFile;
 
 			return $response->withJson($this->response);
 		});
+
+		$this->get('getSwitchCode/{usuario_id}', function($request, $response, $arguments){
+			$this->model->transaction->iniciaTransaccion();
+			$passcode = $this->model->usuario->getCodigoAleatorio(4, true);
+			$existe = $this->model->usuario->getByPasscode(strrev(md5(sha1($passcode))))->result;
+			if(is_object($existe)){
+				$passcode = $this->model->usuario->getCodigoAleatorio(4, true);
+				$existe = $this->model->usuario->getByPasscode(strrev(md5(sha1($passcode))));
+				if(is_object($existe)){
+					$passcode = $this->model->usuario->getCodigoAleatorio(4, true);
+					$existe = $this->model->usuario->getByPasscode(strrev(md5(sha1($passcode))));
+				}else{
+					$existe = false;
+				}
+			}else{
+				$existe = false;
+			}
+
+			if(!$existe){
+				$data = ['passcode' => strrev(md5(sha1($passcode)))];
+				$edit_user = $this->model->usuario->edit($data, $arguments['usuario_id'], 'usuario');
+				if($edit_user->response){
+					$email = $this->model->usuario->get($arguments['usuario_id'])->result->email;
+					$contenido = '<h3><strong>Nuevo Swith Code</strong></h3>';
+					$contenido .= 'Se ha generado un nuevo Swith Code para tu usuario.<br>';
+					$contenido .= 'Recuerda que puedes usarlo para cambiar de usuario rápidamente dentro del sistema.<br>';
+					$contenido .= 'Tu <strong>Switch Code: '.$passcode.'</strong> es único e irrepetible y de uso exclusivamente personal. No debes compartirlo con nadie.';
+					$this->model->usuario->sendEmail($email, 'Nuevo Swith Code', $contenido);
+
+					$seg_log = $this->model->seg_log->add('Genera Nuevo Swith Code', 'usuario', $arguments['usuario_id'], 1);
+					$edit_user->state = $this->model->transaction->confirmaTransaccion();
+					$edit_user->email = $email;
+					return $response->withJson($edit_user);
+				}else{
+					$edit_user->state = $this->model->transaction-regresaTransaccion();
+					return $res->withJson($edit_user);
+				}
+			}else{
+				$existe->state = $this->model->transaction->regresaTransaccion();
+				return $res->withJson($existe);
+			}
+		});
 		
 	});
 

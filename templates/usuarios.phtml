@@ -2,10 +2,11 @@
 	include 'header.phtml';
     
     define('MOD_VER',	  1);
-    define('MOD_ADD',	  2);
-    define('MOD_AD',	  3);
+    define('MOD_ADD',	  2); // agregar
+    define('MOD_AD',	  3); // activar/desactivar
     define('MOD_EDIT',	  4);
     define('MOD_ASIGP',	  5);
+    define('MOD_SWITHCODE',	  47);
 
     if(!in_array(MOD_VER, $permisos)) {
 		header('Location: '.URL_ROOT.'/403');
@@ -380,6 +381,19 @@
                 newUserForm = $('.add-new-user'),
                 select = $('.select2'),
                 dtContact = $('.dt-contact');
+
+            document.addEventListener ("keydown", function (e) {
+                if(e.which === 27) {
+                    $('#frm-usuario').modal('hide');
+                    $('#frm-type-user').modal('hide');
+                    $('#frm-type-user-acciones').modal('hide');
+                    $('#frm-permisos-type-user').modal('hide');
+                    $('#frm-del-user').modal('hide');
+                    $('#frm-activar-user').modal('hide');
+                    $('#frm-permisos').modal('hide');
+                    $('#frm-user-foto').modal('hide');
+                }
+            })
 
             getItems('tbl-usuarios')
 
@@ -875,18 +889,20 @@
                 });
             <?php endif; ?>
 
-            document.addEventListener ("keydown", function (e) {
-                if(e.which === 27) {
-                    $('#frm-usuario').modal('hide');
-                    $('#frm-type-user').modal('hide');
-                    $('#frm-type-user-acciones').modal('hide');
-                    $('#frm-permisos-type-user').modal('hide');
-                    $('#frm-del-user').modal('hide');
-                    $('#frm-activar-user').modal('hide');
-                    $('#frm-permisos').modal('hide');
-                    $('#frm-user-foto').modal('hide');
-                }
-            })
+            <?php if(in_array(MOD_SWITHCODE, $permisos)) : ?>
+                $('#tbl-usuarios').on('click', '.btnNewSwithcode', function(){
+                    $.blockUI()
+                    usuario_id = $(this).data('id')
+                    $.get(apiUrl+'usuario/getSwitchCode/'+usuario_id, function(resp){
+                        if(resp.response){
+                            toastr['success']('Hecho', 'Se generó un nuevo Swith Code para el usuario, recibirá un correo electrónico a: <strong>'+resp.email+'</strong><br>Verifique su bandeja de entrada o spam')
+                        }else{
+                            toastr['error']('Ocurrió un error', 'No pudimos generar un nuevo Swith Code para el usuario, inténtelo más tarde.')
+                        }
+                        $.unblockUI()
+                    },'json')
+                })
+            <?php endif; ?>
 
             function getItems(tbl){
                 cleanTable(tbl);
@@ -1045,6 +1061,11 @@
                                             <?php if(in_array(MOD_AD, $permisos)) : ?>
                                                 '<button type="button" class="btn btn-outline-'+colorStatus+' btn-sm '+claseStatus+' '+logeado+'" data-id="'+id+'" data-name="'+name+'" data-type="'+type_user+'" data-toggle="tooltip" title="'+textStatus+'" style="margin-right:4px;">'+
                                                     feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_SWITHCODE, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-success btn-sm btnNewSwithcode" data-id="'+id+'" data-name="'+name+'" data-type="'+type_user+'" data-toggle="tooltip" title="Generar Swith Code" style="margin-right:4px;">'+
+                                                    feather.icons['key'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
                                         '</div>' 
