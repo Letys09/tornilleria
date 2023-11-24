@@ -35,7 +35,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                     "id" => $venta->id,
                     "fecha" => $venta->date,
                     "hora" => $venta->hora,
-                    "folio" => $venta->identificador.'-'.$fecha.'-'.$venta->id, 
+                    "folio" => $venta->folio, 
                     "usuario" => $venta->usuario, 
                     "cliente_id" => $venta->cliente_id,
                     "cliente" => $venta->cliente, 
@@ -63,7 +63,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                     "id" => $venta->id,
                     "fecha" => $venta->date,
                     "hora" => $venta->hora,
-                    "folio" => $venta->identificador.'-'.$fecha.'-'.$venta->id, 
+                    "folio" => $venta->folio, 
                     "usuario" => $venta->usuario,
                     "cliente_id" => $venta->cliente_id, 
                     "cliente" => $venta->cliente,
@@ -93,7 +93,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                     "fecha_fin" => $finaliza,
                     "usuario" => $venta->usuario, 
                     "cliente" => $venta->cliente,
-                    "folio" => $venta->identificador.'-'.$fecha.'-'.$venta->id, 
+                    "folio" => $venta->folio, 
                     "tipo" => $tipo,
                     "total" => $venta->total,
                 );
@@ -122,11 +122,14 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             $pago = isset($parsedBody['pago']) ? $parsedBody['pago'] : ''; unset($parsedBody['pago']);
             $fecha = date('Y-m-d H:i:s'); $cliente_id = $parsedBody['cliente_id'];
             $status = $parsedBody['tipo'] == 1 ? 1 : 2;
+            $info_suc = $this->model->sucursal->get($_SESSION['sucursal_id'])->result;
+            $folio_venta = $info_suc->identificador.'-'.date('dmY').'-'.($info_suc->folio_venta+1);
             $dataVenta = [
                 'sucursal_id' => $_SESSION['sucursal_id'],
                 'cliente_id' => $cliente_id,
                 'usuario_id' => $_SESSION['usuario_id'],
                 'fecha' => $fecha,
+                'folio' => $folio_venta,
                 'tipo' => $parsedBody['tipo'],
                 'subtotal' => $parsedBody['subtotal'],
                 'descuento' => $parsedBody['descuento'],
@@ -252,9 +255,16 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                         $seg_log = $this->model->seg_log->add('Agrega pago', 'venta_pago', $addPago->result, 1);
                     }
                 }
-                $seg_log = $this->model->seg_log->add('Nueva venta', 'venta', $venta_id, 1);
-                $addVenta->state = $this->model->transaction->confirmaTransaccion();
-                return $res->withJson($addVenta);
+                $data_folio = ['folio_venta' => ($info_suc->folio_venta+1)];
+                $edit_folio = $this->model->sucursal->edit($data_folio, $_SESSION['sucursal_id']);
+                if($edit_folio->response){
+                    $seg_log = $this->model->seg_log->add('Nueva venta', 'venta', $venta_id, 1);
+                    $addVenta->state = $this->model->transaction->confirmaTransaccion();
+                    return $res->withJson($addVenta);
+                }else{
+                    $edit_folio->state = $this->model->transaction->regresaTransaccion();
+                    return $res->withJson($edit_folio);
+                }
             }else{
                 $addVenta->state = $this->model->transaction->regresaTransaccion();
                 return $res->withJson($addVenta);

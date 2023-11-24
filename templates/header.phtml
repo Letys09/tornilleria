@@ -10,6 +10,7 @@
     // echo($vista);
     switch ($vista) {
         case 'Venta': $icono = 'fas fa-shopping-cart'; $vista = 'Venta'; break;
+        case 'Segunda Venta': $icono = 'fas fa-cart-plus'; break;
         case 'Cotizaciones': $icono = 'fas fa-calculator'; break;
         case 'Cotización': $icono = 'fas fa-calculator'; break;
         case 'Usuarios': $icono = 'fas fa-user'; break;
@@ -91,18 +92,22 @@
             </div>
             <ul class="nav navbar-nav align-items-center ms-auto">
                 <?php if($vista != 'Cotización') : ?>
-                    <li>
+                    <li class="me-1">
                         <a class="nav-link" href="<?= URL_ROOT ?>/cotizacion/cliente"><i class="fas fa-calculator nuevaCoti" data-toggle="tooltip" title="Cotización"></i></a>
-                    </li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </li>
                 <?php endif; ?>
-                <?php if($vista != 'Venta') : ?>
-                    <li>
+                <?php if($vista != 'Venta' && $vista != 'Segunda Venta') : ?>
+                    <li class="me-1">
                         <a class="nav-link" href="<?= URL_ROOT ?>/venta/cliente"><i class="fas fa-shopping-cart nuevaVenta" data-toggle="tooltip" title="Nueva Venta"></i></a>
-                    </li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                    </li>
+                <?php elseif($vista == 'Venta' && $vista != 'Segunda Venta') : ?>
+                    <li class="me-1">
+                        <a class="nav-link" href="<?= URL_ROOT ?>/segunda/venta" target="_blank"><i class="fas fa-cart-plus segundaVenta" data-toggle="tooltip" title="Segunda Venta"></i></a>
+                    </li>
                 <?php endif; ?>
-                <li>
+                <li class="me-1">
                     <a class="nav-link"><i class="fas fa-search-dollar busPrecios" data-toggle="tooltip" title="Buscar Precios"></i></a>
-                </li>&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+                </li>
                 <li class="nav-item dropdown dropdown-user">
                     <a class="nav-link dropdown-toggle dropdown-user-link" id="dropdown-user" href="#" data-bs-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                         <div class="user-nav d-sm-flex d-none">

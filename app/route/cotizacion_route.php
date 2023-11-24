@@ -26,7 +26,7 @@ use App\Lib\Auth,
                     "id" => $cotizacion->id,
                     "fecha" => $cotizacion->date,
                     "hora" => $cotizacion->hora,
-                    "folio" => $cotizacion->identificador.'-'.$fecha.'-'.$cotizacion->id, 
+                    "folio" => $cotizacion->folio, 
                     "usuario" => $cotizacion->usuario, 
                     "cliente_id" => $cotizacion->cliente_id,
                     "cliente" => $cotizacion->cliente, 
@@ -56,11 +56,14 @@ use App\Lib\Auth,
             $parsedBody = $req->getParsedBody();
             $detalles = $parsedBody['detalles']; unset($parsedBody['detalles']);
             $fecha = date('Y-m-d H:i:s'); $vigencia = date('Y-m-d'); $cliente_id = $parsedBody['cliente_id'];
+            $info_suc = $this->model->sucursal->get($_SESSION['sucursal_id'])->result;
+            $folio_cot = $info_suc->identificador.'-'.date('dmY').'-'.($info_suc->folio_cotizacion+1);
             $dataCoti = [
                 'sucursal_id' => $_SESSION['sucursal_id'],
                 'usuario_id' => $_SESSION['usuario_id'],
                 'cliente_id' => $cliente_id,
                 'fecha' => $fecha,
+                'folio' => $folio_cot,
                 'importe' => $parsedBody['total'],
                 'subtotal' => $parsedBody['total'],
                 'total' => $parsedBody['total'],
@@ -91,9 +94,16 @@ use App\Lib\Auth,
                     }
                 }   
 
-                $seg_log = $this->model->seg_log->add('Nueva cotización', 'cotización', $cotizacion_id, 1);
-                $addCoti->state = $this->model->transaction->confirmaTransaccion();
-                return $res->withJson($addCoti);
+                $data_folio = ['folio_cotizacion' => ($info_suc->folio_cotizacion+1)];
+                $edit_folio = $this->model->sucursal->edit($data_folio, $_SESSION['sucursal_id']);
+                if($edit_folio->response){
+                    $seg_log = $this->model->seg_log->add('Nueva cotización', 'cotización', $cotizacion_id, 1);
+                    $addCoti->state = $this->model->transaction->confirmaTransaccion();
+                    return $res->withJson($addCoti);
+                }else{
+                    $edit_folio->state = $this->model->transaction->regresaTransaccion();
+                    return $res->withJson($edit_folio);
+                }
             }else{
                 $addCoti->state = $this->model->transaction->regresaTransaccion();
                 return $res->withJson($addCoti);
@@ -153,11 +163,14 @@ use App\Lib\Auth,
             $cotizacion_id = $args['id']; $fecha = date('Y-m-d H:i:s');
             $cotizacion = $this->model->cotizacion->get($cotizacion_id)->result;
             $detalles_cot = $this->model->coti_detalle->getByCot($cotizacion_id)->result;
+            $info_suc = $this->model->sucursal->get($_SESSION['sucursal_id'])->result;
+            $folio_venta = $info_suc->identificador.'-'.date('dmY').'-'.($info_suc->folio_venta+1);
             $data_venta = [
                 'sucursal_id' => $cotizacion->sucursal_id,
                 'cliente_id' => $cotizacion->cliente_id,
                 'usuario_id' => $_SESSION['usuario_id'],
                 'fecha' => $fecha,
+                'folio' => $folio_venta,
                 'tipo' => 1,
                 'subtotal' => $cotizacion->subtotal,
                 'total' => $cotizacion->total,
@@ -187,7 +200,8 @@ use App\Lib\Auth,
                         $seg_log = $this->model->seg_log->add('Agrega detalle de cotización a venta', 'venta_detalle', $det_id, 1);
                         if($info_prod->es_kilo == 0){
                             $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto_id)->result;
-                            $inicial = $stock->final;
+                            if(is_object($stock)) $inicial = $stock->final;
+                            else $inicial = 0;
                             if($inicial != 0){
                                 if($inicial >= $detalle->cantidad){
                                     $final = floatval($inicial-$detalle->cantidad);
@@ -265,9 +279,21 @@ use App\Lib\Auth,
                 }
                 $data_cot = ['venta_id' => $venta_id, 'status' => 2];
                 $edit_cot = $this->model->cotizacion->edit($data_cot, $cotizacion_id);
-                $this->model->seg_log->add('Venta de cotización', 'venta', $venta_id, 1);
-                $add_venta->state = $this->model->transaction->confirmaTransaccion();
-                return $res->withJson($add_venta);
+                if($edit_cot->response){
+                    $data_folio = ['folio_venta' => ($info_suc->folio_venta+1)];
+                    $edit_folio = $this->model->sucursal->edit($data_folio, $_SESSION['sucursal_id']);
+                    if($edit_folio->response){
+                        $this->model->seg_log->add('Venta de cotización', 'venta', $venta_id, 1);
+                        $add_venta->state = $this->model->transaction->confirmaTransaccion();
+                        return $res->withJson($add_venta);
+                    }else{
+                        $edit_folio->state = $this->model->transaction->regresaTransaccion();
+                        return $res->withJson($edit_folio);
+                    }
+                }else{
+                    $edit_cot->state = $this->model->transaction->regresaTransaccion();
+                    return $res->withJson($edit_cot);
+                }
             }else{
                 $add_venta->state = $this->model->transaction->regresaTransaccion();
                 return $res->withJson($add_venta);

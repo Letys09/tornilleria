@@ -462,9 +462,8 @@ div.card-header.link{
 	overflow-y: auto;
 }
 
-.busPrecios, .nuevaVenta, .nuevaCoti{
+.busPrecios, .nuevaVenta, .nuevaCoti, .segundaVenta{
 	color: #000066 !important;
-	/* text-shadow: 2px 2px rgb(157, 97, 216); */
 	font-size: x-large;
 }
 

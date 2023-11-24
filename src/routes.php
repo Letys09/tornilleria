@@ -78,7 +78,7 @@
 			if(isset($args['id'])){
 				$params['venta'] = $this->model->venta->getByMd5($args['id']);
 				$params['venta_id'] = $params['venta']->id;
-				$params['folio'] = $params['venta']->identificador.'-'.$params['venta']->fechaFolio.'-'.$params['venta']->id;
+				$params['folio'] = $params['venta']->folio;
 				$data = ['en_uso' => 1];
 				$this->model->venta->edit($data, $params['venta']->id);
 				$params['nueva'] = false;
@@ -111,7 +111,7 @@
 			if(isset($args['id'])){
 				$params['venta'] = $this->model->venta->getByMd5($args['id']);
 				$params['venta_id'] = $params['venta']->id;
-				$params['folio'] = $params['venta']->identificador.'-'.$params['venta']->fechaFolio.'-'.$params['venta']->id;
+				$params['folio'] = $params['venta']->folio;
 				$params['detalles'] = $this->model->venta_detalle->getByVenta($params['venta']->id)->result;
 				$data = ['en_uso' => 1];
 				$this->model->venta->edit($data, $params['venta']->id);
@@ -162,6 +162,25 @@
 			return $this->renderer->render($response, 'ventas_dia.phtml', $params);
 		});
 
+		$app->get('/segunda/venta', function(Request $request, Response $response, array $args) use ($container){
+			if(isset($_SESSION['logID'])){
+				$sesion_info = $this->model->seg_sesion->get($_SESSION['logID']);
+				if($sesion_info->response){
+					$sesion = $sesion_info->result;
+					if($sesion->finalizada != null){
+						unset($_SESSION['logID']);
+						return $this->response->withRedirect(URL_ROOT.'/login');
+					}
+				}
+			}
+			$params['vista'] = 'Segunda Venta';
+			$user = $_SESSION['usuario']->id;
+			$permisos = $this->model->usuario->getAcciones($user, 0);
+			$arrPermisos = getPermisos($permisos); 
+			$params['permisos'] = $arrPermisos; 
+			return $this->renderer->render($response, 'venta_nueva.phtml', $params);
+		});
+
 		$app->get('/ticket/{ticket}', function(Request $request, Response $response, array $args) use ($container){
 			if(isset($_SESSION['logID'])){
 				$sesion_info = $this->model->seg_sesion->get($_SESSION['logID']);
@@ -175,7 +194,7 @@
 			}
 			$params['venta'] = $this->model->venta->getByMD5($args['ticket']);
 			$fecha = explode('/', $params['venta']->date);
-			$params['folio'] = $params['venta']->identificador.'-'.$fecha[0].$fecha[1].$fecha[2].'-'.$params['venta']->id;
+			$params['folio'] = $params['venta']->folio;
 			$params['atendio'] = $this->model->usuario->get($params['venta']->usuario_id)->result->nombre;
 			if($params['venta']->tipo == 1){
 				$params['venta']->metodo = $this->model->venta_pago->getByVenta($params['venta']->id)->result[0]->forma_pago;
@@ -216,7 +235,7 @@
 			if(isset($args['id'])){
 				$params['cotizacion'] = $this->model->cotizacion->getByMd5($args['id']);
 				$params['cotizacion_id'] = $params['cotizacion']->id;
-				$params['folio'] = $params['cotizacion']->identificador.'-'.$params['cotizacion']->fechaFolio.'-'.$params['cotizacion']->id;
+				$params['folio'] = $params['cotizacion']->folio;
 				$params['detalles'] = $this->model->coti_detalle->getByCot($params['cotizacion']->id)->result;
 				$data = ['en_uso' => 1];
 				$this->model->cotizacion->edit($data, $params['cotizacion']->id);
@@ -225,7 +244,9 @@
 					$detalle->clave = $prod->clave;
 					$detalle->concepto = '('.$prod->clave.') '.$prod->descripcion;
 					$detalle->es_kilo = $prod->es_kilo;
-					$detalle->stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id)->result->final;
+					$info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id);
+					if(is_object($info_stock->result)) $detalle->stock = $info_stock->final;
+					else $detalle->stock = '0.0';
 				}
 				$params['nueva'] = false;
 			}else{
@@ -249,7 +270,7 @@
 			}
 			$params['cotizacion'] = $this->model->cotizacion->getByMD5($args['ticket']);
 			$fecha = explode('/', $params['cotizacion']->date);
-			$params['folio'] = $params['cotizacion']->identificador.'-'.$fecha[0].$fecha[1].$fecha[2].'-'.$params['cotizacion']->id;
+			$params['folio'] = $params['cotizacion']->folio;
 			$params['atendio'] = $this->model->usuario->get($params['cotizacion']->usuario_id)->result->nombre;
 			$detalles = $this->model->coti_detalle->getByCot($params['cotizacion']->id)->result;
 			$params['sucursal'] = $this->model->sucursal->get($_SESSION['sucursal_id'])->result;

@@ -39,3 +39,11 @@ ALTER TABLE `venta` ADD `fecha_actualiza` DATETIME NULL DEFAULT NULL AFTER `usua
 ALTER TABLE `producto` CHANGE `clave_sat` `clave_sat` VARCHAR(40) CHARACTER SET utf8mb4 COLLATE utf8mb4_0900_ai_ci NULL DEFAULT NULL; 
 ALTER TABLE `producto` CHANGE `prod_unidad_medida_id` `prod_unidad_medida_id` INT NULL DEFAULT NULL; 
 ALTER TABLE `seg_session` ADD `tipo_sesion` TINYINT(1) NOT NULL DEFAULT '1' AFTER `user_agent`; 
+ALTER TABLE `venta` ADD `en_uso` TINYINT(1) NOT NULL DEFAULT '0' AFTER `usuario_finaliza`;
+ALTER TABLE `cotizacion` ADD `en_uso` TINYINT(1) NOT NULL DEFAULT '0' AFTER `fecha_actualiza`; 
+ALTER TABLE `sucursal` ADD `folio_venta` INT(11) NOT NULL AFTER `telefono`; 
+ALTER TABLE `venta` ADD `folio` VARCHAR(45) NOT NULL AFTER `fecha`; 
+ALTER TABLE `cotizacion` ADD `folio` VARCHAR(45) NOT NULL AFTER `fecha`; 
+ALTER TABLE `sucursal` ADD `folio_cotizacion` INT(11) NOT NULL AFTER `folio_venta`; 
+ALTER TABLE `sucursal` CHANGE `folio_venta` `folio_venta` INT(11) NOT NULL DEFAULT '0'; 
+ALTER TABLE `sucursal` CHANGE `folio_cotizacion` `folio_cotizacion` VARCHAR(45) CHARACTER SET utf8mb4 COLLATE utf8mb4_general_ci NOT NULL DEFAULT '0'; 

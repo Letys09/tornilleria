@@ -19,7 +19,7 @@ class SucursalModel {
 		$this->response->result = $this->db
 			->from($this->table)
             ->select(null)
-            ->select("identificador, direccion_id, nombre, telefono, calle, no_ext, no_int, colonia, municipio, estado, codigo_postal")
+            ->select("identificador, folio_venta, folio_cotizacion, direccion_id, nombre, telefono, calle, no_ext, no_int, colonia, municipio, estado, codigo_postal")
             ->innerJoin("$this->tableDir ON $this->tableDir.id = $this->table.direccion_id")
 			->where("$this->table.id", $id)
 			->fetch();
@@ -87,7 +87,7 @@ class SucursalModel {
 				->execute();
 
 				if($this->response->result) { $this->response->SetResponse(true); }
-				else { $this->response->SetResponse(false, 'No se actualizo el registro del usuario '); }
+				else { $this->response->SetResponse(false, 'No se actualizo el registro de la sucursal '); }
 
 		} catch(\PDOException $ex) {
 			$this->response->errors = $ex;
