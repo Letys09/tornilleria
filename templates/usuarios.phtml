@@ -859,7 +859,8 @@
                     $('#usuario-foto').prop('src', '<?= URL_DATA ?>empleado/profile.png');
                     $.get(apiUrl+'usuario/getFoto/'+id, function(data) {
                         if(data){
-                            urlf = '<?= URL_DATA ?>empleado/foto'+id+'.jpg';
+                            let timestamp = Math.floor( Date.now() )
+                            urlf = '<?= URL_DATA ?>empleado/foto'+id+'.jpg?ver=' + timestamp;
                             $('#usuario-foto').prop('src', urlf);
                         }
                     });
@@ -888,7 +889,9 @@
                             processData: false,
                             success: function(resp){
                                 if(resp.response){
-                                    $('#usuario-foto').prop('src', urlf);
+                                    let timestamp = Math.floor( Date.now() );
+                                    var img = '<?= URL_DATA ?>empleado/foto'+id+'.jpg?ver=' + timestamp
+                                    $('#usuario-foto').prop('src', img)
                                 }else{
                                     $('#resUP').removeClass('alert-info').removeClass('alert-success')
                                     .addClass('alert-danger').text('No se pudo subir la foto. Intente nuevamente más tarde.');
@@ -995,8 +998,9 @@
                                     var nombre = full['nombre'],
                                     apellidos = full['apellidos'],
                                     id = full['data_id'];
+                                    let timestamp = Math.floor( Date.now() );
                                     if(full['foto']){
-                                        image = '<?= URL_DATA ?>empleado/foto'+id+'.jpg';
+                                        image = '<?= URL_DATA ?>empleado/foto'+id+'.jpg?ver=' + timestamp;
                                     }else{
                                         image = '';
                                     }
