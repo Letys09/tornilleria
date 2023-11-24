@@ -52,7 +52,7 @@ class ProductoModel {
 			->from("$this->table")
 			->select(null)
 			->select("id, descripcion, clave, medida")
-			->where("CONCAT_WS(' ', $this->table.descripcion, $this->table.clave, $this->table.medida) LIKE '%$param%'")
+			->where("CONCAT_WS(' ', {$this->table}.descripcion, {$this->table}.clave, {$this->table}.medida) LIKE ?", "%$param%")
 			->where("status", 1)
 			->fetchAll();
 		return $this->response->setResponse(true);

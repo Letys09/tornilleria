@@ -38,11 +38,14 @@ use App\Lib\Auth,
                 $folio = '';
                 switch ($origen) {
                     case 1: // entrada
-                        $folio = 'Entrada. Folio: '.$this->model->prod_entrada->get($dato->origen_id)->result->folio; break;
+                        $info_entrada = $this->model->prod_entrada->get($dato->origen_id)->result;
+                        if(is_object($info_entrada)) $folio_entrada = 'Folio: '.$info_entrada->folio;
+                        else $folio_entrada = 'Folio no registrado';
+                        $folio = 'Entrada. '.$folio_entrada; break;
                     case 3: // venta por pieza origen_id = id del detalle de venta en el que salió el prod (venta_detalle)
                         $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
                         $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
-                        $folio = 'Venta de producto por pieza. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        $folio = 'Venta de producto por pieza. Venta: '.$venta->folio;
                         break;
                     case 4: // entrada por ajuste de inventario 
                         $ajuste = $this->model->prod_ajuste->get($dato->origen_id)->result;
@@ -57,17 +60,17 @@ use App\Lib\Auth,
                     case 7: // venta por kilo
                         $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
                         $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
-                        $folio = 'Venta de producto por kilo. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        $folio = 'Venta de producto por kilo. Venta: '.$venta->folio;
                         break;
                     case 8: // entrada por devolución de producto vendido por unidad
                         $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
                         $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
-                        $folio = 'Entrada por devolución de producto vendido por pieza. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        $folio = 'Entrada por devolución de producto vendido por pieza. Venta: '.$venta->folio;
                         break;
                     case 9: // entrada por devolución de producto vendido por kilo
                         $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
                         $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
-                        $folio = 'Entrada por devolución de producto vendido por kilo. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        $folio = 'Entrada por devolución de producto vendido por kilo. Venta: '.$venta->folio;
                         break;
                     case 10: // entrada por modificación de entrada de productos
                         $det_entrada = $this->model->prod_entrada->getDet($dato->origen_id)->result;
@@ -85,17 +88,17 @@ use App\Lib\Auth,
                     case 13: // de cotización a venta pieza
                         $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
                         $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
-                        $folio = 'Salida por venta de producto por pieza. Se concreta venta de cotización. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        $folio = 'Salida por venta de producto por pieza. Se concreta venta de cotización. Venta: '.$venta->folio;
                         break;
                     case 14: // de cotización a venta kilo
                         $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
                         $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
-                        $folio = 'Salida por venta de producto por kilo. Se concreta venta de cotización. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        $folio = 'Salida por venta de producto por kilo. Se concreta venta de cotización. Venta: '.$venta->folio;
                         break;
                     case 15: // entrada por cambio de producto
                         $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
                         $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
-                        $folio = 'Entrada por cambio de producto. Se concreta venta de cotización. Venta: '.$_SESSION['sucursal_identificador'].'-'.$venta->dateFolio.'-'.$venta->id;
+                        $folio = 'Entrada por cambio de producto. Se concreta venta de cotización. Venta: '.$venta->folio;
                         break;
                     default:
                         # code...
