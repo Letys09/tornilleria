@@ -593,7 +593,7 @@ use Slim\Http\UploadedFile;
 					if($continuar){
 						if(isset($_SESSION['usuario'])){
 							$userId = $_SESSION['usuario_id'];
-							$this->model->seg_log->add('Cierra Sesion SwitchCode', 'usuario', $userId, 0);
+							$this->model->seg_log->add('Cierra Sesión SwitchCode', 'usuario', $userId, 0);
 							$data = [
 								'status' => 0,
 								'finalizada' => date('Y-m-d H:i:s'),

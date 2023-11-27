@@ -29,7 +29,8 @@ class UsuarioModel {
 		$usuario = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.id, $this->table.nombre, $this->table.usuario_tipo_id as typeUser, sucursal.id as id_sucursal, sucursal.nombre as sucursal")
+			->select("$this->table.id, $this->table.nombre, $this->table.usuario_tipo_id as typeUser")
+			// ->select("$this->table.id, $this->table.nombre, $this->table.usuario_tipo_id as typeUser, sucursal.id as id_sucursal, sucursal.nombre as sucursal")
 			->where('username', $user)
 			->where('contrasena', $contrasena)
 			->where("$this->table.status", 1)
@@ -176,7 +177,7 @@ class UsuarioModel {
 		$this->response->result = $this->db
 			->from($this->table)
 			->select(null)
-			->select("$this->table.id, sucursal_id, usuario_tipo_id, direccion_id, nombre, apellidos, email, celular, username, calle, no_ext, no_int, colonia, municipio, estado, codigo_postal")
+			->select("$this->table.id, usuario_tipo_id, direccion_id, nombre, apellidos, email, celular, username, calle, no_ext, no_int, colonia, municipio, estado, codigo_postal")
 			->innerJoin("direccion ON direccion.id = $this->table.direccion_id")
 			->where("$this->table.id", $id)
 			->fetch();

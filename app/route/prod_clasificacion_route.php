@@ -35,7 +35,7 @@ use App\Lib\Auth,
 						'nombre' => $area
 					);
 					$area = $this->model->prod_clasificacion->add($data, 'prod_area');
-					$seg_log = $this->model->seg_log->add('Agrega área', $area->result, 'prod_area');
+					$seg_log = $this->model->seg_log->add('Agrega área', 'prod_area', $area->result, 0);
 				}		
 				$area->state = $this->model->transaction->confirmaTransaccion();
 				return $res->withJson($area);
@@ -47,7 +47,7 @@ use App\Lib\Auth,
 						'nombre' => $categoria
 					);
 					$categoria = $this->model->prod_clasificacion->add($data, 'prod_categoria');
-					$seg_log = $this->model->seg_log->add('Agrega categoría', $categoria->result, 'prod_categoria');
+					$seg_log = $this->model->seg_log->add('Agrega categoría', 'prod_categoria', $categoria->result, 0);
 				}		
 				$categoria->state = $this->model->transaction->confirmaTransaccion();
 				return $res->withJson($categoria);
@@ -60,7 +60,7 @@ use App\Lib\Auth,
 						'nombre' => $subcat
 					);
 					$subcat = $this->model->prod_clasificacion->add($data, 'prod_categoria');
-					$seg_log = $this->model->seg_log->add('Agrega subcategoria', $subcat->result, 'prod_categoria');
+					$seg_log = $this->model->seg_log->add('Agrega subcategoria', 'prod_categoria', $subcat->result, 0);
 				}		
 	
 				$subcat->state = $this->model->transaction->confirmaTransaccion();
