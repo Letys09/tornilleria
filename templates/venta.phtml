@@ -313,6 +313,12 @@
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
 
+        document.addEventListener ("keydown", function (e) {
+            if(e.which === 27) {
+                $('#frm-pago').modal('hide');
+            }
+        })
+
         addEventListener("beforeunload", onbeforeunload);
         onbeforeunload = (event) => {
             // event.preventDefault()
@@ -655,12 +661,6 @@
             },'json')
         })
 
-        document.addEventListener ("keydown", function (e) {
-            if(e.which === 27) {
-                $('#frm-pago').modal('hide');
-            }
-        })
-
         function getClientes(){
             $.blockUI()
             $.get(apiUrl+'cliente/getCli', function(resp){
@@ -822,8 +822,8 @@
                         if(resp.response){
                             toastr['success']('¡Venta realizada!', 'Venta realizada con éxito')
                             eliminarDet = false
-                            window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
-                            window.open('<?= URL_ROOT ?>/ticket/'+$.md5(resp.result.toString()), '_blank')
+                            
+                            ticket($.md5(resp.result.toString()))
                         }else{
                             toastr['error']('¡Error!', resp.message)
                         }
@@ -835,11 +835,55 @@
                     $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
                         toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
                         eliminarDet = false
-                        window.open('<?= URL_ROOT ?>/ticket/'+$.md5(venta_id.toString()), '_blank')
+                        ticket($.md5(venta_id.toString()))
                         window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
                     })
                 <?php endif; ?>
             }
+        }
+
+        function ticket(id){
+            let contador = 0;
+            // while (contador < 2) {
+                var mywindow = window.open('<?= URL_ROOT ?>/ticket/'+id);
+                var is_chrome = Boolean(mywindow.chrome);
+                var mywindow2 = window.open('<?= URL_ROOT ?>/ticket/'+id);
+                var is_chrome2 = Boolean(mywindow2.chrome);
+    
+                if (is_chrome) {
+                    setTimeout(function() {
+                        mywindow.document.close();
+                        mywindow.focus();
+                        mywindow.print();
+                        mywindow.close();
+                        // setTimeout(mywindow.close, 2000);
+                    }, 250);
+                } else {
+                    mywindow.document.close();
+                    mywindow.focus();
+                    mywindow.print();
+                    mywindow.close();
+                }
+                if (is_chrome2) {
+                    setTimeout(function() {
+                        mywindow2.document.close();
+                        mywindow2.focus();
+                        mywindow2.print();
+                        mywindow2.close();
+                        // setTimeout(mywindow2.close, 2000);
+                        window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
+
+                    }, 250);
+                } else {
+                    mywindow2.document.close();
+                    mywindow2.focus();
+                    mywindow2.print();
+                    mywindow2.close();
+                }
+                // contador++;
+                // window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
+                // return true;
+            // }
         }
 
         function cleanTable(tbl){

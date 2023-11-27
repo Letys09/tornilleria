@@ -194,7 +194,6 @@
                     });
                     data['telefono'] = data['telefono'].replace('(','').replace(')','').replace(' ','').replace('-','')
                     data['regimen_fiscal'] = $('#cli-regimen_fiscal').val()
-                    console.log(data)
                     if(data['nombre'] == ''){
                         error('cli-nombre', 'Este campo es obligatorio')
                     }else if(data['nombre'].length < 4){

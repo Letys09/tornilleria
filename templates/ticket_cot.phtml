@@ -1,14 +1,3 @@
-<?php
-	include 'core/defines.php';
-	if(isset($_SESSION['usuario'])) {
-		$user = $_SESSION['usuario'];
-		$username = $user->nombre;
-	} else{
-		header('Location: '.URL_ROOT.'/login');
-		exit();
-	}
-?>
-			
 <!DOCTYPE html>
 <html lang="es">
 	<head>
@@ -33,6 +22,30 @@
 			}
 			body{
 				color: black!important;
+			}
+			.img-ticket{
+				width: 100%;
+			}
+			.align{
+				font-size: small;
+				text-align: center;
+			}
+			.Desc{
+				text-align: start;
+			}
+			.End{
+				text-align: end;
+			}
+			.cantEnd{
+				text-align: end;
+			}
+			.Sub{
+				font-style: italic;
+			}
+
+			.condiciones{
+				text-align: justify;
+				font-size: small;
 			}
 			h1, h2, h3, h4, h5, h6, table { color: black!important; }
 		</style>

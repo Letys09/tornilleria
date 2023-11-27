@@ -373,7 +373,6 @@
                                 $.post(apiUrl+'venta_detalle/add/', data, function(res){
                                     if(res.response){
                                         data['detalle_id'] = res.result
-                                        console.log(data)
                                         addFirebase(data)
                                     }
                                 },'json')
@@ -459,7 +458,6 @@
                     }else{
                         toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto \n Se pueden vender máximo "+respStock.max+" kilos")
                         let cant = (respStock.max.toFixed(1)).toString()
-                        console.log(cant)
                         db.collection(collection).doc(clave).update({'cantidad':cant})
                         $.unblockUI()
                     }

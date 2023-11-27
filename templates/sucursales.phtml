@@ -210,12 +210,9 @@
 
             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
                 $('#tbl-sucursal').on('click', '#btnEdit', function(){
-                    // $('#frm-sucursal').removeClass('modal-success')
-                    // $('#frm-sucursal').addClass('modal-info')
                     $('#frm-sucursal h4').html('editar sucursal')
                     id = $(this).data('id')
                     $('#suc-id').val(id)
-                    console.log(id)
                     $.get(apiUrl+'sucursal/get/'+id, function(data){
                         $.each(data.result, function(index, elem){
                             $('#suc-'+index).val(elem)

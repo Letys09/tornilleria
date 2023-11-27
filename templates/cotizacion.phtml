@@ -492,7 +492,7 @@
                     $.post(apiUrl+'cotizacion/add/', data, function(resp){
                         if(resp.response){
                             toastr['success']('¡Cotización realizada!', 'Cotización realizada con éxito')
-                            window.open('<?= URL_ROOT ?>/ticket/cotizacion/'+$.md5(resp.result.toString()), '_blank')
+                            ticket($.md5(resp.result.toString()))
                             window.location.href = '<?= URL_ROOT ?>/cotizaciones'
                         }else{
                             toastr['error']('¡Error!', resp.message)
@@ -504,11 +504,35 @@
                     cotizacion_id = '<?= $cotizacion_id ?>'
                     $.post(apiUrl+'cotizacion/edit/'+cotizacion_id, data, function(resp){
                         if(resp.response){
-                            window.open('<?= URL_ROOT ?>/ticket/cotizacion/'+$.md5(cotizacion_id.toString()), '_blank')
+                            ticket($.md5(cotizacion_id.toString()))
                             window.location.href = '<?= URL_ROOT ?>/cotizaciones'
                         }
                     })
                 <?php endif; ?>
+            }
+        }
+
+        function ticket(id){
+            let contador = 0;
+            while (contador < 2) {
+                var mywindow = window.open('<?= URL_ROOT ?>/ticket/cotizacion/'+id);
+                var is_chrome = Boolean(mywindow.chrome);
+    
+                if (is_chrome) {
+                    setTimeout(function() {
+                        mywindow.document.close();
+                        mywindow.focus();
+                        mywindow.print();
+                        mywindow.close();
+                    }, 250);
+                } else {
+                    mywindow.document.close();
+                    mywindow.focus();
+                    mywindow.print();
+                    mywindow.close();
+                }
+                contador++;
+                return true;
             }
         }
 

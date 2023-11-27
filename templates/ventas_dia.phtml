@@ -154,7 +154,23 @@
 
             $('#tbl-ventas').on('click', '.btnTicket', function(){
                 id = $(this).data('id')
-                window.open('<?= URL_ROOT ?>/ticket/'+$.md5(id.toString()), '_blank')
+                var mywindow = window.open('<?= URL_ROOT ?>/ticket/'+$.md5(id.toString()));
+                var is_chrome = Boolean(mywindow.chrome);
+    
+                if (is_chrome) {
+                    setTimeout(function() {
+                        mywindow.document.close();
+                        // mywindow.focus();
+                        mywindow.print();
+                        mywindow.close();
+                    }, 250);
+                } else {
+                    mywindow.document.close();
+                    // mywindow.focus();
+                    mywindow.print();
+                    mywindow.close();
+                }
+                return true;
             })
 
             function getItems(tbl, fecha){
