@@ -124,7 +124,7 @@ use App\Lib\Auth,
 			if(!$igual){
                 $edit = $this->model->cliente->edit($data, $args['id'], 'cliente');
                 if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Modifica cliente', 'cliente', $args['id'], '1');
+                    $seg_log = $this->model->seg_log->add('Modifica cliente', 'cliente', $args['id'], 0);
                     if(!$seg_log->response){
                         $seg_log->state = $this->model->transaction->regresaTransaccion();
                     }
@@ -136,7 +136,7 @@ use App\Lib\Auth,
             if(!$fiscalesI){
                 $edit = $this->model->cliente->edit($fiscales, $info->cli_datos_fiscales_id, 'cli_datos_fiscales');
                 if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Modifica datos fiscales', 'cli_datos_fiscales', $info->cli_datos_fiscales_id, '1');
+                    $seg_log = $this->model->seg_log->add('Modifica datos fiscales', 'cli_datos_fiscales', $info->cli_datos_fiscales_id, 0);
                     if(!$seg_log->response){
                         $seg_log->state = $this->model->transaction->regresaTransaccion();
                     }

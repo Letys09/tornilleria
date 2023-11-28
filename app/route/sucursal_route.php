@@ -65,7 +65,7 @@ use App\Lib\Auth,
                 $parsedBody['direccion_id'] = $direccion->result;
                 $sucursal = $this->model->sucursal->add($parsedBody);
                 if($sucursal->response){
-                    $seg_log = $this->model->seg_log->add('Agrega sucursal', 'sucursal', $sucursal->result, 1);
+                    $seg_log = $this->model->seg_log->add('Agrega sucursal', 'sucursal', $sucursal->result, 0);
                     if($seg_log->response){
                         $sucursal->state = $this->model->transaction->confirmaTransaccion();	
                         return $res->withJson($sucursal);
@@ -121,7 +121,7 @@ use App\Lib\Auth,
 			if(!$igual){
                 $editSuc = $this->model->sucursal->edit($data, $args['id']);
                 if($editSuc->response){
-                    $seg_log = $this->model->seg_log->add('Modifica sucursal', 'sucursal', $args['id'], 1);
+                    $seg_log = $this->model->seg_log->add('Modifica sucursal', 'sucursal', $args['id'], 0);
                     if(!$seg_log->response){
                         $seg_log->state = $this->model->transaction->regresaTransaccion();
                     }
@@ -153,7 +153,7 @@ use App\Lib\Auth,
             $this->model->transaction->iniciaTransaccion();
             $update = $this->model->sucursal->del($args['id']);
             if($update->response){
-                $seg_log = $this->model->seg_log->add('Elimina sucursal', 'sucursal', $args['id'], 1);
+                $seg_log = $this->model->seg_log->add('Elimina sucursal', 'sucursal', $args['id'], 0);
                 if($seg_log->response){
                     $update->state = $this->model->transaction->confirmaTransaccion();	
                     return $res->withJson($update);

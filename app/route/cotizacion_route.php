@@ -149,7 +149,7 @@ use App\Lib\Auth,
             }
             $del = $this->model->cotizacion->del($coti_id);
             if($del->response){
-                $this->model->seg_log->add('Cancela cotización', 'cotizacion', $coti_id, 1);
+                $this->model->seg_log->add('Cancela cotización', 'cotizacion', $coti_id, 0);
                 $del->state = $this->model->transaction->confirmaTransaccion();
                 return $res->withJson($del);
             }else{

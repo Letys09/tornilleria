@@ -130,7 +130,7 @@ use App\Lib\Auth,
                         return $res->withJson($addDet->SetResponse(false, 'No se pudo agregar el detalle de la entrada, prod: '.$prod_id));
                     }
                 }
-                $seg_log = $this->model->seg_log->add('Agrega entrada de productos', 'prod_entrada', $id_entrada, 0);
+                $seg_log = $this->model->seg_log->add('Agrega entrada de productos', 'prod_entrada', $id_entrada, 1);
                 if($seg_log->response){
                     $addEnt->state = $this->model->transaction->confirmaTransaccion();	
                     return $res->withJson($addEnt);
@@ -170,7 +170,7 @@ use App\Lib\Auth,
             if(!$dataIgual){
                 $edit_entrada = $this->model->prod_entrada->edit($entrada_new, $entrada_id, 'prod_entrada');
                 if($edit_entrada->response){
-                    $seg_log = $this->model->seg_log->add('Modifica entrada de productos', 'prod_entrada', $entrada_id, 0);
+                    $seg_log = $this->model->seg_log->add('Modifica entrada de productos', 'prod_entrada', $entrada_id, 1);
                     if($seg_log->response){
                         $edit_entrada->state = $this->model->transaction->confirmaTransaccion();	
                         return $res->withJson($edit_entrada);
@@ -229,7 +229,7 @@ use App\Lib\Auth,
                     ];
                     $add_stock  =$this->model->prod_stock->add($data_stock);
                     if($add_stock->response){
-                        $seg_log = $this->model->seg_log->add('Modifica cantidad de detalle. Ant: '.$cant_ant.' Desp: '.$cant_new, 'prod_det_entrada', $det_id, 0);
+                        $seg_log = $this->model->seg_log->add('Modifica cantidad de detalle. Ant: '.$cant_ant.' Desp: '.$cant_new, 'prod_det_entrada', $det_id, 1);
                         $seg_log->state = $this->model->transaction->confirmaTransaccion();
                         return $res->withJson($edit);
                     }else{
@@ -246,7 +246,7 @@ use App\Lib\Auth,
                 $data_det = ['costo' => $data['costo'], 'total' => $data['total']];
                 $edit = $this->model->prod_entrada->edit($data_det, $det_id, 'prod_det_entrada');
                 if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Modifica costo de detalle. Ant: '.$costo_ant.' Desp: '.$data['costo'], 'prod_det_entrada', $det_id, 0);
+                    $seg_log = $this->model->seg_log->add('Modifica costo de detalle. Ant: '.$costo_ant.' Desp: '.$data['costo'], 'prod_det_entrada', $det_id, 1);
                     $seg_log->state = $this->model->transaction->confirmaTransaccion();
                     return $res->withJson($edit);
                 }else{
@@ -294,7 +294,7 @@ use App\Lib\Auth,
             }
             $del_entrada = $this->model->prod_entrada->del($entrada_id, 'prod_entrada');
             if($del_entrada->response){
-                $seg_log = $this->model->seg_log->add('Elimina entrada de productos', 'prod_entrada', $entrada_id, 0);
+                $seg_log = $this->model->seg_log->add('Elimina entrada de productos', 'prod_entrada', $entrada_id, 1);
                 if($seg_log->response){
                     $del_entrada->state = $this->model->transaction->confirmaTransaccion();	
                     return $res->withJson($del_entrada);
@@ -332,7 +332,7 @@ use App\Lib\Auth,
                     ];   
                     $add_stock = $this->model->prod_stock->add($data_stock);
                     if($add_stock->response){
-                        $seg_log = $this->model->seg_log->add('Elimina entrada de producto', 'prod_det_entrada', $id, 0);
+                        $seg_log = $this->model->seg_log->add('Elimina entrada de producto', 'prod_det_entrada', $id, 1);
                         if($seg_log->response){
                             $del_detalle->state = $this->model->transaction->confirmaTransaccion();	
                             return $res->withJson($del_detalle);

@@ -23,7 +23,7 @@ use App\Lib\Auth,
             if($user->response){
                 $updatePass = $this->model->usuario->edit($data, $id, 'usuario');
                 if($updatePass->response){
-                    $seg_log = $this->model->seg_log->add('Cambio de Contraseña', 'usuario', $id, 0);
+                    $seg_log = $this->model->seg_log->add('Cambio de Contraseña', 'usuario', $id, 1);
                     if($seg_log->response){
                         $seg_log->state = $this->model->transaction->confirmaTransaccion();
                     }else{

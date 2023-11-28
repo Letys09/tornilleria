@@ -212,7 +212,7 @@ use App\Lib\Auth,
             if(!$rangos){
                 $edit = $this->model->producto->edit('prod_rango', 'id', $dataRangos, $info->id);
                 if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Modifica rangos de producto', 'prod_rango', $info->id, 0);
+                    $seg_log = $this->model->seg_log->add('Modifica rangos de producto', 'prod_rango', $info->id, 1);
                     if(!$seg_log->response){
                         $seg_log->state = $this->model->transaction->regresaTransaccion();
                     }
@@ -225,7 +225,7 @@ use App\Lib\Auth,
                 $dataPrecios['actualiza'] = date('Y-m-d H:i:s');
                 $edit = $this->model->producto->edit('prod_precio', 'id', $dataPrecios, $info->prod_precio_id);
                 if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Modifica precios de producto', 'prod_precio', $info->prod_precio_id, 0);
+                    $seg_log = $this->model->seg_log->add('Modifica precios de producto', 'prod_precio', $info->prod_precio_id, 1);
                     if(!$seg_log->response){
                         $seg_log->state = $this->model->transaction->regresaTransaccion();
                     }
@@ -378,7 +378,7 @@ use App\Lib\Auth,
                                         ];
                                         $addRangos = $this->model->producto->add($rangoKilo, 'prod_rango');
                                         $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
-                                        $seg_log = $this->model->seg_log->add('Agrega kilo', 'producto', $kilo_id, 1);
+                                        $seg_log = $this->model->seg_log->add('Agrega kilo', 'producto', $kilo_id, 0);
                                         if($seg_log->response){
                                             $kilo->state = $this->model->transaction->confirmaTransaccion();	
                                             return $res->withJson($kilo);
@@ -614,7 +614,7 @@ use App\Lib\Auth,
             if(!$precioIgual){
                 $editPrecio = $this->model->producto->edit('prod_precio', 'producto_id', $precio, $args['id']);
                 if($editPrecio->response){
-                        $seg_log = $this->model->seg_log->add('Modifica precios', 'prod_precio', $infoPrecio->id, 0);
+                        $seg_log = $this->model->seg_log->add('Modifica precios', 'prod_precio', $infoPrecio->id, 1);
                         if(!$seg_log->response){
                             $seg_log->state = $this->model->transaction->regresaTransaccion();
                             return $res->withJson($seg_log->setResponse(false, 'No se agregó el registro de bitácora'));
@@ -861,7 +861,7 @@ use App\Lib\Auth,
                                     }
                                 }
                                 $seg_log = $this->model->seg_log->add('Agrega producto', 'producto', $prod_origen, 1);
-                                $seg_log = $this->model->seg_log->add('Agrega kilo', 'producto', $kilo_id, 1);
+                                $seg_log = $this->model->seg_log->add('Agrega kilo', 'producto', $kilo_id, 0);
                                 if(!$seg_log->response){
                                     $seg_log->state = $this->model->transaction->regresaTransaccion();	
                                     return $response->withJson($seg_log->SetResponse(false, 'No se pudo agregar el registro de bitácora'));
@@ -946,7 +946,7 @@ use App\Lib\Auth,
 				$fila++;
 			}
 
-            $seg_log = $this->model->seg_log->add('Edita rangos de precios con layout', 'prod_precio', $precio_id, 0);
+            $seg_log = $this->model->seg_log->add('Edita rangos de precios con layout', 'prod_precio', $precio_id, 1);
             $edit->state = $this->model->transaction->confirmaTransaccion();	
             return $response->withJson($edit);		
 		});
