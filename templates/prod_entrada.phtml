@@ -595,6 +595,8 @@
                                 swal("¡Hecho!",	"Se eliminó la entrada del producto. ", "success");
                                 $(tr).remove()
                                 getTotal()
+                            }else if(resp.codigo == '001'){
+                                swal("¡Verificar stock de producto!", resp.message, "warning")
                             }else{
                                 swal("¡Ocurrió un problema!", "No pudimos eliminar la entrada del producto", "error")
                             }

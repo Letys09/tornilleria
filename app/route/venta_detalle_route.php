@@ -75,7 +75,7 @@ use App\Lib\Auth,
             $addDet = $this->model->venta_detalle->add($dataDet);
             if($addDet->response){
                 $det_id = $addDet->result;
-                $seg_log = $this->model->seg_log->add('Agrega detalle de venta', 'venta_detalle', $det_id, 1);
+                // $seg_log = $this->model->seg_log->add('Agrega detalle de venta', 'venta_detalle', $det_id, 1);
                 $info_prod = $this->model->producto->get($parsedBody['producto_id'])->result;
                 if($info_prod->es_kilo == 0){
                     $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto_id)->result;
@@ -98,7 +98,7 @@ use App\Lib\Auth,
                             ];
                             $addStock = $this->model->prod_stock->add($dataStock);
                             if($addStock->response){
-                                $seg_log = $this->model->seg_log->add('Agrega detalle venta', 'venta_detalle', $det_id, 1);
+                                $seg_log = $this->model->seg_log->add('Agrega detalle de venta', 'venta_detalle', $det_id, 1);
                                 $addDet->state = $this->model->transaction->confirmaTransaccion();
                                 return $res->withJson($addDet);
                             }else{

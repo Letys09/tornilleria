@@ -944,9 +944,9 @@ use App\Lib\Auth,
                     return $response->withJson($edit->SetResponse(false, 'No se editaron los precios'));
                 }
 				$fila++;
+                $seg_log = $this->model->seg_log->add('Edita rangos de precios con layout', 'prod_precio', $precio_id, 1);
 			}
 
-            $seg_log = $this->model->seg_log->add('Edita rangos de precios con layout', 'prod_precio', $precio_id, 1);
             $edit->state = $this->model->transaction->confirmaTransaccion();	
             return $response->withJson($edit);		
 		});

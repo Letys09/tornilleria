@@ -246,7 +246,7 @@ use App\Lib\Auth,
                 $data_det = ['costo' => $data['costo'], 'total' => $data['total']];
                 $edit = $this->model->prod_entrada->edit($data_det, $det_id, 'prod_det_entrada');
                 if($edit->response){
-                    $seg_log = $this->model->seg_log->add('Modifica costo de detalle. Ant: '.$costo_ant.' Desp: '.$data['costo'], 'prod_det_entrada', $det_id, 1);
+                    $seg_log = $this->model->seg_log->add('Modifica costo de detalle. Ant: $ '.$costo_ant.' Desp: $ '.$data['costo'], 'prod_det_entrada', $det_id, 1);
                     $seg_log->state = $this->model->transaction->confirmaTransaccion();
                     return $res->withJson($edit);
                 }else{
@@ -346,7 +346,8 @@ use App\Lib\Auth,
                     }
                 }else{
                     $del_detalle->state = $this->model->transaction->regresaTransaccion();
-                    return $res->withJson($this->response->SetResponse(false, "No se puede eliminar la entrada ya que hay menos stock disponible del que se ingresó, producto: ".$descripcion));
+                    $del_detalle->codigo = '001';
+                    return $res->withJson($del_detalle->SetResponse(false, "No se puede eliminar la entrada ya que hay menos stock disponible del que se ingresó, producto: ".$producto));
                 }
             }
         });

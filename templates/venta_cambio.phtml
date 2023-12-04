@@ -756,21 +756,47 @@
                 $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
                     toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
                     eliminarDet = false
-                    delAll()
-                    window.open('<?= URL_ROOT ?>/ticket/'+$.md5(venta_id.toString()), '_blank')
+                    ticket($.md5(venta_id.toString()))
                 })
             }
         }
 
-        function delAll(){
-            db.collection(collection)
-            .get()
-            .then(res => {
-                res.forEach(element => {
-                element.ref.delete();
-                window.location.href = '<?= URL_ROOT ?>/venta/cliente';
-                });
-            });
+        function ticket(id){
+            var mywindow = window.open('<?= URL_ROOT ?>/ticket/'+id);
+            var is_chrome = Boolean(mywindow.chrome);
+            var mywindow2 = window.open('<?= URL_ROOT ?>/ticket/'+id);
+            var is_chrome2 = Boolean(mywindow2.chrome);
+
+            if (is_chrome) {
+                setTimeout(function() {
+                    mywindow.document.close();
+                    mywindow.focus();
+                    mywindow.print();
+                    mywindow.close();
+                    // setTimeout(mywindow.close, 2000);
+                }, 250);
+            } else {
+                mywindow.document.close();
+                mywindow.focus();
+                mywindow.print();
+                mywindow.close();
+            }
+            if (is_chrome2) {
+                setTimeout(function() {
+                    mywindow2.document.close();
+                    mywindow2.focus();
+                    mywindow2.print();
+                    mywindow2.close();
+                    // setTimeout(mywindow2.close, 2000);
+                    window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
+
+                }, 250);
+            } else {
+                mywindow2.document.close();
+                mywindow2.focus();
+                mywindow2.print();
+                mywindow2.close();
+            }
         }
 
         function cleanTable(tbl){

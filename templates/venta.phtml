@@ -822,7 +822,6 @@
                         if(resp.response){
                             toastr['success']('¡Venta realizada!', 'Venta realizada con éxito')
                             eliminarDet = false
-                            
                             ticket($.md5(resp.result.toString()))
                         }else{
                             toastr['error']('¡Error!', resp.message)
@@ -1064,6 +1063,7 @@
                         }else{
                             $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
                         }
+                        getTotales()
                     }
                 })
             });
