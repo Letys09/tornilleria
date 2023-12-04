@@ -24,8 +24,10 @@
 			$parsedBody['fecha_asigno'] = date('Y-m-d H:i:s');
 
 				$addPermiso = $this->model->seg_permiso->add($parsedBody);
+				$info = $this->model->seg_accion->get($parsedBody['seg_accion_id'])->result;
+				$info_modulo = $this->model->seg_modulo->get($info->seg_modulo_id)->result;
 				if($addPermiso->response){
-					$seg_log = $this->model->seg_log->add('Asigna permiso '.$parsedBody['seg_accion_id'], 'usuario', $parsedBody['usuario_id'], 1);
+					$seg_log = $this->model->seg_log->add('Asigna permiso '.$info->nombre.' del módulo '.$info_modulo->nombre, 'usuario', $parsedBody['usuario_id'], 1);
 					if($seg_log->response){
 						$seg_log->state = $this->model->transaction->confirmaTransaccion();
 					}else{
@@ -52,8 +54,10 @@
 		$this->delete('del/{user}/{accion}', function ($reques, $response, $arguments) {
 			$this->model->transaction->iniciaTransaccion();
 				$delPermiso = $this->model->seg_permiso->delUserAccion($arguments['user'], $arguments['accion']);
+				$info = $this->model->seg_accion->get($arguments['accion'])->result;
+				$info_modulo = $this->model->seg_modulo->get($info->seg_modulo_id)->result;
 				if($delPermiso->response){
-					$seg_log = $this->model->seg_log->add('Elimina permiso', 'usuario', $arguments['user'], 1);
+					$seg_log = $this->model->seg_log->add('Elimina permiso '.$info->nombre.' del módulo '.$info_modulo->nombre, 'usuario', $arguments['user'], 1);
 					if($seg_log->response){
 						$seg_log->state = $this->model->transaction->confirmaTransaccion();
 					}else{
