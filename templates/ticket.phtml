@@ -156,6 +156,14 @@
 						<?php if($venta->tipo == 1) : ?>
 							<?php if($venta->metodo == 1) : ?>
 								<tr>
+									<td>Pago</td>
+									<td style="text-align: end;">$<?= $venta->recibido ?></td>
+								</tr>
+								<tr>
+									<td>Cambio</td>
+									<td style="text-align: end;">$<?= $venta->cambio ?></td>
+								</tr>
+								<tr>
 									<td>Método pago: Efectivo</td>
 								</tr>
 							<?php elseif($venta->metodo == 3) : ?>

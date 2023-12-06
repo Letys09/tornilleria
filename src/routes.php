@@ -197,7 +197,10 @@
 			$params['folio'] = $params['venta']->folio;
 			$params['atendio'] = $this->model->usuario->get($params['venta']->usuario_id)->result->nombre;
 			if($params['venta']->tipo == 1){
-				$params['venta']->metodo = $this->model->venta_pago->getByVenta($params['venta']->id)->result[0]->forma_pago;
+				$info_pago = $this->model->venta_pago->getByVenta($params['venta']->id)->result[0];
+				$params['venta']->metodo = $info_pago->forma_pago;
+				$params['venta']->recibido = $info_pago->monto_recibido;
+				$params['venta']->cambio = $info_pago->cambio;
 			}
 			$detalles = $this->model->venta_detalle->getByVenta($params['venta']->id)->result;
 			$params['sucursal'] = $this->model->sucursal->get($_SESSION['sucursal_id'])->result;
@@ -328,14 +331,25 @@
 				$params['anio'] = $anio;
 				$params['productos'] = $info->result;
 				$template = 'ventas_producto';
-			}else{
+			}else if($args['nombre'] == 'log'){
 				$params['vista'] = 'Bitácora de Acciones';
-				$info = $this->model->producto->getProdsMesAnio($anio, $mes_select);
 				$params['permisos'] = $arrPermisos;
-				$params['mes_select'] = $mes_select;
-				$params['anio'] = $anio;
-				$params['productos'] = $info->result;
 				$template = 'bitacora';
+			}else if($args['nombre'] == 'corte_caja'){
+				$params['vista'] = 'Corte de Caja';
+				$params['permisos'] = $arrPermisos;
+				$info = $this->model->venta_pago->getPagosByDate(date('Y-m-d'))->result;
+				if(is_object($info)){
+					$params['total'] = number_format(($info->Efectivo+$info->Tarjeta+$info->Transferencia), 2, ".", ",");
+					$params['efectivo'] = number_format($info->Efectivo, 2, ".", ",");
+					$params['banco'] = number_format(($info->Tarjeta+$info->Transferencia), 2, ".", ",");
+				}else{
+					$params['total'] = '0.00';
+					$params['efectivo'] = '0.00';
+					$params['banco'] = '0.00';
+				}
+				$template = 'corte_caja';
+				// print_r($params);exit();
 			}
 			return $this->renderer->render($response, 'rpt_'.$template.'.phtml', $params);
 		});

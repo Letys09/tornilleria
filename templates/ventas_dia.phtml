@@ -153,24 +153,38 @@
             })
 
             $('#tbl-ventas').on('click', '.btnTicket', function(){
-                id = $(this).data('id')
+                id = $(this).data('id')    
                 var mywindow = window.open('<?= URL_ROOT ?>/ticket/'+$.md5(id.toString()));
                 var is_chrome = Boolean(mywindow.chrome);
-    
+                var mywindow2 = window.open('<?= URL_ROOT ?>/ticket/'+$.md5(id.toString()));
+                var is_chrome2 = Boolean(mywindow2.chrome);
+        
                 if (is_chrome) {
                     setTimeout(function() {
                         mywindow.document.close();
-                        // mywindow.focus();
+                        mywindow.focus();
                         mywindow.print();
                         mywindow.close();
                     }, 250);
                 } else {
                     mywindow.document.close();
-                    // mywindow.focus();
+                    mywindow.focus();
                     mywindow.print();
                     mywindow.close();
                 }
-                return true;
+                if (is_chrome2) {
+                    setTimeout(function() {
+                        mywindow2.document.close();
+                        mywindow2.focus();
+                        mywindow2.print();
+                        mywindow2.close();
+                    }, 250);
+                } else {
+                    mywindow2.document.close();
+                    mywindow2.focus();
+                    mywindow2.print();
+                    mywindow2.close();
+                }
             })
 
             function getItems(tbl, fecha){

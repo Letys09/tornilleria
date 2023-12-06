@@ -245,6 +245,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                         'usuario_id' => $_SESSION['usuario_id'],
                         'fecha' => $fecha, 
                         'monto' => $pago['monto'],
+                        'monto_recibido' => $pago['monto_recibido'],
+                        'cambio' => $pago['cambio'],
                         'forma_pago' => $pago['forma_pago']
                     ];
                     $addPago = $this->model->venta_pago->add($dataPago);
