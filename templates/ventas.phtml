@@ -308,6 +308,7 @@
                                 render: function (data, type, full, meta) {
                                     id = full['id']; saldo = full['saldo']; cliente_id = full['cliente_id'];
                                     unlock = full['en_uso'] == 1 ? '' : 'hidden'
+                                    finalizar = full['pendiente'] != 0 ? 'hidden' : ''
                                     return (
                                         '<div class="text-center">'+
                                             <?php if(in_array(MOD_EDITAR, $permisos)) : ?>
@@ -321,7 +322,7 @@
                                                 '</button>'+
                                             <?php endif; ?>
                                             <?php if(in_array(MOD_FINALIZAR, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-new-success btn-sm btnFinalizar" data-id="'+id+'" data-toggle="tooltip" title="Finalizar venta" style="margin-right:4px;">'+
+                                                '<button type="button" class="btn btn-outline-new-success btn-sm btnFinalizar '+finalizar+'" data-id="'+id+'" data-toggle="tooltip" title="Finalizar venta" style="margin-right:4px;">'+
                                                     feather.icons['check'].toSvg({ class: 'font-small-4 me-20' })+
                                                 '</button>'+
                                             <?php endif; ?>
