@@ -36,6 +36,20 @@ use App\Lib\Auth,
 			exit(0);
         });
 
+        $this->get('getPagosByDate/{date}', function($req, $res, $args){
+            $info_ventas = $this->model->venta_pago->getPagosByDate(date('Y-m-d'))->result;
+            $info = [];
+            if(is_object($info_ventas)){
+                $info['total'] = number_format(($info_ventas->Efectivo+$info_ventas->Tarjeta+$info_ventas->Transferencia), 2, ".", ",");
+                $info['efectivo'] = number_format($info_ventas->Efectivo, 2, ".", ",");
+                $info['banco'] = number_format(($info_ventas->Tarjeta+$info_ventas->Transferencia), 2, ".", ",");
+            }else{
+                $info['total'] = '0.00'; $info['efectivo'] = '0.00'; $info['banco'] = '0.00';
+            }
+            
+            return $res->withJson($info);
+        });
+
         $this->post('add/', function($req, $res, $args){
 			$this->model->transaction->iniciaTransaccion();
             $parsedBody = $req->getParsedBody();

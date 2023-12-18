@@ -90,6 +90,28 @@ class VentaPagoModel {
 		return $this->response->SetResponse(true);
 	}
 
+	public function getPagosByDate($date){
+		$this->response->result = $this->db
+		->from($this->table)
+		->select(NULL)
+		->select("forma_pago,
+				  CASE 
+					WHEN forma_pago = 1 THEN 'Efectivo' 
+					WHEN forma_pago = 3 THEN 'Tarjeta'
+					WHEN forma_pago = 4 THEN 'Transferencia'
+					ELSE ''
+				  END AS metodo, 
+				  SUM(monto) AS monto")
+		->innerJoin("venta ON venta.id = venta_pago.venta_id")
+		->where("DATE_FORMAT($this->table.fecha, '%Y-%m-%d') = '$date'")
+		->where("venta.sucursal_id", $_SESSION['sucursal_id'])
+		->where("$this->table.status", 1)
+		->groupBy("forma_pago")
+		->fetchAll();
+
+		return $this->response->SetResponse(true);
+	}
+
 	public function add($data){
 		$SQL = $this->db
 			->insertInto($this->table, $data)

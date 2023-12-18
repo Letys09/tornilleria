@@ -1,0 +1,78 @@
+<?php 
+	include 'header.phtml';
+    define('MOD_CORTE_CAJA', 48);
+
+    if(!in_array(MOD_CORTE_CAJA, $permisos)) {
+		header('Location: '.URL_ROOT.'/403');
+		exit;
+	}
+?>
+
+<!DOCTYPE html>
+<html class="loading" lang="es" data-textdirection="ltr">
+    <div class="app-content content ">
+        <div class="content-wrapper container-fluid p-0">
+            <div class="content-body">
+                <section>
+                    <div class="card">
+                        <div class="card-body border-bottom">
+                            <div class="card-body border-bottom filtroFechas">
+                                <div class="col-sm-12 col-md-8 col-lg-6">
+                                    <div class="input-group input-daterange">
+                                        <span class="input-group-text">Del</span>
+                                        <input type="date" id="date" class="form-control" value="<?= date('Y-m-d') ?>"/>
+                                        <button type="button" class="btn btn-new-info" id="btnBuscar"><i class="fas fa-search"></i> Buscar</button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <br>
+                            <div class="col-sm-12 col-md-8 col-lg-6">
+                                <h5><b>INGRESOS DEL DÍA</b></h5>
+                                <table class="table table-striped">
+                                    <tr>
+                                        <td class="fw-bolder">VENTAS TOTAL</td>
+                                        <td class="fw-bolder totalVentas"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total en efectivo</td>
+                                        <td class="fw-bolder ventasEfectivo"></td>
+                                    </tr>
+                                    <tr>
+                                        <td>Total en banco <small>(TARJETA Y TRANSFERENCIA)</small></td>
+                                        <td class="fw-bolder ventasBanco"></td>
+                                    </tr>
+                                </table>
+                            </div>
+                        </div>
+                    </div>
+                </section>
+            </div>
+        </div>
+    </div>
+
+    <?php include 'footer.phtml';?>
+
+    <script>
+        var apiUrl = '<?= URL_ROOT ?>/',
+        date = $('#date').val();
+
+        $('.totalVentas').html('$ <?= $total ?>')
+        $('.ventasEfectivo').html('$ <?= $efectivo ?>')
+        $('.ventasBanco').html('$ <?= $banco ?>')
+
+        $('#btnBuscar').on('click', function(){
+            console.log('clic')
+            date = $('#date').val()
+            $.get(apiUrl+'venta_pago/getPagosByDate/'+date, function(resp){
+                if(resp.response){
+                    $('.totalVentas').html('$ '+resp.total)
+                    $('.ventasEfectivo').html('$ '+resp.efectivo)
+                    $('.ventasBanco').html('$ '+resp.banco)
+                }
+            })
+        });
+
+    </script>
+
+</html>
