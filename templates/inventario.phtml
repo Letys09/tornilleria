@@ -25,7 +25,7 @@
                                         <input type="date" id="desde" class="form-control" value="<?= date('Y-m-01') ?>"/>
                                         <span class="input-group-text">al</span>
                                         <input type="date" id="hasta" class="form-control" value="<?= date('Y-m-d') ?>" max="<?= date('Y-m-d') ?>"/>
-                                        <button type="button" class="btn btn-new-info"><i class="fas fa-search"></i> Buscar</button>
+                                        <button type="button" class="btn btn-new-info" id="btnSearch"><i class="fas fa-search"></i> Buscar</button>
                                     </div>
                                 </div>
                             </div>
@@ -88,7 +88,7 @@
         $(function(){
             var apiUrl = '<?= URL_ROOT ?>/',
                 desde = $('#desde').val(),
-                hasta = $('#hasta');
+                hasta = $('#hasta').val();
 
             getItems('tbl-inventarios', desde, hasta)
 
@@ -101,6 +101,10 @@
             $('#tbl-inventarios').on('click', '.btnPrint', function(){
                 id = $.md5(($(this).data('id')).toString())
                 window.open('<?= URL_ROOT ?>/prod_inventario/exportar/'+id, '_blank');              
+            })
+
+            $('#btnSearch').on('click', function(){
+                getItems('tbl-inventarios', $('#desde').val(), $('#hasta').val())
             })
 
             document.addEventListener ("keydown", function (e) {
