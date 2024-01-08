@@ -22,6 +22,13 @@ class ProdDetInvModel {
         return $this->response->SetResponse(true);
     }
 
+	public function getAll(){
+		$this->response->result = $this->db
+			->from($this->table)
+			->fetchAll();
+		return $this->response;
+	}
+
 	public function add($data){
 		$SQL = $this->db
 			->insertInto($this->table, $data)
@@ -53,6 +60,25 @@ class ProdDetInvModel {
 		} catch(\PDOException $ex) {
 			$this->response->errors = $ex;
 			$this->response->SetResponse(false, "catch: Edit model $this->table");
+		}
+		return $this->response;
+	}
+
+	public function ajusteCostoInventario($data, $prod_det_inventario_id) {
+		date_default_timezone_set('America/Mexico_City');
+		try{
+			$this->response->result = $this->db
+				->update($this->table, $data)
+				->where('id', $prod_det_inventario_id)
+				->execute();
+			if($this->response->result!=0) { 
+				$this->response->SetResponse(true, "Registro actualizado"); 
+			}else { 
+				$this->response->SetResponse(false, 'No se editó el registro'); 
+			}
+		} catch(\PDOException $ex) {
+			$this->response->errors = $ex;
+			$this->response->SetResponse(false, "catch: ajusteCostoInventario model $this->table");
 		}
 		return $this->response;
 	}

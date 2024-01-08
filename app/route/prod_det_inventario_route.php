@@ -19,5 +19,22 @@ use App\Lib\Auth,
 
             return $res->withJson($detalles);
         });
+
+        $this->get('ajusteCostoInventario', function($req, $res, $args){
+            $detalles = $this->model->prod_det_inventario->getAll()->result;
+            foreach($detalles as $detalle){
+                $cantidad = $detalle->diferencia;
+                if($cantidad != 0){
+                    $info_prod = $this->model->producto->get($detalle->producto_id)->result;
+                    $costo = $info_prod->costo;
+                    $monto = $cantidad*$costo;
+                    $data = ['monto' => $monto];
+                    $update = $this->model->prod_det_inventario->ajusteCostoInventario($data, $detalle->id);
+                    print_r($update);
+                    print_r($cantidad.'::'.$costo.'::'.$monto);
+                    print_r('<hr>');
+                }
+            }
+        });
     });
 ?>
