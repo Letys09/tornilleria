@@ -543,17 +543,59 @@
             btn = $(this)
             btn.attr('disabled', true).prop('disabled', true)
             total = parseFloat($('#venta-total').val())
-            if(total < 0){
-                toastr['error']('El total de la venta debe ser igual o mayor que $0.00')
-                btn.attr('disabled', false).prop('disabled', false)
-            }else if(total == 0){
-                guardar()
-            }else{
-                $('#frm-pago h4').html('agregar pago')
-                $('#pago-monto').val((total).toFixed(2))
-                $('#frm-pago').modal('show')
-                btn.attr('disabled', false).prop('disabled', false)
+            cadenaTotal = total.toString();
+            devolver = cadenaTotal.replace("-", "");
+            data = {
+                'venta_id': '<?= $venta_id?>',
+                'comentarios': $.trim($('#venta-comentarios').val()),
+                'subtotal': parseFloat($('#venta-subtotal').val()),
+                'descuento': parseFloat($('#venta-descuento').val()),
+                'pagado': parseFloat($('#total-pagado').val()),
+                'total': parseFloat($('#venta-total').val()),
             }
+            <?php if($venta->date === date('d/m/Y')) : ?>
+                if(total < 0){
+                    swal({
+                        title: "Devolución de efectivo",
+                        text: "Debes devolver al cliente $" + parseFloat(devolver).toFixed(2) + " pesos",
+                        type: "warning",
+                        showCancelButton: true,
+                        cancelButtonText: "Cancelar",
+                        confirmButtonColor: "#DD6B55",
+                        confirmButtonText: "¡Devolver!",
+                        closeOnConfirm: false 
+                    },function(){
+                        $.post(apiUrl+'venta/devEfectivo', data, function(resp){
+                            if(resp.response){
+                                swal("¡Hecho!",	"Devolución exitosa", "success");
+                                ticket($.md5(data.venta_id.toString()))
+                                window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
+                            }else{
+                                swal("¡Ocurrió un problema!", "No pudimos realizar la devolución", "error")
+                            }
+                        },'json')
+                    });
+                }else if(total == 0){
+                    guardar()
+                }else{
+                    $('#frm-pago h4').html('agregar pago')
+                    $('#pago-monto').val((total).toFixed(2))
+                    $('#frm-pago').modal('show')
+                    btn.attr('disabled', false).prop('disabled', false)
+                }
+            <?php else : ?>
+                if(total < 0){
+                    toastr['error']('El total de la venta debe ser igual o mayor que $0.00')
+                    btn.attr('disabled', false).prop('disabled', false)
+                }else if(total == 0){
+                    guardar()
+                }else{
+                    $('#frm-pago h4').html('agregar pago')
+                    $('#pago-monto').val((total).toFixed(2))
+                    $('#frm-pago').modal('show')
+                    btn.attr('disabled', false).prop('disabled', false)
+                }
+            <?php endif; ?>
         })
 
         $('#btnSave').click(function(e){

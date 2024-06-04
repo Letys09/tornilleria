@@ -338,18 +338,16 @@
 			}else if($args['nombre'] == 'corte_caja'){
 				$params['vista'] = 'Corte de Caja';
 				$params['permisos'] = $arrPermisos;
-				$info = $this->model->venta_pago->getPagosByDate(date('Y-m-d'))->result;
-				if(is_object($info)){
-					$params['total'] = number_format(($info->Efectivo+$info->Tarjeta+$info->Transferencia), 2, ".", ",");
-					$params['efectivo'] = number_format($info->Efectivo, 2, ".", ",");
-					$params['banco'] = number_format(($info->Tarjeta+$info->Transferencia), 2, ".", ",");
-				}else{
-					$params['total'] = '0.00';
-					$params['efectivo'] = '0.00';
-					$params['banco'] = '0.00';
+				$info_ventas = $this->model->venta_pago->getPagosByDate(date('Y-m-d'))->result;
+				$total = 0; $efectivo = 0; $banco = 0;
+				foreach($info_ventas as $info_v){
+					$total += $info_v->monto;
+					if($info_v->forma_pago == 1) $efectivo += $info_v->monto;
+					else if($info_v->forma_pago == 3 || $info_v->forma_pago == 4) $banco += $info_v->monto;
 				}
+				
+				$params['total'] = number_format($total, 2, ".", ","); $params['efectivo'] = number_format($efectivo, 2, ".", ","); $params['banco'] = number_format($banco, 2, ".", ",");
 				$template = 'corte_caja';
-				// print_r($params);exit();
 			}
 			return $this->renderer->render($response, 'rpt_'.$template.'.phtml', $params);
 		});

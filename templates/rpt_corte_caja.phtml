@@ -62,15 +62,14 @@
         $('.ventasBanco').html('$ <?= $banco ?>')
 
         $('#btnBuscar').on('click', function(){
-            console.log('clic')
+            $.blockUI()
             date = $('#date').val()
             $.get(apiUrl+'venta_pago/getPagosByDate/'+date, function(resp){
-                if(resp.response){
-                    $('.totalVentas').html('$ '+resp.total)
-                    $('.ventasEfectivo').html('$ '+resp.efectivo)
-                    $('.ventasBanco').html('$ '+resp.banco)
-                }
-            })
+                $('.totalVentas').html('$ '+resp.total);
+                $('.ventasEfectivo').html('$ '+resp.efectivo);
+                $('.ventasBanco').html('$ '+resp.banco);
+                $.unblockUI();
+            });
         });
 
     </script>

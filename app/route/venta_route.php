@@ -387,19 +387,21 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                     }
                 } 
                 if($pago != ''){
-                    $dataPago = [
-                        'venta_id' => $args['id'],
-                        'usuario_id' => $_SESSION['usuario_id'],
-                        'fecha' => $fecha, 
-                        'monto' => $pago['monto'],
-                        'forma_pago' => $pago['forma_pago']
-                    ];
-                    $addPago = $this->model->venta_pago->add($dataPago);
-                    if(!$addPago->response){
-                        $addPago->state = $this->model->transaction->regresaTransaccion();
-                        return $res->withJson($addPago);
-                    }else{
-                        $seg_log = $this->model->seg_log->add('Agrega pago', 'venta_pago', $addPago->result, 1);
+                    if($pago['monto'] > 0){
+                        $dataPago = [
+                            'venta_id' => $args['id'],
+                            'usuario_id' => $_SESSION['usuario_id'],
+                            'fecha' => $fecha, 
+                            'monto' => $pago['monto'],
+                            'forma_pago' => $pago['forma_pago']
+                        ];
+                        $addPago = $this->model->venta_pago->add($dataPago);
+                        if(!$addPago->response){
+                            $addPago->state = $this->model->transaction->regresaTransaccion();
+                            return $res->withJson($addPago);
+                        }else{
+                            $seg_log = $this->model->seg_log->add('Agrega pago', 'venta_pago', $addPago->result, 1);
+                        }
                     }
                 }
                 $this->model->seg_log->add('Edita venta', 'venta', $args['id'], 1);
@@ -518,6 +520,46 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                 $del_venta->state = $this->model->transaction->regresaTransaccion();
                 return $res->withJson($del_venta);
             }
+        });
+
+        $this->post('devEfectivo', function($req, $res, $args){
+            // Se van a cancelar todos los pagos en efectivo y se agregará uno solo con el monto real pagado
+            $this->model->transaction->iniciaTransaccion();
+            date_default_timezone_set('America/Mexico_City');
+            $parsedBody = $req->getParsedBody();
+            $pagos = $this->model->venta_pago->getByVenta($parsedBody['venta_id'])->result;
+            $pago_nuevo = floatval($parsedBody['pagado'] + $parsedBody['total']);
+            foreach($pagos as $pago){
+                if($pago->forma_pago == 1){
+                    $del_pago = $this->model->venta_pago->del($pago->id);
+                }
+            }
+            $data = [
+                'venta_id' => $parsedBody['venta_id'],
+                'usuario_id' => $_SESSION['usuario_id'],
+                'fecha' => date('Y-m-d H:i:s'),
+                'monto' => $pago_nuevo,
+                'monto_recibido' => $pago_nuevo,
+                'cambio' => '0.00',
+                'forma_pago' => 1,
+            ];
+            $add_pago = $this->model->venta_pago->add($data);
+            if($add_pago->response){
+                $venta = [
+                    'subtotal' => $parsedBody['subtotal'],
+                    'total' => $parsedBody['subtotal'],
+                    'comentarios' => $parsedBody['comentarios'],
+                    'fecha_actualiza' => date('Y-m-d H:i:s'),
+                    'en_uso' => 0,
+                ];
+                $edit_venta = $this->model->venta->edit($venta, $parsedBody['venta_id']);
+                $this->model->seg_log->add('Devolución de efectivo', 'venta_pago', $add_pago->result, 0);
+                $add_pago->state = $this->model->transaction->confirmaTransaccion();
+            }else{
+                $add_pago->state = $this->model->transaction->regresaTransaccion();
+            }
+
+            return $res->withJson($add_pago);
         });
 
         $this->post('finalizar/{id}', function($req, $res, $args){

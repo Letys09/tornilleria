@@ -37,15 +37,15 @@ use App\Lib\Auth,
         });
 
         $this->get('getPagosByDate/{date}', function($req, $res, $args){
-            $info_ventas = $this->model->venta_pago->getPagosByDate(date('Y-m-d'))->result;
-            $info = [];
-            if(is_object($info_ventas)){
-                $info['total'] = number_format(($info_ventas->Efectivo+$info_ventas->Tarjeta+$info_ventas->Transferencia), 2, ".", ",");
-                $info['efectivo'] = number_format($info_ventas->Efectivo, 2, ".", ",");
-                $info['banco'] = number_format(($info_ventas->Tarjeta+$info_ventas->Transferencia), 2, ".", ",");
-            }else{
-                $info['total'] = '0.00'; $info['efectivo'] = '0.00'; $info['banco'] = '0.00';
+            $info_ventas = $this->model->venta_pago->getPagosByDate($args['date'])->result;
+            $info = []; $total = 0; $efectivo = 0; $banco = 0;
+            foreach($info_ventas as $info_v){
+                $total += $info_v->monto;
+                if($info_v->forma_pago == 1) $efectivo += $info_v->monto;
+                else if($info_v->forma_pago == 3 || $info_v->forma_pago == 4) $banco += $info_v->monto;
             }
+            
+            $info['total'] = number_format($total, 2, ".", ","); $info['efectivo'] = number_format($efectivo, 2, ".", ","); $info['banco'] = number_format($banco, 2, ".", ",");
             
             return $res->withJson($info);
         });
