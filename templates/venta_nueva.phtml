@@ -232,8 +232,16 @@
                                 <div class="modal-body flex-grow-1 form-horizontal">
                                     <div class="mb-1 form-group row">
                                         <div class="w-100 mb-1">
-                                            <label class="form-label fw-bolder fs-5" for="pago-monto">Monto</label>
-                                            <input type="text" class="form-control deshabilitado" id="pago-monto" readonly>
+                                            <label class="form-label fw-bolder fs-5" for="pago-total">Total</label>
+                                            <input type="text" class="form-control deshabilitado" id="pago-total" readonly>
+                                        </div>
+                                        <div class="w-100 mb-1 infoPago">
+                                            <label class="form-label fw-bolder fs-5" for="pago-recibido">Pago</label>
+                                            <input type="text" class="form-control" id="pago-recibido" placeholder="0.00">
+                                        </div>
+                                        <div class="w-100 mb-1 infoPago">
+                                            <label class="form-label fw-bolder fs-5" for="pago-cambio">Cambio</label>
+                                            <input type="text" class="form-control deshabilitado" id="pago-cambio" placeholder="0.00" readonly>
                                         </div>
                                         <div class="w-100">
                                             <label class="form-label fw-bolder fs-5" for="pago-forma_pago">Método de Pago</label>
@@ -271,6 +279,7 @@
         var apiUrl = '<?= URL_ROOT ?>/',
             aplicar = 0,
             desc_cli = 0,
+            continuar = true,
             tipo = 1;
 
         $('.title h2').html('Segunda Venta')
@@ -520,15 +529,41 @@
             e.preventDefault()
             btn = $(this)
             btn.attr('disabled', true).prop('disabled', true)
-            if($('#clientes').val() == 1 || tipo == 1){
+            if($('#tbl-detalles tbody tr').hasClass('nodata')){
+                continuar = false
+                toastr['warning']('¡Verifique la información!', 'Debe agregar al menos un producto a la venta')
+                btn.attr('disabled', false).prop('disabled', false)
+                $.unblockUI()
+            }else if($('#clientes').val() == 1 || tipo == 1){
                 total = parseFloat($('#venta-total').val())
                 $('#frm-pago h4').html('agregar pago')
-                $('#pago-monto').val((total).toFixed(2))
+                $('#pago-total').val((total).toFixed(2))
                 $('#frm-pago').modal('show')
                 btn.attr('disabled', false).prop('disabled', false)
             }else{
                 guardar()
             }
+        })
+
+        $('#pago-recibido').on('change', function(){
+            total = parseFloat($('#pago-total').val())
+            recibido = parseFloat($(this).val())
+            if(recibido == ''){
+                error('pago-recibido', 'Ingrese la cantidad con la que está pagando el cliente')
+            }else if(recibido == 0){
+                error('pago-recibido', 'La cantidad con la que paga el cliente debe ser mayor a 0')
+            }else if(recibido < total){
+                error('pago-recibido', 'La cantidad con la que paga el cliente debe ser mayor o igual al total de la venta')
+            }else{
+                cambio = parseFloat(recibido-total).toFixed(2)
+                $('#pago-cambio').val(cambio)
+            }
+        })
+
+        $('#pago-forma_pago').on('change', function(){
+            val = $(this).val()
+            if(val == 1) $('.infoPago').removeClass('hidden')
+            else $('.infoPago').show().addClass('hidden')
         })
 
         $('#btnSave').click(function(e){
@@ -656,29 +691,95 @@
                 }
             })
             if($('#clientes').val() == 1 || tipo == 1){
-                data.pago = {
-                    'monto': data.total,
-                    'forma_pago': $('#pago-forma_pago').val()
+                continuar = false
+                if($('.infoPago').is(':visible')){
+                    recibido = $('#pago-recibido').val()
+                    if(recibido == ''){
+                        error('pago-recibido', 'Ingrese la cantidad con la que está pagando el cliente')
+                        $('#btnSave').attr('disabled', false).prop('disabled', false)
+                    }else if(recibido == 0){
+                        error('pago-recibido', 'La cantidad con la que paga el cliente debe ser mayor a 0')
+                        $('#btnSave').attr('disabled', false).prop('disabled', false)
+                    }else if(parseFloat(recibido) < total){
+                        error('pago-recibido', 'La cantidad con la que paga el cliente debe ser mayor o igual al total de la venta')
+                        $('#btnSave').attr('disabled', false).prop('disabled', false)
+                    }else{
+                        cambio = parseFloat(recibido-total).toFixed(2)
+                        $('#pago-cambio').val(cambio)
+                        data.pago = {
+                            'monto': data.total,
+                            'monto_recibido': recibido,
+                            'cambio': cambio,
+                            'forma_pago': $('#pago-forma_pago').val()
+                        }
+                        continuar = true
+                    }
+                }else{
+                    data.pago = {
+                        'monto': data.total,
+                        'monto_recibido': 0,
+                        'cambio': 0,
+                        'forma_pago': $('#pago-forma_pago').val()
+                    }
+                    continuar = true
                 }
             }
-            if(data.detalles.length == 0){
-                toastr['warning']('¡Verifique la información!', 'Debe agregar al menos un producto a la venta')
-                btn.attr('disabled', false).prop('disabled', false)
-                $.unblockUI()
-            }else{
-                num_docs = data.detalles.length
-                recargar = true
-                $.post(apiUrl+'venta/add/', data, function(resp){
-                    if(resp.response){
-                        toastr['success']('¡Venta realizada!', 'Venta realizada con éxito')
-                        window.open('<?= URL_ROOT ?>/ticket/'+$.md5(resp.result.toString()), '_blank')
-                        window.location.href = '<?= URL_ROOT ?>/segunda/venta'
-                    }else{
-                        toastr['error']('¡Error!', resp.message)
-                    }
+
+            if(continuar){
+                if(data.detalles.length == 0){
+                    toastr['warning']('¡Verifique la información!', 'Debe agregar al menos un producto a la venta')
                     btn.attr('disabled', false).prop('disabled', false)
                     $.unblockUI()
-                },'json')
+                }else{
+                    num_docs = data.detalles.length
+                    recargar = true
+                    $.post(apiUrl+'venta/add/', data, function(resp){
+                        if(resp.response){
+                            toastr['success']('¡Venta realizada!', 'Venta realizada con éxito')
+                            ticket($.md5(resp.result.toString()))
+                        }else{
+                            toastr['error']('¡Error!', resp.message)
+                        }
+                        btn.attr('disabled', false).prop('disabled', false)
+                        $.unblockUI()
+                    },'json')
+                }
+            }
+        }
+
+        function ticket(id){
+            var mywindow = window.open('<?= URL_ROOT ?>/ticket/'+id);
+            var is_chrome = Boolean(mywindow.chrome);
+            var mywindow2 = window.open('<?= URL_ROOT ?>/ticket/'+id);
+            var is_chrome2 = Boolean(mywindow2.chrome);
+    
+            if (is_chrome) {
+                setTimeout(function() {
+                    mywindow.document.close();
+                    mywindow.focus();
+                    mywindow.print();
+                    mywindow.close();
+                }, 250);
+            } else {
+                mywindow.document.close();
+                mywindow.focus();
+                mywindow.print();
+                mywindow.close();
+            }
+            if (is_chrome2) {
+                setTimeout(function() {
+                    mywindow2.document.close();
+                    mywindow2.focus();
+                    mywindow2.print();
+                    mywindow2.close();
+                    window.location.href = '<?= URL_ROOT ?>/segunda/venta'
+                }, 250);
+            } else {
+                mywindow2.document.close();
+                mywindow2.focus();
+                mywindow2.print();
+                mywindow2.close();
+                window.location.href = '<?= URL_ROOT ?>/segunda/venta'
             }
         }
 
