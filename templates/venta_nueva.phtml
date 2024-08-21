@@ -60,7 +60,7 @@
                                         </div>
                                     </div>
                                     <div class="w-100 d-flex">
-                                        <table id="tbl-prods" class="table table-hover table-striped m-0 w-100 table-sm">
+                                        <table id="tbl-prods" class="table m-0 w-100 table-sm">
                                             <thead>
                                                 <tr class="text-center">
                                                     <th>venta</th>
@@ -280,11 +280,53 @@
             aplicar = 0,
             desc_cli = 0,
             continuar = true,
-            tipo = 1;
+            tipo = 1,
+            selectedRowIndex = -1,
+            tabla_prods;
 
-        $('.title h2').html('Segunda Venta')
+        $('.title h2').html('Segunda Venta');
         getClientes()
-        getItems('tbl-prods')
+        getItems('tbl-prods');
+
+        document.addEventListener ("keydown", function (e) {
+            if(e.which === 27) {
+                $('#frm-pago').modal('hide');
+            }
+            
+            if(e.which === 13){
+                addSelected(selectedRowIndex);
+            }
+
+            var rows = getRows();
+            var rowCount = rows.length;
+            if (e.key === "ArrowDown") {
+                e.preventDefault();
+                if (selectedRowIndex < rowCount - 1) {
+                    selectRow(selectedRowIndex + 1);
+                } else if (selectedRowIndex != -1 && rowCount > 0) {
+                    selectRow(0);
+                }
+            } else if (e.key === "ArrowUp") {
+                e.preventDefault();
+                if (selectedRowIndex > 0) {
+                    selectRow(selectedRowIndex - 1);
+                } else if (selectedRowIndex != -1 && rowCount > 0) {
+                    selectRow(rowCount - 1);
+                }
+            }
+
+            if (e.key === "ArrowRight") {
+                e.preventDefault();
+                tabla_prods.page('next').draw('page');
+                selectedRowIndex = 0;
+                selectRow(selectedRowIndex);
+            } else if (e.key === "ArrowLeft") {
+                e.preventDefault();
+                tabla_prods.page('previous').draw('page');
+                selectedRowIndex = 0;
+                selectRow(selectedRowIndex);
+            }
+        });
 
         $('#btnCancel').click(function(e){
             e.preventDefault()
@@ -372,21 +414,25 @@
         })
 
         $('#tbl-prods').on('click', '.btnAdd', function(e){
-            e.preventDefault()
-            $.blockUI()
-            agregar = true
+            e.preventDefault();
+            $.blockUI();
+            delSeleccion();
+            agregar = true;
             prod_id = $(this).data('id')
             es_kilo = $(this).data('kilo')
-            tr = $(this).closest('tr')
-            clave = $(tr).find('td:eq(1)').text()
-            desc = $(tr).find('td:eq(2)').text()
+            tr = $(this).closest('tr');
+            $(tr).addClass('selected');
+            selectedRowIndex = $(tr).index();
+            clave = $(tr).find('td:eq(1)').text();
+            desc = $(tr).find('td:eq(2)').text();
             concepto = '('+clave+') '+desc;
             if($('#tbl-detalles tbody tr').length != 0) {
                 $('.nodata').remove()
                 $.each($('#tbl-detalles tbody tr'), function(index, tr){
                     if($(tr).data('producto_id') == prod_id){
                         toastr['info']('El producto ya está agregado en la venta, modifique la cantidad')
-                        agregar = false
+                        agregar = false;
+                        $(tr).find('td:eq(0) input').focus();
                         $.unblockUI()
                     }
                 })
@@ -586,13 +632,34 @@
                 mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
                 $('#precio-distribuidor').val(parseInt(mayoreo)+1)
             },'json')
-        })
+        });
 
-        document.addEventListener ("keydown", function (e) {
-            if(e.which === 27) {
-                $('#frm-pago').modal('hide');
+        function getRows() {
+            return $('#tbl-prods tbody tr:visible');
+        }
+
+        function selectRow(index) {
+            var rows = getRows();
+            delSeleccion();
+            $(rows[index]).addClass('selected');
+            selectedRowIndex = index;
+        }
+
+        function addSelected(index) {
+            var rows = getRows();
+            let tr = $(rows[index]);
+            let btn = tr.find('td:eq(4) .btn');
+            btn.trigger('click');
+        }
+
+        function delSeleccion(){
+            var rows = getRows();
+            if (selectedRowIndex !== -1) {
+                $.each($('#tbl-prods tbody tr'), function(i, e){
+                    $(e).removeClass('selected');
+                });
             }
-        })
+        }
 
         function getClientes(){
             $.blockUI()
@@ -801,7 +868,7 @@
 
         function createTable(tbl){
             if($('#'+tbl).length){
-                $('#'+tbl).DataTable({
+                tabla_prods = $('#'+tbl).DataTable({
                     ajax:{
                         url: apiUrl+'producto/getAllProdsVenta',
                         type: 'GET',
@@ -864,6 +931,7 @@
                         $('#tbl-prods_filter label:eq(0)').addClass('hidden');
                         $('#tbl-prods_length label:eq(0)').addClass('hidden');
                         $('.busqueda').removeClass('hidden');
+                        $('#tbl-prods tbody tr').first().addClass('selected')
                     }
                 });
 
@@ -875,7 +943,6 @@
                     let valor = this.value;
                     intervaloBusqueda = setInterval(function() {
                         oTable = $('#tbl-prods').DataTable();
-                        // Typing finished, now you can Do whatever after 2 sec
                         oTable.search( valor ).draw();
 
                         clearInterval(intervaloBusqueda)

@@ -561,6 +561,10 @@ div.card-header.link{
 	grid-row: 1;
 }
 
+.selected {
+    background-color: #f1f94e;
+}
+
 @media (max-width: 1399.98px) { 
 	#tbl-rangos_precios > :not(caption) > * > * {
 		padding: .72rem 0.2rem;
