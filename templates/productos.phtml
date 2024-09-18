@@ -556,7 +556,8 @@
         $(function(){
             var apiUrl = '<?= URL_ROOT ?>/',
                 cat = 0,
-                area = 0;
+                area = 0,
+                subcat = 0;
 
             getItems('tbl-producto')
 
@@ -575,6 +576,7 @@
                         $.each(data, function(index, elem){
                             $('#prod-prod_categoria_id').append('<option value="'+elem.id+'">'+elem.nombre+'</option>')
                         })
+                        $('#prod-prod_categoria_id').val(subcat);
                         $.unblockUI()
                     }, 'json')
                 }else{
@@ -799,6 +801,7 @@
                 $('#btnAdd').click(function(){
                     $.blockUI()
                     clear()
+                    subcat = 0;
                     $.post(apiUrl+'producto/addCorto/', function(resp){
                         $('#prod-clave').val(resp.clave)
                         $('#prod_id').val(resp.clave)
@@ -835,8 +838,8 @@
                             $('#prod-clave_kilo').val(data.kilo.clave).attr('disabled', false).prop('disabled', false).removeClass('deshabilitado')
                         }
                         unidades(data.prod_unidad_medida_id);
-                        $('#categoria').val(data.categoria).trigger('change')
-                        $('#prod-prod_categoria_id').val(data.prod_categoria_id)
+                        $('#categoria').val(data.categoria).trigger('change');
+                        subcat = data.prod_categoria_id;
                         $('#frm-producto').modal('show')
                         $.unblockUI()
                     },'json')
