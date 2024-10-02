@@ -517,7 +517,7 @@
                 if(es_kilo == 0){
                     $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(respStock){
                         if(respStock){
-                            if(respStock.final > 1){
+                            if(respStock.final >= 1){
                                 stockDisp = parseFloat(respStock.final)
                                 let stock = (stockDisp.toFixed(1)).toString()
                                 $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
