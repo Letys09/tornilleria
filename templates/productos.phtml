@@ -819,31 +819,40 @@
             <?php endif; ?>
 
             <?php if(in_array(MOD_EDIT, $permisos)) : ?>
-                $('#tbl-producto').on('click', '.btnEdit', function(){
-                    $.blockUI()
-                    $('#kilo').prop('checked', false)
-                    categorias('categoria'); areas('prod-prod_area_id'); clear(); 
-                    $('#frm-producto h4').html('editar producto')
-                    id = $(this).data('id')
-                    $('#prod_id').val(id)
-                    $.get(apiUrl+'producto/get/'+id, function(data){
-                        $.each(data, function(index, elem){
-                            $('#prod-'+index).val(elem)
-                        })
-                        $('#codigo_barras').val('*'+data.clave+'*')
+                $('#tbl-producto').on('click', '.btnEdit', function() {
+                    $.blockUI();
+                    $('#kilo').prop('checked', false);
+                    clear();
+                    $('#frm-producto h4').html('editar producto');
+                    id = $(this).data('id');
+                    $('#prod_id').val(id);
 
-                        if(data.venta_kilo == 1){
-                            $('#kilo').prop('checked', true)
-                            $('#prod-cant_kilo').val(data.kilo.cantidad).attr('disabled', false).prop('disabled', false).removeClass('deshabilitado')
-                            $('#prod-clave_kilo').val(data.kilo.clave).attr('disabled', false).prop('disabled', false).removeClass('deshabilitado')
-                        }
-                        unidades(data.prod_unidad_medida_id);
-                        $('#categoria').val(data.categoria).trigger('change');
-                        subcat = data.prod_categoria_id;
-                        $('#frm-producto').modal('show')
-                        $.unblockUI()
-                    },'json')
-                })
+                    Promise.all([categorias('categoria'), areas('prod-prod_area_id')]).then(function() {
+                        $.get(apiUrl+'producto/get/'+id, function(data) {
+                            $.each(data, function(index, elem) {
+                                $('#prod-' + index).val(elem);
+                            });
+                            $('#codigo_barras').val('*' + data.clave + '*');
+
+                            if (data.venta_kilo == 1) {
+                                $('#kilo').prop('checked', true);
+                                $('#prod-cant_kilo').val(data.kilo.cantidad).attr('disabled', false).removeClass('deshabilitado');
+                                $('#prod-clave_kilo').val(data.kilo.clave).attr('disabled', false).removeClass('deshabilitado');
+                            }
+
+                            unidades(data.prod_unidad_medida_id);
+                            $('#categoria').val(data.categoria).trigger('change');
+                            subcat = data.prod_categoria_id;
+
+                            $('#frm-producto').modal('show');
+                            $.unblockUI();
+                        }, 'json');
+                    }).catch(function(error) {
+                        console.error('Error al cargar categorías o áreas:', error);
+                        toastr["error"]("¡Ocurrió un problema!", "No pudimos obtener la información del producto.")
+                        $.unblockUI();
+                    });
+                });
             <?php endif; ?>
 
             $('#prod-clave').focusout(function(){
@@ -1193,46 +1202,62 @@
                 }
             })
 
-            function categorias(elem){
-                $.unblockUI()
-                $('#'+elem).empty();
-                if(elem == 'precios-cat'){
-                    $('#'+elem).append('<option value="" selected disabled>Seleccione una opción</option>')
-                    $('#'+elem).append('<option value="0">Todas</option>')
-                    $.unblockUI()
-                }else{
-                    $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
-                    $.unblockUI()
-                }
-                $.get(apiUrl+'prod_clasificacion/getCategorias', function(data){
-                    $.each(data, function(index, item){
-                        $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
-                    })
-                    if(elem == 'precios-cat') $('#'+elem).trigger('change')
-                    $.unblockUI()
-                }, 'json')
+            function categorias(elem) {
+                return new Promise(function(resolve, reject) {
+                    $.unblockUI();
+                    $('#'+elem).empty();
+                    if (elem == 'precios-cat') {
+                        $('#'+elem).append('<option value="" selected disabled>Seleccione una opción</option>');
+                        $('#'+elem).append('<option value="0">Todas</option>');
+                        $.unblockUI();
+                    } else {
+                        $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>');
+                        $.unblockUI();
+                    }
+
+                    $.get(apiUrl + 'prod_clasificacion/getCategorias', function(data) {
+                        $.each(data, function(index, item) {
+                            $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>');
+                        });
+
+                        if (elem == 'precios-cat') $('#'+elem).trigger('change');
+                        resolve(); 
+                        $.unblockUI();
+                    }, 'json').fail(function(error) {
+                        reject(error);
+                        $.unblockUI();
+                    });
+                });
             }
 
-            function areas(elem){
-                $.blockUI()
-                $('#'+elem).empty();
-                if(elem == 'precios-area'){
-                    $('#'+elem).append('<option value="" disabled>Seleccione una opción</option>')
-                    $('#'+elem).append('<option value="0">Todas</option>')
-                    $.unblockUI()
-                }else{
-                    $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>')
-                    $.unblockUI()
-                }
-                $.get(apiUrl+'prod_clasificacion/getAreas', function(resp) {
-                    if(resp.length > 0) {
-                        $.each(resp, function(index, item) {
-                            $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>')
-                        });
-                        if(elem == 'precios-area') $('#'+elem).trigger('change')
-                        $.unblockUI()
+            function areas(elem) {
+                return new Promise(function(resolve, reject) {
+                    $.blockUI();
+                    $('#'+elem).empty();
+                    if (elem == 'precios-area') {
+                        $('#'+elem).append('<option value="" disabled>Seleccione una opción</option>');
+                        $('#'+elem).append('<option value="0">Todas</option>');
+                        $.unblockUI();
+                    } else {
+                        $('#'+elem).append('<option value="0" selected disabled>Seleccione una opción</option>');
+                        $.unblockUI();
                     }
-                }, 'json');
+
+                    $.get(apiUrl + 'prod_clasificacion/getAreas', function(resp) {
+                        if (resp.length > 0) {
+                            $.each(resp, function(index, item) {
+                                $('#'+elem).append('<option value="'+item.id+'">'+item.nombre+'</option>');
+                            });
+
+                            if (elem == 'precios-area') $('#'+elem).trigger('change');
+                            resolve(); 
+                            $.unblockUI();
+                        }
+                    }, 'json').fail(function(error) {
+                        reject(error);
+                        $.unblockUI();
+                    });
+                });
             }
 
             function clear(){
