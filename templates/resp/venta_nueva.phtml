@@ -167,26 +167,6 @@
                                 </table>
                             </div>
                         </div>
-                        <div class="w-100 card ventaPagos hidden">
-                            <div class="card-header-venta fw-bolder fs-5 text-uppercase" style="background-color: #04aa6d; color:white;" id="header-pagos">pagos realizados</div>
-                            <div class="card-body">
-                                <table id="tbl-pagos" class="table table-hover table-striped m-0 w-100 mw-100 table-sm">
-                                    <thead>
-                                        <tr>
-                                            <th class="text-start" width="10%">Fecha</th>
-                                            <th class="text-start" width="45%">Usuario</th>
-                                            <th width="15%">Monto</th>
-                                            <th width="15%">Forma de Pago</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                    <tr class="nodataPagos">
-                                        <td colspan="9" class="text-center p-10 nodataPagos">No se han agregado pagos a la venta</td>
-                                    </tr>
-                                    </tbody>
-                                </table>
-                            </div>
-                        </div>
 
                         <div class="d-flex separar">
                             <div class="col-8 card">
@@ -250,7 +230,7 @@
                                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                                 </div>
                                 <div class="modal-body flex-grow-1 form-horizontal">
-                                    <div class="form-group row">
+                                    <div class="mb-1 form-group row">
                                         <div class="w-100 mb-1">
                                             <label class="form-label fw-bolder fs-5" for="pago-total">Total</label>
                                             <input type="text" class="form-control deshabilitado" id="pago-total" readonly>
@@ -292,60 +272,35 @@
 <?php
   include 'footer.phtml';
 ?>
-<script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/10.5.0/firebase-firestore-compat.js"></script>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/moment.js/2.18.1/moment.min.js"></script>
 
 <script>
     $(function(){
-        var collection =  '<?php echo !$nueva ? 'venta-'.$venta_id : $_SESSION['sucursal_id'].'-'.$_SESSION['usuario_id'].'-'.date("YmdHis") ?>',
-            apiUrl = '<?= URL_ROOT ?>/',
+        var apiUrl = '<?= URL_ROOT ?>/',
             aplicar = 0,
             desc_cli = 0,
             continuar = true,
             tipo = 1,
-            eliminarDet = true,
-            cargarV = true,
-            firebaseConfig = {
-                apiKey: "AIzaSyDnf5WHyP3ifke133Gff5pngMDJXJMZu3E",
-                authDomain: "tornilleria-e631b.firebaseapp.com",
-                databaseURL: "https://tornilleria-e631b-default-rtdb.firebaseio.com",
-                projectId: "tornilleria-e631b",
-                storageBucket: "tornilleria-e631b.appspot.com",
-                messagingSenderId: "272353825182",
-                appId: "1:272353825182:web:273e1b72340fe691d7c68f",
-                measurementId: "G-NLJJ8F8TJ5"
-            };
+            selectedRowIndex = -1,
+            tabla_prods;
 
-        let editCant = false,
-            contador = 0;
-
-        firebase.initializeApp(firebaseConfig);
-        const db = firebase.firestore();
-        var selectedRowIndex = -1;
-        var tabla_prods;
+        $('.title h2').html('Segunda Venta');
+        getClientes()
+        getItems('tbl-prods');
 
         document.addEventListener ("keydown", function (e) {
             if(e.which === 27) {
                 $('#frm-pago').modal('hide');
             }
-
+            
             if(e.which === 13){
-                if($('#frm-pago').is(':visible')){
-                    $('#pago-forma_pago').focus();
-                }else if(editCant == false){
-                    addSelected(selectedRowIndex);
-                }else{
-                    contador += 1;
-                    selectInput(contador);
-                }
+                addSelected(selectedRowIndex);
             }
 
             var rows = getRows();
             var rowCount = rows.length;
             if (e.key === "ArrowDown") {
                 e.preventDefault();
-                editCant = false;
                 if (selectedRowIndex < rowCount - 1) {
                     selectRow(selectedRowIndex + 1);
                 } else if (selectedRowIndex != -1 && rowCount > 0) {
@@ -353,7 +308,6 @@
                 }
             } else if (e.key === "ArrowUp") {
                 e.preventDefault();
-                editCant = false;
                 if (selectedRowIndex > 0) {
                     selectRow(selectedRowIndex - 1);
                 } else if (selectedRowIndex != -1 && rowCount > 0) {
@@ -363,95 +317,36 @@
 
             if (e.key === "ArrowRight") {
                 e.preventDefault();
-                editCant = false;
                 tabla_prods.page('next').draw('page');
                 selectedRowIndex = 0;
                 selectRow(selectedRowIndex);
             } else if (e.key === "ArrowLeft") {
                 e.preventDefault();
-                editCant = false;
                 tabla_prods.page('previous').draw('page');
                 selectedRowIndex = 0;
                 selectRow(selectedRowIndex);
             }
-
-            if(e.which === 09){
-                e.preventDefault();
-
-                if($('#frm-pago').is(':visible')){
-                    $('#pago-recibido').focus();
-                }else{
-                    editCant = true;
-                    selectInput(contador);
-                }
-
-            }
-
-            if(e.which === 09 && e.shiftKey){
-                e.preventDefault();
-                editCant = true;
-                contador -= 1;
-                if(contador > 0){
-                    selectInput(contador);
-                }
-            }
-
-            if (event.key === 'F1') {
-                event.preventDefault();
-                $('#btnSave').trigger('click');
-            }
         });
-
-        addEventListener("beforeunload", onbeforeunload);
-        onbeforeunload = (event) => {
-            eliminarDet = false
-        };
-
-        var change_name = db.collection('venta_app').doc('<?= $_SESSION['sucursal_id'].'-'.$_SESSION['usuario_id'] ?>');
-        change_name.set({
-            'venta_id': collection
-        });
-
-        <?php if(!$nueva) : ?>
-            $('.title h2').html('Venta '+'<?= $folio ?>')
-            getClientes()
-            getItems('tbl-prods')
-        <?php else : ?> 
-            eliminarDet = false
-            $('.title h2').html('Venta')
-            getClientes()
-            getItems('tbl-prods')
-        <?php endif; ?>
 
         $('#btnCancel').click(function(e){
             e.preventDefault()
             $.blockUI()
-            <?php if($nueva) : ?> 
-                swal({
-                    title: "SALIR",
-                    text: "Se perderán todos los datos de la venta</br>¿Qué desea hacer?",
-                    type: "warning",
-                    html: true,
-                    showCancelButton: true,
-                    cancelButtonText: "Permanecer",
-                    confirmButtonColor: "#DD6B55",
-                    confirmButtonText: "Salir",
-                    closeOnConfirm: true 
-                }, function(respuesta) {
-                    if(respuesta) {
-                        window.location.href = '<?= URL_ROOT ?>/venta/cliente'
-                    }
-                    $.unblockUI();
-                })
-            <?php else : ?>
-                $.post(apiUrl+'venta/desbloquear/<?= $venta_id ?>', function(resp){
-                    if(resp.response){
-                        window.location.href = '<?= URL_ROOT ?>/ventas'
-                    }else{
-                        toastr['danger']('¡Ocurrió algo extraño!', 'Vuelve a intentarlo más tarde.')
-                    }
-                },'json')
-            <?php endif; ?>
+            swal({
+                title: "SALIR",
+                text: "Se perderán todos los datos de la venta</br>¿Qué desea hacer?",
+                type: "warning",
+                html: true,
+                showCancelButton: true,
+                cancelButtonText: "Permanecer",
+                confirmButtonColor: "#DD6B55",
+                confirmButtonText: "Salir",
+                closeOnConfirm: true 
+            }, function(respuesta) {
+                if(respuesta) {
+                    window.location.href = '<?= URL_ROOT ?>/venta/cliente'
+                }
+                $.unblockUI();
+            })
         })
 
         $('#clientes').on('change', function(){
@@ -464,16 +359,8 @@
                     $('#aplicar').attr('disabled', false).prop('disabled', false)
                     $('.ventaCredito').removeClass('hidden')
                     $('#descuento').val(resp.result.descuento)
-                    <?php if($nueva) : ?> 
-                        tipo = 2;
-                        $("input[type='radio'][name='venta-tipo']").prop('disabled', false).prop('disabled', false);
-                    <?php else : ?> 
-                        tipo = '<?= $venta->tipo ?>'
-                        $("input[type='radio'][name='venta-tipo']").prop('disabled', true).prop('disabled', true);
-                        descAplicado = '<?= $venta->descuento ?>'
-                        descAplicado != '' && descAplicado != 0 ? $('#aplicar').prop('checked', true) : $('#aplicar').prop('checked', false)
-                        $('#aplicar').attr('disabled', true).prop('disabled', true).trigger('change')
-                    <?php endif; ?>
+                    tipo = 2;
+                    $("input[type='radio'][name='venta-tipo']").prop('disabled', false).prop('disabled', false);
                     $("input[type='radio'][name='venta-tipo'][value='"+tipo+"']").prop('checked',true).trigger('change');
                 },'json')
                 $('#btnContinuar').html('Guardar')
@@ -568,7 +455,6 @@
                                     mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
                                     $('#precio-distribuidor').val(parseInt(mayoreo)+1)
                                     data = {
-                                        'detalle_id': '', 
                                         'producto_id': prod_id, 
                                         'cantidad': '1.0', 
                                         'stock': stock, 
@@ -579,18 +465,7 @@
                                         'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
                                         'es_kilo': '0'
                                     }
-                                    <?php if(!$nueva) : ?>
-                                        data['venta_id'] = '<?= $venta_id ?>'
-                                        data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
-                                        $.post(apiUrl+'venta_detalle/add/', data, function(res){
-                                            if(res.response){
-                                                data['detalle_id'] = res.result
-                                                addFirebase(data)
-                                            }
-                                        },'json')
-                                    <?php else : ?>        
-                                        addFirebase(data)
-                                    <?php endif; ?>
+                                    addDetalle(data)
                                     getTotales()
                                 },'json')
                             }else{
@@ -624,18 +499,7 @@
                             if(respStock.response){
                                 data['es_kilo'] = respStock.cant_necesaria.toFixed(1)
                                 data['stock'] = respStock.stock_disp
-                                <?php if(!$nueva) : ?>
-                                    data['venta_id'] = '<?= $venta_id ?>'
-                                    data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
-                                    $.post(apiUrl+'venta_detalle/add/', data, function(res){
-                                        if(res.response){
-                                            data['detalle_id'] = res.result
-                                            addFirebase(data)
-                                        }
-                                    },'json')
-                                <?php else : ?>        
-                                    addFirebase(data)
-                                <?php endif; ?>
+                                addDetalle(data)
                                 getTotales() 
                                 $.unblockUI()
                             }else{
@@ -664,7 +528,6 @@
                 $(elem).val('1.0')
                 $.unblockUI()
             }
-
             if(kilo == 0){
                 $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(resp){
                     if(cantidad <= resp.final){
@@ -674,17 +537,11 @@
                             total = parseFloat(precio*cantidad).toFixed(2)
                             $(tr).find('.precio').html('$ '+precio)
                             $(tr).find('.total').html('$ '+total)
-                            db.collection(collection).doc(clave).update({'cantidad':cant})
-                            getTotales();
-
-                            if(ultimo()) {
-                                $('#btnContinuar').trigger('click');
-                            }
-                        },'json');
-
+                            getTotales()
+                        },'json')
                     }else{
-                        toastr["error"](`Disponible: ${resp.final} pzas.`, "No hay suficiente stock del producto")
-                        elem.focus().select();
+                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                        elem.val(1).trigger('change')
                     }
                     $.unblockUI()
                 },'json')
@@ -697,13 +554,8 @@
                             cant = cantidad.toFixed(1).toString()
                             $(tr).find('.precio').html('$ '+precio)
                             $(tr).find('.total').html('$ '+total)
-                            db.collection(collection).doc(clave).update({'cantidad':cant})
                             getTotales()
-                            
-                            if(ultimo()) {
-                                $('#btnContinuar').trigger('click');
-                            }
-                        },'json');
+                        },'json')
                     }else{
                         toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
                     }
@@ -715,8 +567,7 @@
         $('#tbl-detalles').on('click', '.btnDelDet', function(e){
             e.preventDefault()
             tr = $(this).parents('tr')
-            clave = $(tr).data('clave')
-            db.collection(collection).doc(clave).delete()
+            $(tr).remove()
             getTotales()
         })
 
@@ -810,40 +661,13 @@
             }
         }
 
-        function getDetalles() {
-            return $('#tbl-detalles tbody tr:visible');
-        }
-
-        function selectInput(fila){
-            let rows = getDetalles();
-            if (rows.length > 0) {
-                let tr = $(rows[fila]);
-                let input = tr.find('input');
-                if (input.length > 0) {
-                    input.focus().select();
-                }
-            }
-        }
-
-        function ultimo() {
-            let rows = getDetalles();
-            let ultimaFila = rows[rows.length - 1];
-            return tr.is(ultimaFila);
-        }
-
         function getClientes(){
             $.blockUI()
             $.get(apiUrl+'cliente/getCli', function(resp){
                 $.each(resp, function(index, item){
                     $('#clientes').append('<option value="'+item.id+'">'+item.cliente+'</option>')
                 })
-                <?php if($nueva) : ?>
-                    $('#clientes').val(1)
-                <?php else : ?>
-                    $('#clientes').val(<?= $venta->cliente_id ?>).attr('disabled', true).prop('disabled', true).addClass('deshabilitado')
-                <?php endif; ?>
-                $('#clientes').trigger('change')
-                cargarVenta()
+                $('#clientes').val(1).trigger('change')
                 $.unblockUI()
             },'json')
         }
@@ -854,29 +678,11 @@
             createTable(tbl)
         }
 
-        function cargarVenta(){
-            <?php if(!$nueva) : ?> 
-                $.get(apiUrl+'venta_detalle/getByVenta/<?= $venta_id ?>', function(resp){
-                    $.each(resp.result, function(index, detalle){
-                        addFirebase(detalle)
-                    })
-                },'json')
-                
-                $.get(apiUrl+'venta_pago/getByVenta/<?= $venta_id ?>', function(resp){
-                    $.each(resp.result, function(index, pago){
-                        addPago(pago)
-                    })
-                    $('.ventaPagos').removeClass('hidden')
-                },'json')
-            <?php endif; ?>
-                firebaseChanges()
-        }
-
         function addDetalle(data, tipo=0){
             precio = data.precio == null ? parseFloat(0).toFixed(2) : data.precio  
             container = $('#tbl-detalles tbody')
             $('#tbl-detalles tbody .nodata').remove();
-            tr = $('<tr class="detalle" data-detalle_id="'+data.detalle_id+'" data-producto_id="'+data.producto_id+'" data-clave="'+data.clave+'" data-stock="'+data.stock+'" data-kilo="'+data.es_kilo+'"></tr>')
+            tr = $('<tr class="detalle" data-producto_id="'+data.producto_id+'" data-clave="'+data.clave+'" data-stock="'+data.stock+'" data-kilo="'+data.es_kilo+'"></tr>')
             tr.append('<td class="text-start venta-cantidad" width="10%"><input type="text" class="form-control text-center cant" value="'+data.cantidad+'"></td>')
             tr.append('<td width="45%"><button type="button" class="btn btn-light btnConcepto">'+data.concepto+'</button></td>')
             tr.append('<td class="text-center precio" width="15%">$ '+precio+'</td>')
@@ -887,19 +693,6 @@
             container.append(tr)
             getTotales()
             $.unblockUI()
-        }
-
-        function addFirebase(data){
-            var addProd = db.collection(collection).doc(data.clave);
-            addProd.set({
-                'cantidad': data.cantidad,
-                'cantidadPorKilo': data.es_kilo,
-                'clave': data.clave,
-                'descripcion': data.desc,
-                'id': data.producto_id,
-                'stock': data.stock,
-                'detalle_id': data.detalle_id
-            });
         }
 
         function addPago(data){
@@ -935,10 +728,6 @@
             }else{
                 total = parseFloat(subtotal-pagado)
             }
-            <?php if(!$nueva) : ?>
-                $('.ventaPagado').removeClass('hidden')
-                $('#venta-pagado').val(pagado)
-            <?php endif; ?>
             $('#venta-total').val(total.toFixed(2))
             $.unblockUI()
         }
@@ -946,13 +735,7 @@
         function guardar(){
             subtotal = $('#venta-subtotal').is(':visible') ? $('#venta-subtotal').val() : $('#venta-total').val()
             descuento = $('#venta-descuento').is(':visible') ? $('#venta-descuento').val() : 0
-            <?php if(!$nueva) : ?>
-                pagado = parseFloat($('#venta-pagado').val()).toFixed(2)
-                resta = parseFloat($('#venta-total').val()).toFixed(2)
-                total = (parseFloat(pagado)+parseFloat(resta)).toFixed(2)
-            <?php else : ?>
-                total = $('#venta-total').val()
-            <?php endif; ?>
+            total = $('#venta-total').val()
             data = {
                 cliente_id: $('#clientes').val(),
                 tipo: tipo,
@@ -1010,11 +793,16 @@
             }
 
             if(continuar){
-                <?php if($nueva) : ?>
+                if(data.detalles.length == 0){
+                    toastr['warning']('¡Verifique la información!', 'Debe agregar al menos un producto a la venta')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
+                }else{
+                    num_docs = data.detalles.length
+                    recargar = true
                     $.post(apiUrl+'venta/add/', data, function(resp){
                         if(resp.response){
                             toastr['success']('¡Venta realizada!', 'Venta realizada con éxito')
-                            eliminarDet = false
                             ticket($.md5(resp.result.toString()))
                         }else{
                             toastr['error']('¡Error!', resp.message)
@@ -1022,15 +810,7 @@
                         btn.attr('disabled', false).prop('disabled', false)
                         $.unblockUI()
                     },'json')
-                <?php else : ?>
-                    venta_id = '<?= $venta_id ?>'
-                    $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
-                        toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
-                        eliminarDet = false
-                        ticket($.md5(venta_id.toString()))
-                        window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
-                    })
-                <?php endif; ?>
+                }
             }
         }
 
@@ -1059,14 +839,14 @@
                     mywindow2.focus();
                     mywindow2.print();
                     mywindow2.close();
-                    window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
+                    window.location.href = '<?= URL_ROOT ?>/segunda/venta'
                 }, 250);
             } else {
                 mywindow2.document.close();
                 mywindow2.focus();
                 mywindow2.print();
                 mywindow2.close();
-                window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
+                window.location.href = '<?= URL_ROOT ?>/segunda/venta'
             }
         }
 
@@ -1117,7 +897,7 @@
                             title: 'Acciones',
                             orderable: false,
                             render: function (data, type, full, meta) {
-                                id = full['data_id'];
+                                id = full['data_id']
                                 return (
                                     '<div class="text-center">'+
                                         '<button type="button" class="btn btn-success btn-sm btnAdd" data-id="'+id+'" data-kilo="'+full['es_kilo']+'" data-toggle="tooltip" title="Agregar" style="margin-right:4px;">'+ 
@@ -1169,89 +949,6 @@
                     }, 1000);
                 });
             }
-        }
-
-        function firebaseChanges(){
-            db.collection(collection).onSnapshot((snapshot) => {
-                snapshot.docChanges().forEach((change) => {
-                    let info = change.doc.data()
-                    if(change.type === 'added'){
-                        let kilo = info['cantidadPorKilo'] != 0 ? info['cantidadPorKilo'] : 0
-                        let data_detalle = {
-                            'detalle_id': info['detalle_id'],
-                            'producto_id': info['id'],
-                            'cantidad': info['cantidad'],
-                            'stock': info['stock'],
-                            'clave': info['clave'],
-                            'desc': info['descripcion'],
-                            'concepto': '('+info['clave']+') '+info['descripcion'],
-                            'es_kilo': kilo
-                        }
-
-                        $.get(apiUrl+'producto/getPrecioByCant/'+info['id']+'/'+info['cantidad'], function(resp){
-                            let precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                            data_detalle['precio'] = precio,
-                            data_detalle['total'] = parseFloat(info['cantidad']*precio).toFixed(2),
-                            addDetalle(data_detalle)
-                        })
-                    }else if(change.type === 'modified'){
-                        $.each($('#tbl-detalles tbody tr'), function(index, item){
-                            if($(item).data('producto_id') == info['id']){
-                                if(info['detalle_id'] == ''){
-                                    $(item).find('.cant').val(info['cantidad']).trigger('change')
-                                    getTotales()
-                                    $.unblockUI()
-                                }else{
-                                    $(item).find('.cant').val(info['cantidad'])
-                                    let detalle_id = info['detalle_id']
-                                    $.get(apiUrl+'producto/getPrecioByCant/'+info['id']+'/'+info['cantidad'], function(resp){
-                                        let precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                                        let total = parseFloat(precio*info['cantidad']).toFixed(2)
-                                        $(tr).find('.precio').html('$ '+precio)
-                                        $(tr).find('.total').html('$ '+total)
-                                        getTotales()
-                                        data = {'cantidad': info['cantidad'], 'precio': precio, 'importe': total, 'descuento': 0, 'total': total}
-                                        $.post(apiUrl+'venta_detalle/edit/'+detalle_id, data, function(resp){
-                                            if(!resp.response){
-                                                toastr["error"]("¡Ocurrió un error!", 'Vuelva a intentarlo más tarde')
-                                                $(item).val(1).trigger('change')
-                                                $.unblockUI()
-                                            }
-                                        })
-                                    },'json')
-                                }
-                            }
-                        })
-                    }else{
-                        if($('#tbl-detalles tbody tr').length != 0){
-                            $.each($('#tbl-detalles tbody tr'), function(index, tr){
-                                if($(tr).data('producto_id') == info['id']){
-                                    $(tr).remove()
-                                }
-                                if(eliminarDet){
-                                    let producto_id = ($(tr).data('producto_id')).toString()
-                                    if(info['detalle_id'] != '' && producto_id == info['id'] ){
-                                        detalle_id = info['detalle_id']
-                                        $.post(apiUrl+'venta_detalle/del/'+detalle_id, function(resp){
-                                            if(resp.response){
-                                                toastr['success']('¡Hecho!', 'Producto eliminado de la venta')
-                                                if($('#tbl-detalles tbody tr').length == 0){
-                                                    $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
-                                                }
-                                            }else{
-                                                toastr['error']('¡Error!', 'No pudimos eliminar el producto de la venta')
-                                            }
-                                        },'json')
-                                    }
-                                }
-                            })
-                        }else{
-                            $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
-                        }
-                        getTotales()
-                    }
-                })
-            });
         }
 
     });
