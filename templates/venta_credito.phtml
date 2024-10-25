@@ -406,6 +406,9 @@
                                 data['stock'] = respStock.stock_disp
                                 data['venta_id'] = '<?= $venta_id ?>'
                                 data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
+                                if(respStock.max < 1){
+                                    data['cantidad'] = respStock.max;
+                                }
                                 $.post(apiUrl+'venta_detalle/add/', data, function(res){
                                     if(res.response){
                                         data['detalle_id'] = res.result
@@ -435,7 +438,7 @@
             detalle_id = $(tr).data('detalle_id')
             clave = $(tr).data('clave')
             kilo = $(tr).data('kilo')
-            if(cantidad < 1){
+            if(cantidad < 1  && !kilo){
                 toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
                 $(elem).val(1)
                 $.unblockUI()
@@ -453,7 +456,12 @@
             }else{
                 $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/'+cantidad, function(respStock){
                     if(respStock.response){
-                        let cant = (cantidad.toFixed(1)).toString()
+                        if(cantidad <= parseFloat(respStock.max)){
+                            let cant = (cantidad.toFixed(3)).toString();
+                        }else{
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto");
+                            let cant = (respStock.max).toString();
+                        }
                         db.collection(collection).doc(clave).update({'cantidad':cant})
                     }else{
                         toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto \n Se pueden vender máximo "+respStock.max+" kilos")

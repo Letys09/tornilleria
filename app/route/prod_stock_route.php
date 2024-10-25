@@ -130,24 +130,46 @@ use App\Lib\Auth,
         });
 
         $this->get('getStockByKilo/{id}/{cantidad}', function($req, $res, $args){
-            $prod_id = $args['id']; $cantidad = $args['cantidad'];
+            $prod_id = $args['id'];
+            $cantidad = $args['cantidad'];
             $info_kilo = $this->model->producto->getKiloBy($prod_id, 'producto_id')->result;
-            $cant_necesaria = floatval($cantidad * $info_kilo->cantidad);
+            // Cantidad de piezas que componen un kilo
+            $piezas_por_kilo = $info_kilo->cantidad;
+            // Convertir la cantidad solicitada en piezas
+            $cant_necesaria = floatval($cantidad * $piezas_por_kilo);
+            // Obtener el producto y stock
             $prod_origen = $info_kilo->producto_origen;
             $info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
-            if(is_object($info_stock)) $stock_disp = $info_stock->final;
-            else $stock_disp = 0;
-            $data = ['cant_necesaria' => $cant_necesaria, 'stock_disp' => $stock_disp];
-            if($cant_necesaria <= $stock_disp){
+            // Determinar el stock disponible en piezas
+            if (is_object($info_stock)) {
+                $stock_disp = $info_stock->final;
+            } else {
+                $stock_disp = 0;
+            }
+
+            // Calcular el máximo en gramos que se puede vender con el stock disponible
+            // 1 kilo = 1000 gramos, por lo que necesitamos calcular cuántos gramos
+            // corresponden al stock disponible en piezas
+            $gramos_por_pieza = 1000 / $piezas_por_kilo; // Gramos por cada pieza
+            $gramos_disponibles = number_format((($stock_disp * $gramos_por_pieza)/1000), 3); // Total de gramos disponibles
+        
+            $data = [
+                'cant_necesaria' => $cant_necesaria, 
+                'stock_disp' => $stock_disp,
+                'gramos_disponibles' => $gramos_disponibles // Máximo en gramos que se puede vender
+            ];
+        
+            // Verificar si se puede realizar la venta
+            if ($gramos_disponibles > 0) {
                 $data['response'] = true;
-                $data['max'] = intdiv($stock_disp, $info_kilo->cantidad);
+                $data['max'] = $gramos_disponibles;
                 return $res->withJson($data);
-            }else{
+            } else {
                 $data['response'] = false;
-                $data['max'] = intdiv($stock_disp, $info_kilo->cantidad);
                 return $res->withJson($data);
             }
         });
+        
 
 	});
 

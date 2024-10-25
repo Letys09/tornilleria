@@ -196,7 +196,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                             }
                         }else{
                             $info_kilo = $this->model->producto->getKiloBy($producto_id, 'producto_id')->result;
-                            $cantidad = ($info_kilo->cantidad * $detalle['cantidad']);
+                            $cantidad = round($info_kilo->cantidad * $detalle['cantidad']);
                             $prod_origen = $info_kilo->producto_origen;
                             $info_prod_origen = $this->model->producto->get($prod_origen)->result;
                             $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
@@ -343,7 +343,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                                 }
                             }else{
                                 $info_kilo = $this->model->producto->getKiloBy($producto_id, 'producto_id')->result;
-                                $cantidad = ($info_kilo->cantidad * $detalle['cantidad']);
+                                $cantidad = round($info_kilo->cantidad * $detalle['cantidad']);
                                 $prod_origen = $info_kilo->producto_origen;
                                 $info_prod_origen = $this->model->producto->get($prod_origen)->result;
                                 $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
@@ -446,7 +446,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                         ];
                     }else{
                         $info_kilo = $this->model->producto->getKiloBy($prod_id, 'producto_id')->result;
-                        $cantidad = floatval($info_kilo->cantidad * $detalle->cantidad);
+                        $cantidad = round($info_kilo->cantidad * $detalle->cantidad);
                         $prod_origen = $info_kilo->producto_origen;
                         $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                         $inicial = $stock->final;
@@ -483,34 +483,6 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                     $monto += $pago->monto;
                     $del_pago = $this->model->venta_pago->del($pago->id);
                 }
-                // if($args['tipo'] == 1){
-                //     $saldo_actual = $this->model->cliente_saldo->getByCli($cliente_id)->result;
-                //     if(is_object($saldo_actual)){
-                //         $saldo_a = $saldo_actual->saldo;
-                //     }else{
-                //         $saldo_a = 0;
-                //     }
-                //     $saldo = floatval($saldo_a + $monto);
-                //     $data_saldo = [
-                //         'cliente_id' => $cliente_id,
-                //         'fecha' => $fecha,
-                //         'tipo' => 1,
-                //         'cantidad' => $monto, 
-                //         'saldo' =>  $saldo,
-                //     ]; 
-                //     $add_saldo = $this->model->cliente_saldo->add($data_saldo);
-                //     if($add_saldo){
-                //         $data = [ 'saldo_favor' => $saldo];
-                //         $edit_cli = $this->model->cliente->edit($data, $cliente_id, 'cliente');
-                //         if(!$edit_cli->response){
-                //             $edit_cli->state = $this->model->transaction->regresaTransaccion();
-                //             return $res->withJson($edit_cli);
-                //         }
-                //     }else{
-                //         $add_saldo->state = $this->model->transaction->regresaTransaccion();
-                //         return $res->withJson($add_saldo);
-                //     }
-                // }
 
                 $seg_log = $this->model->seg_log->add('Devolución Total Venta', 'venta', $args['id'], 1);
                 $del_venta->state = $this->model->transaction->confirmaTransaccion();

@@ -454,7 +454,10 @@
                         $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/1', function(respStock){
                             if(respStock.response){
                                 data['es_kilo'] = respStock.cant_necesaria.toFixed(1)
-                                data['stock'] = respStock.stock_disp     
+                                data['stock'] = respStock.stock_disp   
+                                if(respStock.max < 1){
+                                    data['cantidad'] = respStock.max;
+                                }  
                                 addFirebase(data)
                                 getTotales() 
                                 $.unblockUI()
@@ -479,7 +482,7 @@
             detalle_id = $(tr).data('detalle_id')
             clave = $(tr).data('clave')
             kilo = $(tr).data('kilo')
-            if(cantidad < 1){
+            if(cantidad < 1 && !kilo){
                 toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
                 $(elem).val('1.0')
                 $.unblockUI()
@@ -505,15 +508,20 @@
             }else{
                 $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/'+cantidad, function(resp){
                     if(resp.response){
-                        $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
-                            precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                            total = parseFloat(precio*cantidad).toFixed(2)
-                            cant = cantidad.toFixed(1).toString()
-                            $(tr).find('.precio').html('$ '+precio)
-                            $(tr).find('.total').html('$ '+total)
-                            db.collection(collection).doc(clave).update({'cantidad':cant})
-                            getTotales()
-                        },'json')
+                        if(cantidad <= parseFloat(resp.max)){
+                            $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                                precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                                total = parseFloat(precio*cantidad).toFixed(2)
+                                cant = cantidad.toFixed(3).toString()
+                                $(tr).find('.precio').html('$ '+precio)
+                                $(tr).find('.total').html('$ '+total)
+                                db.collection(collection).doc(clave).update({'cantidad':cant})
+                                getTotales()
+                            },'json')
+                        }else{
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            $('.cant').val(resp.max).trigger('change');
+                        }
                     }else{
                         toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
                     }

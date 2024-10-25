@@ -317,6 +317,9 @@
                 measurementId: "G-NLJJ8F8TJ5"
             };
 
+        let editCant = false,
+            contador = 0;
+
         firebase.initializeApp(firebaseConfig);
         const db = firebase.firestore();
         var selectedRowIndex = -1;
@@ -328,13 +331,21 @@
             }
 
             if(e.which === 13){
-                addSelected(selectedRowIndex);
+                if($('#frm-pago').is(':visible')){
+                    $('#pago-forma_pago').focus();
+                }else if(editCant == false){
+                    addSelected(selectedRowIndex);
+                }else{
+                    contador += 1;
+                    selectInput(contador);
+                }
             }
 
             var rows = getRows();
             var rowCount = rows.length;
             if (e.key === "ArrowDown") {
                 e.preventDefault();
+                editCant = false;
                 if (selectedRowIndex < rowCount - 1) {
                     selectRow(selectedRowIndex + 1);
                 } else if (selectedRowIndex != -1 && rowCount > 0) {
@@ -342,6 +353,7 @@
                 }
             } else if (e.key === "ArrowUp") {
                 e.preventDefault();
+                editCant = false;
                 if (selectedRowIndex > 0) {
                     selectRow(selectedRowIndex - 1);
                 } else if (selectedRowIndex != -1 && rowCount > 0) {
@@ -351,14 +363,42 @@
 
             if (e.key === "ArrowRight") {
                 e.preventDefault();
+                editCant = false;
                 tabla_prods.page('next').draw('page');
                 selectedRowIndex = 0;
                 selectRow(selectedRowIndex);
             } else if (e.key === "ArrowLeft") {
                 e.preventDefault();
+                editCant = false;
                 tabla_prods.page('previous').draw('page');
                 selectedRowIndex = 0;
                 selectRow(selectedRowIndex);
+            }
+
+            if(e.which === 09){
+                e.preventDefault();
+
+                if($('#frm-pago').is(':visible')){
+                    $('#pago-recibido').focus();
+                }else{
+                    editCant = true;
+                    selectInput(contador);
+                }
+
+            }
+
+            if(e.which === 09 && e.shiftKey){
+                e.preventDefault();
+                editCant = true;
+                contador -= 1;
+                if(contador > 0){
+                    selectInput(contador);
+                }
+            }
+
+            if (event.key === 'F1') {
+                event.preventDefault();
+                $('#btnSave').trigger('click');
             }
         });
 
@@ -584,6 +624,9 @@
                             if(respStock.response){
                                 data['es_kilo'] = respStock.cant_necesaria.toFixed(1)
                                 data['stock'] = respStock.stock_disp
+                                if(respStock.max < 1){
+                                    data['cantidad'] = respStock.max;
+                                }
                                 <?php if(!$nueva) : ?>
                                     data['venta_id'] = '<?= $venta_id ?>'
                                     data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
@@ -619,11 +662,12 @@
             detalle_id = $(tr).data('detalle_id')
             clave = $(tr).data('clave')
             kilo = $(tr).data('kilo')
-            if(cantidad < 1){
+            if(cantidad < 1 && !kilo){
                 toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
                 $(elem).val('1.0')
                 $.unblockUI()
             }
+
             if(kilo == 0){
                 $.get(apiUrl+'prod_stock/getStock/'+prod_id, function(resp){
                     if(cantidad <= resp.final){
@@ -634,26 +678,40 @@
                             $(tr).find('.precio').html('$ '+precio)
                             $(tr).find('.total').html('$ '+total)
                             db.collection(collection).doc(clave).update({'cantidad':cant})
-                            getTotales()
-                        },'json')
+                            getTotales();
+
+                            if(ultimo()) {
+                                $('#btnContinuar').trigger('click');
+                            }
+                        },'json');
+
                     }else{
-                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
-                        elem.val(1).trigger('change')
+                        toastr["error"](`Disponible: ${resp.final} pzas.`, "No hay suficiente stock del producto")
+                        elem.focus().select();
                     }
                     $.unblockUI()
                 },'json')
             }else{
                 $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/'+cantidad, function(resp){
                     if(resp.response){
-                        $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
-                            precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
-                            total = parseFloat(precio*cantidad).toFixed(2)
-                            cant = cantidad.toFixed(1).toString()
-                            $(tr).find('.precio').html('$ '+precio)
-                            $(tr).find('.total').html('$ '+total)
-                            db.collection(collection).doc(clave).update({'cantidad':cant})
-                            getTotales()
-                        },'json')
+                        if(cantidad <= parseFloat(resp.max)){
+                            $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                                precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                                total = parseFloat(precio*cantidad).toFixed(2)
+                                cant = cantidad.toFixed(3).toString()
+                                $(tr).find('.precio').html('$ '+precio)
+                                $(tr).find('.total').html('$ '+total)
+                                db.collection(collection).doc(clave).update({'cantidad':cant})
+                                getTotales()
+                                
+                                if(ultimo()) {
+                                    $('#btnContinuar').trigger('click');
+                                }
+                            },'json');
+                        }else{
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            $('.cant').val(resp.max).trigger('change');
+                        }
                     }else{
                         toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
                     }
@@ -758,6 +816,27 @@
                     $(e).removeClass('selected');
                 });
             }
+        }
+
+        function getDetalles() {
+            return $('#tbl-detalles tbody tr:visible');
+        }
+
+        function selectInput(fila){
+            let rows = getDetalles();
+            if (rows.length > 0) {
+                let tr = $(rows[fila]);
+                let input = tr.find('input');
+                if (input.length > 0) {
+                    input.focus().select();
+                }
+            }
+        }
+
+        function ultimo() {
+            let rows = getDetalles();
+            let ultimaFila = rows[rows.length - 1];
+            return tr.is(ultimaFila);
         }
 
         function getClientes(){

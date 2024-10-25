@@ -92,7 +92,7 @@ use App\Lib\Auth,
                     $info_kilo = $this->model->producto->getKiloBy($producto->id, 'producto_id')->result;
                     $cant_kilo = $info_kilo->cantidad;
                     $stock_prod_origen = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $info_kilo->producto_origen)->result;
-                    if(is_object($stock_prod_origen)) $stock = number_format(intdiv($stock_prod_origen->final, $cant_kilo),1);
+                    if(is_object($stock_prod_origen)) $stock = number_format($stock_prod_origen->final / $cant_kilo, 3);
                     else $stock = '0.0';
                 }else{
                     $info = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto->id)->result;

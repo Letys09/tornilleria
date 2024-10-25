@@ -117,7 +117,7 @@ use App\Lib\Auth,
                     }
                 }else{
                     $info_kilo = $this->model->producto->getKiloBy($producto_id, 'producto_id')->result;
-                    $cantidad = ($info_kilo->cantidad * $parsedBody['cantidad']);
+                    $cantidad = round($info_kilo->cantidad * $parsedBody['cantidad']);
                     $prod_origen = $info_kilo->producto_origen;
                     $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                     $inicial = $stock->final;
@@ -262,7 +262,7 @@ use App\Lib\Auth,
                     }else{
                         $info_kilo = $this->model->producto->getKiloBy($producto_id, 'producto_id')->result;
                         $cant_anterior = ($info_kilo->cantidad * $info_det->cantidad);
-                        $cant_nueva = ($info_kilo->cantidad * $parsedBody['cantidad']);
+                        $cant_nueva = round($info_kilo->cantidad * $parsedBody['cantidad']);
                         $prod_origen = $info_kilo->producto_origen;
                         $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                         $inicial = $stock->final;
@@ -342,7 +342,7 @@ use App\Lib\Auth,
                 ];
             }else{
                 $info_kilo = $this->model->producto->getKiloBy($producto_id, 'producto_id')->result;
-                $cantidad = floatval($info_kilo->cantidad * $detalle->cantidad);
+                $cantidad = round($info_kilo->cantidad * $detalle->cantidad);
                 $prod_origen = $info_kilo->producto_origen;
                 $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                 $inicial = $stock->final;
@@ -409,7 +409,7 @@ use App\Lib\Auth,
                 ];
             }else{
                 $info_kilo = $this->model->producto->getKiloBy($producto_id, 'producto_id')->result;
-                $cantidad = floatval($info_kilo->cantidad * $detalle->cantidad);
+                $cantidad = round($info_kilo->cantidad * $detalle->cantidad);
                 $prod_origen = $info_kilo->producto_origen;
                 $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                 $inicial = $stock->final;
