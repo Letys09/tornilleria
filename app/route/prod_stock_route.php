@@ -100,6 +100,11 @@ use App\Lib\Auth,
                         $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
                         $folio = 'Entrada por cambio de producto. Se concreta venta de cotización. Venta: '.$venta->folio;
                         break;
+                    case 16: // entrada por eliminación de venta a crédito
+                        $detalle_venta = $this->model->venta_detalle->getBy('id', $dato->origen_id)->result;
+                        $venta = $this->model->venta->get($detalle_venta->venta_id)->result;
+                        $folio = 'Entrada por eliminación de venta a crédito. Venta: '.$venta->folio;
+                        break;
                     default:
                         # code...
                         break;

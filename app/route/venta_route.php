@@ -588,6 +588,91 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             $writer->save('php://output');
         });
 
+        $this->post('delete/', function($req, $res, $args){
+            $this->model->transaction->iniciaTransaccion();
+            $body = $req->getParsedBody();
+            $venta_id = $body['venta_id'];
+            $motivo = $body['motivo'];
+            $fecha = date('Y-m-d H:i:s');
+
+            $detalles = $this->model->venta_detalle->getByVenta($venta_id)->result;
+            $pagos = $this->model->venta_pago->getByVenta($venta_id)->result;
+            
+            $edit_venta = $this->model->venta->edit(['motivo_cancela' => $motivo, 'usuario_cancela' => $_SESSION['usuario_id']], $venta_id);
+            $del_venta = $this->model->venta->del($venta_id);
+            if($del_venta->response){
+                foreach($detalles as $detalle){
+                    $prod_id = $detalle->producto_id;
+                    $info_prod = $this->model->producto->get($prod_id)->result;
+                    if($info_prod->es_kilo == 0){
+                        $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_id)->result;
+                        $inicial = $stock->final;
+                        $cantidad = $detalle->cantidad;
+                        $final = floatval($inicial+$cantidad);
+                        $dataStock = [
+                            'usuario_id' => $_SESSION['usuario_id'],
+                            'sucursal_id' => $_SESSION['sucursal_id'],
+                            'producto_id' => $prod_id,
+                            'tipo' => 1,
+                            'inicial' => $inicial,
+                            'cantidad' => $cantidad,
+                            'final' => $final,
+                            'fecha' => $fecha,
+                            'motivo' => $motivo,
+                            'origen_tipo' => 16,
+                            'origen_tabla' => 'venta_detalle',
+                            'origen_id' => $detalle->id
+                        ];
+                    }else{
+                        $info_kilo = $this->model->producto->getKiloBy($prod_id, 'producto_id')->result;
+                        $cantidad = round($info_kilo->cantidad * $detalle->cantidad);
+                        $prod_origen = $info_kilo->producto_origen;
+                        $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
+                        $inicial = $stock->final;
+                        $final = floatval($inicial+$cantidad);
+                        $dataStock = [
+                            'usuario_id' => $_SESSION['usuario_id'],
+                            'sucursal_id' => $_SESSION['sucursal_id'],
+                            'producto_id' => $prod_origen,
+                            'tipo' => 1,
+                            'inicial' => $inicial,
+                            'cantidad' => $cantidad,
+                            'final' => $final,
+                            'fecha' => $fecha,
+                            'origen_tipo' => 16,
+                            'origen_tabla' => 'venta_detalle',
+                            'origen_id' => $detalle->id
+                        ];
+                    }
+                    $addStock = $this->model->prod_stock->add($dataStock);
+                    if($addStock->response){
+                        $del_detalle = $this->model->venta_detalle->del($detalle->id);
+                        if(!$del_detalle->response){
+                            $del_detalle->state = $this->model->transaction->regresaTransaccion();
+                            return $res->withJson($del_detalle);
+                        }
+                    }else{
+                        $addStock->state = $this->model->transaction->regresaTransaccion();
+                        return $res->withJson($addStock);
+                    }
+                }
+
+                $monto = 0;
+                foreach($pagos as $pago){
+                    $monto += $pago->monto;
+                    $del_pago = $this->model->venta_pago->del($pago->id);
+                }
+
+                $seg_log = $this->model->seg_log->add('Elimina venta a crédito', 'venta', $venta_id, 1);
+                $del_venta->state = $this->model->transaction->confirmaTransaccion();
+                $del_venta->devolucion = $monto;
+                return $res->withJson($del_venta);
+            }else{
+                $del_venta->state = $this->model->transaction->regresaTransaccion();
+                return $res->withJson($del_venta);
+            }
+        });
+
 	});
 
 ?>

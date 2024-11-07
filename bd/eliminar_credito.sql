@@ -1,0 +1,1 @@
+INSERT INTO `seg_accion` (`id`, `seg_modulo_id`, `nombre`, `descripcion`, `status`, `url`, `id_html`, `icono`, `visible`) VALUES (NULL, '6', 'Eliminar venta crédito', '', '1', '', NULL, '', '1') 

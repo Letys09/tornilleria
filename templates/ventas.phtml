@@ -4,6 +4,7 @@
     define('MOD_EDITAR',	  31);
     define('MOD_ADDPAGO',	  32);
     define('MOD_FINALIZAR',	  33);
+    define('MOD_DEL_CREDITO',	  49);
 
     if(!in_array(MOD_VENTAS, $permisos)) {
 		header('Location: '.URL_ROOT.'/403');
@@ -80,6 +81,31 @@
                                                 <button type="button" class="btn btn-success mb-1" id="btnSave">Guardar</button>
                                                 <input type="hidden" id="venta_id" value="0">
                                                 <input type="hidden" id="saldo_favor" value="0">
+                                            </div>
+                                        </div>
+                                    </form>
+                                </div>
+                            </div>
+
+                            <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-delete">
+                                <div class="modal-dialog">
+                                    <form class="modal-content pt-0">
+                                        <div class="modal-header mb-1">
+                                            <span class="title"></span>
+                                            <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div class="modal-body flex-grow-1 form-horizontal">
+                                            <div class="mb-1 form-group row">
+                                                <div class="w-100 mb-1">
+                                                    <textarea id="delete-motivo" rows="4" cols="52" placeholder="Ingrese el motivo por el que se elimina la venta a crédito" required></textarea>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="modal-footer">
+                                            <div class="buttonsEnd">
+                                                <button type="reset" class="btn btn-outline-secondary mb-1" data-bs-dismiss="modal">Cancelar</button>
+                                                <button type="button" class="btn btn-danger mb-1" id="btnDel">¡Eliminar!</button>
+                                                <input type="hidden" id="delete-venta_id" value="0">
                                             </div>
                                         </div>
                                     </form>
@@ -264,6 +290,53 @@
                 }
             })
 
+            <?php if ( in_array(MOD_DEL_CREDITO, $permisos)) : ?>
+                $('#tbl-ventas').on('click', '.btnDelete', function(){
+                    id = $(this).data('id')
+                    tr = $(this).closest('tr');
+                    folio = tr.find('td:eq(1)').text();
+                    $('#frm-delete .title').html(`<h4>Eliminar Venta Crédito <b>${folio}</b></h4>`);
+                    $('#delete-venta_id').val(id);
+                    $('#delete-motivo').val('');
+                    $('#delete-motivo').focus();
+                    $('#frm-delete').modal('show');
+                });
+
+                $('#btnDel').on('click', function(e){
+                    e.preventDefault();
+                    $.blockUI()
+                    btn = $(this);
+                    btn.attr('disabled', true).prop('disabled', true);
+                    const motivo = $.trim($('#delete-motivo').val());
+                    if ( motivo.length <= 1 ){
+                        toastr['error']('¡Error!', 'Debe ingresar el motivo por el cual se elimina la venta');
+                        $('#delete-motivo').focus();
+                        btn.attr('disabled', false).prop('disabled', false);
+                        $.unblockUI()
+                    } else {
+                        const del_venta_id =  $('#delete-venta_id').val();
+                        const dataDel = {
+                            venta_id: del_venta_id,
+                            motivo: motivo
+                        }
+
+                        $.post(apiUrl+'venta/delete/', dataDel, function(resp){
+                            if(resp.response){
+                                toastr['success']('¡Listo!', 'Se eliminó la venta a crédito')
+                                $('#frm-delete').modal('hide')
+                                btn.attr('disabled', false).prop('disabled', false)
+                                getItems('tbl-ventas')
+                                $.unblockUI()
+                            }else{
+                                toastr['error']('¡Error!', 'No se pudo eliminar la venta a crédito')
+                                btn.attr('disabled', false).prop('disabled', false)
+                                $.unblockUI()
+                            }
+                        });
+                    }
+                });
+            <?php endif; ?>
+
             document.addEventListener ("keydown", function (e) {
                 if(e.which === 27) {
                     $('#frm-addpago').modal('hide');
@@ -327,14 +400,19 @@
                                                 '</button>'+
                                             <?php endif; ?>
                                             '<button type="button" class="btn btn-outline-warning btn-sm btnDesbloquear '+unlock+'" data-id="'+id+'" data-toggle="tooltip" title="Desbloquear" style="margin-right:4px;">'+
-                                                feather.icons['unlock'].toSvg({ class: 'font-small-4 me-20' })+
+                                            feather.icons['unlock'].toSvg({ class: 'font-small-4 me-20' })+
                                             '</button>'+
                                             '<button type="button" class="btn btn-outline-dark btn-sm btnTicket" data-id="'+id+'" data-toggle="tooltip" title="Imprimir ticket" style="margin-right:4px;">'+
-                                                feather.icons['file-text'].toSvg({ class: 'font-small-4 me-20' })+
+                                            feather.icons['file-text'].toSvg({ class: 'font-small-4 me-20' })+
                                             '</button>'+
+                                            <?php if(in_array(MOD_DEL_CREDITO, $permisos)) : ?>
+                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDelete" data-id="'+id+'" data-toggle="tooltip" title="Eliminar venta" style="margin-right:4px;">'+
+                                                    feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
+                                                '</button>'+
+                                            <?php endif; ?>
                                         '</div>'
-                                    );
-                                }
+                                        );
+                                    }
                             },
                             {
                                 targets: 0,
