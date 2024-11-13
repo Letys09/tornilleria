@@ -298,6 +298,9 @@
 				}
 			}
 			$mes_select = isset($args['mes']) ? $args['mes'] : date('m'); 
+			if( strlen($mes_select) == 1 ){
+				$mes_select = '0'.$mes_select;
+			}
 			$anio = isset($args['anio']) ? $args['anio'] : date('Y'); 
 			$user = $_SESSION['usuario']->id;
 			$permisos = $this->model->usuario->getAcciones($user, 0);
