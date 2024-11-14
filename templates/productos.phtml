@@ -164,7 +164,7 @@
                                                         <div class="input-group-text">
                                                             <input class="form-check-input mt-0" type="checkbox" data-toggle="tooltip" title="Si, se vende por kilo" id="kilo">
                                                         </div>
-                                                        <input type="number" class="form-control deshabilitado" id="prod-cant_kilo" placeholder="Cantidad" disabled>
+                                                        <input type="number" class="form-control deshabilitado" id="prod-cant_kilo" placeholder="Cantidad" min="1" disabled>
                                                     </div>
                                                 </div>
                                                 <div class="col-sm-4">
@@ -892,6 +892,10 @@
                     $.unblockUI()
                 }else if(data['venta_kilo'] == 1 && data['cant_kilo'] == ''){
                     error('prod-cant_kilo', 'Este campo es obligatorio')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    $.unblockUI()
+                }else if(data['venta_kilo'] == 1 && data['cant_kilo'] < 1){
+                    error('prod-cant_kilo', 'La cantidad por kilo debe ser igual o mayor a 1')
                     btn.attr('disabled', false).prop('disabled', false)
                     $.unblockUI()
                 }else if(data['venta_kilo'] == 1 && data['clave_kilo'] == ''){

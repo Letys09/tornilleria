@@ -445,7 +445,7 @@ use App\Lib\Auth,
                 'venta_kilo' => $parsedBody['venta_kilo'],
                 'es_kilo' => 0,
                 'clave_sat' => $parsedBody['clave_sat'],
-                'status' => 1
+                // 'status' => 1
             ];
 
             foreach($prod as $field => $value) { 
@@ -637,6 +637,13 @@ use App\Lib\Auth,
 
         $this->post('del/{id}', function($req, $res, $args){
             $this->model->transaction->iniciaTransaccion();
+            $infoP = $this->model->producto->getKiloBy($args['id'], 'producto_origen');
+            if($infoP->response){
+                $prod_id = $infoP->result->producto_id;
+                $prod_kilo_id = $infoP->result->id;
+                $update = $this->model->producto->del('producto', $prod_id);
+                $update = $this->model->producto->del('prod_kilo', $prod_kilo_id);
+            }
             $update = $this->model->producto->del('producto', $args['id']);
             if($update->response){
                 $seg_log = $this->model->seg_log->add('Elimina producto', 'producto', $args['id'], 1);
