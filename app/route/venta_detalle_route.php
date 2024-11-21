@@ -213,7 +213,7 @@ use App\Lib\Auth,
                         $prod_origen = $info_kilo->producto_origen;
                         $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                         $inicial = $stock->final;
-                        $cantidad = $cant_anterior-$cant_nueva;
+                        $cantidad = round($cant_anterior-$cant_nueva);
                         $final = $inicial+$cantidad;
                         $dataStock = [
                             'usuario_id' => $_SESSION['usuario_id'],
@@ -266,7 +266,7 @@ use App\Lib\Auth,
                         $prod_origen = $info_kilo->producto_origen;
                         $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
                         $inicial = $stock->final;
-                        $cantidad = $cant_nueva - $cant_anterior;
+                        $cantidad = round($cant_nueva - $cant_anterior);
                         if($inicial > 0 && $cantidad){
                             $final = $inicial - $cantidad;
                             $dataStock = [
