@@ -796,10 +796,26 @@
         }
 
         function selectRow(index) {
+            $.blockUI();
             var rows = getRows();
             delSeleccion();
             $(rows[index]).addClass('selected');
             selectedRowIndex = index;
+            let producto_id = $(rows[index]).data('id');
+
+            clave = $(rows[index]).find('td:eq(1)').text();
+            desc = $(rows[index]).find('td:eq(2)').text();
+            concepto = `(${clave}) ${desc}`;
+
+            $.get(`${apiUrl}producto/getRangos/${producto_id}`, function(resp){
+                $('.name_prod').html('<b>'+concepto+'</b>')
+                $.each(resp, function(index, item){
+                    $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
+                })
+                mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                $('#precio-distribuidor').val(parseInt(mayoreo)+1)
+                $.unblockUI();
+            },'json')
         }
 
         function addSelected(index) {
@@ -1139,6 +1155,9 @@
                             visible: false, targets: [0]
                         }
                     ],
+                    createdRow: function(row, data, dataIndex) {
+                        $(row).attr('data-id', data['data_id']);
+                    },
                     order: [[0, 'desc']], 
                     dom:
                         '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
@@ -1159,11 +1178,25 @@
                         $('#tbl-prods_filter label:eq(0)').addClass('hidden');
                         $('#tbl-prods_length label:eq(0)').addClass('hidden');
                         $('.busqueda').removeClass('hidden');
-                        $('#tbl-prods tbody tr').first().addClass('selected')
+                        $('#tbl-prods tbody tr').first().addClass('selected');
+                        selectRow(0);
                     }
                 });
 
                 let intervaloBusqueda = null;
+                $('#tbl-prods tbody').on('mouseover', 'tr', function () {
+                    const index = $(this).index();
+                    if (selectedRowIndex !== index) {
+                        selectRow(index);
+                    }
+                });
+
+                $('#tbl-prods tbody').on('click', 'tr', function () {
+                    const index = tabla_prods.row(this).index();
+                    if (selectedRowIndex !== index) {
+                        selectRow(index);
+                    }
+                });
                 $(document).on('keyup', '#bus',  function(e){
                     temporal = moment().format('x')+"-"+Math.random();
                     evaluar(temporal);
