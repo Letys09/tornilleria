@@ -130,7 +130,7 @@
             datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
             queryTokenizer: Bloodhound.tokenizers.whitespace,
             remote: {
-                url: apiUrl+'producto/getProdsBy/%QUERY',
+                url: apiUrl+'producto/getProdsBy?buscar=%QUERY',
                 wildcard: '%QUERY'
             }
         })

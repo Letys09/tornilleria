@@ -48,11 +48,12 @@ class ProductoModel {
 	}
 
 	public function getProdsBy($param){
+		$like = "%$param%";
 		$this->response->result = $this->db
-			->from("$this->table")
+			->from($this->table)
 			->select(null)
-			->select("id, descripcion, clave, medida")
-			->where("CONCAT_WS(' ', {$this->table}.descripcion, {$this->table}.clave, {$this->table}.medida) LIKE ?", "%$param%")
+			->select("id, descripcion, clave, medida, CONCAT(descripcion, ' ', clave, ' ', medida) AS nombre")
+			->where("CONCAT_WS(' ', {$this->table}.descripcion, {$this->table}.clave, {$this->table}.medida) LIKE ?", $like)
 			->where("status", 1)
 			->fetchAll();
 		return $this->response->setResponse(true);

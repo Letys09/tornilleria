@@ -39,8 +39,9 @@ use App\Lib\Auth,
             return $res->withJson($prods);
         });
 
-        $this->get('getProdsBy/{param}', function($req, $res, $args){
-            $prods = $this->model->producto->getProdsBy($args['param'])->result;
+        $this->get('getProdsBy', function($req, $res, $args){
+            $param = $_GET['buscar'] ?? '';
+            $prods = $this->model->producto->getProdsBy($param)->result;
             foreach($prods as $prod){
                 $medida = $prod->medida != '' ? ', '.$prod->medida : '';
                 $descripcion = $prod->descripcion != '' ? ', '.$prod->descripcion : '';
