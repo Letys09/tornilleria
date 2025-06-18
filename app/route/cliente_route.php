@@ -170,6 +170,11 @@ use App\Lib\Auth,
                 return $res->withJson($update->SetResponse(false, 'No se pudo eliminar al cliente'));
             }
         });
+
+        $this->get('getBy/{param}', function($req, $res, $args){
+            $clientes = $this->model->cliente->getBy($args['param'])->result;
+            return $res->withJson($clientes);
+        });
 	});
 
 ?>

@@ -130,5 +130,18 @@ class ClienteModel {
 		}
 		return $this->response;
 	}
+
+	public function getBy($parametro){
+		$this->response->result = $this->db
+			->from("$this->table")
+			->select(null)
+			->select("$this->table.id, CONCAT(nombre, ' ', apellidos, ', ', correo, ', ', telefono) AS cliente")
+			->where("CONCAT_WS(' ', {$this->table}.nombre, {$this->table}.apellidos, {$this->fiscales}.razon_social) LIKE ?", "%$parametro%")
+			->where("$this->table.status", 1)
+			->orderBy("nombre ASC, apellidos ASC")
+			->fetchAll();
+	
+		return $this->response->setResponse(true);
+	}
 }
 ?>
