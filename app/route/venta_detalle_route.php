@@ -240,7 +240,7 @@ use App\Lib\Auth,
                         $inicial = $stock->final;
                         $cant_nueva = $parsedBody['cantidad'] - $info_det->cantidad;
                         if($inicial > 0 && $cant_nueva <= $inicial){
-                            $final = $inicial+$cant_nueva;
+                            $final = $inicial-$cant_nueva;
                             $dataStock = [
                                 'usuario_id' => $_SESSION['usuario_id'],
                                 'sucursal_id' => $_SESSION['sucursal_id'],
