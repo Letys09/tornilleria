@@ -23,6 +23,11 @@
                 <section>
                     <div class="card">
                         <div class="card-body border-bottom">
+                            <div class="card-body border-bottom alignRight">
+                                <div class="dt-buttons btn-group">
+                                    <input type="date" id="fecha" class="form-control" data-toggle="tooltip" title="Fecha" value="<?= date('Y-m-d')?>">
+                                </div>
+                            </div>
                             <div class="card-datatable table-responsive pt-0">
                                 <table id="tbl-ventas" class="table">
                                     <thead class="table-light">
@@ -126,6 +131,10 @@
                 id_cliente = 0;
 
             getItems('tbl-ventas')
+
+            $('#fecha').change(function(){
+                getItems('tbl-ventas', $(this).val())
+            })
 
             $('#tbl-ventas').on('click', '.btnAbrir', function(){
                 id = $(this).data('id')
@@ -357,10 +366,11 @@
             }
 
             function createTable(tbl){
+                let fecha = $('#fecha').val();
                 if($('#'+tbl).length){
                     $('#'+tbl).DataTable({
                         ajax:{
-                            url: apiUrl+'venta/getAllDataTable',
+                            url: `${apiUrl}venta/getAllDataTable/${fecha}`,
                             type: 'GET',
                         },
                         columns: [
@@ -383,34 +393,34 @@
                                     unlock = full['en_uso'] == 1 ? '' : 'hidden'
                                     finalizar = full['pendiente'] != 0 ? 'hidden' : ''
                                     return (
-                                        '<div class="text-center">'+
+                                        `<div class="text-center">
                                             <?php if(in_array(MOD_EDITAR, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-new-info btn-sm btnAbrir" data-id="'+id+'" data-toggle="tooltip" title="Editar" style="margin-right:4px;">'+
-                                                    feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })+
-                                                '</button>'+
+                                                <button type="button" class="btn btn-outline-new-info btn-sm btnAbrir" data-id="${id}" data-toggle="tooltip" title="Editar" style="margin-right:4px;">
+                                                    ${feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })}
+                                                </button>
                                             <?php endif; ?>
                                             <?php if(in_array(MOD_ADDPAGO, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-dark btn-sm btnAddPago" data-id="'+id+'" data-saldo="'+saldo+'" data-cliente="'+cliente_id+'" data-toggle="tooltip" title="Pagar" style="margin-right:4px;">'+
-                                                    feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' })+
-                                                '</button>'+
+                                                <button type="button" class="btn btn-outline-dark btn-sm btnAddPago" data-id="${id}" data-saldo="${saldo}" data-cliente="${cliente_id}" data-toggle="tooltip" title="Pagar" style="margin-right:4px;">
+                                                    ${feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' })}
+                                                </button>
                                             <?php endif; ?>
                                             <?php if(in_array(MOD_FINALIZAR, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-new-success btn-sm btnFinalizar '+finalizar+'" data-id="'+id+'" data-toggle="tooltip" title="Finalizar venta" style="margin-right:4px;">'+
-                                                    feather.icons['check'].toSvg({ class: 'font-small-4 me-20' })+
-                                                '</button>'+
+                                                <button type="button" class="btn btn-outline-new-success btn-sm btnFinalizar ${finalizar}" data-id="${id}" data-toggle="tooltip" title="Finalizar venta" style="margin-right:4px;">
+                                                    ${feather.icons['check'].toSvg({ class: 'font-small-4 me-20' })}
+                                                </button>
                                             <?php endif; ?>
-                                            '<button type="button" class="btn btn-outline-warning btn-sm btnDesbloquear '+unlock+'" data-id="'+id+'" data-toggle="tooltip" title="Desbloquear" style="margin-right:4px;">'+
-                                            feather.icons['unlock'].toSvg({ class: 'font-small-4 me-20' })+
-                                            '</button>'+
-                                            '<button type="button" class="btn btn-outline-dark btn-sm btnTicket" data-id="'+id+'" data-toggle="tooltip" title="Imprimir ticket" style="margin-right:4px;">'+
-                                            feather.icons['file-text'].toSvg({ class: 'font-small-4 me-20' })+
-                                            '</button>'+
+                                            <button type="button" class="btn btn-outline-warning btn-sm btnDesbloquear ${unlock}" data-id="${id}" data-toggle="tooltip" title="Desbloquear" style="margin-right:4px;">
+                                                ${feather.icons['unlock'].toSvg({ class: 'font-small-4 me-20' })}
+                                            </button>
+                                            <button type="button" class="btn btn-outline-dark btn-sm btnTicket" data-id="${id}" data-toggle="tooltip" title="Imprimir ticket" style="margin-right:4px;">
+                                                ${feather.icons['file-text'].toSvg({ class: 'font-small-4 me-20' })}
+                                            </button>
                                             <?php if(in_array(MOD_DEL_CREDITO, $permisos)) : ?>
-                                                '<button type="button" class="btn btn-outline-danger btn-sm btnDelete" data-id="'+id+'" data-toggle="tooltip" title="Eliminar venta" style="margin-right:4px;">'+
-                                                    feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })+
-                                                '</button>'+
+                                                <button type="button" class="btn btn-outline-danger btn-sm btnDelete" data-id="${id}" data-toggle="tooltip" title="Eliminar venta" style="margin-right:4px;">
+                                                    ${feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })}
+                                                </button>
                                             <?php endif; ?>
-                                        '</div>'
+                                        </div>`
                                         );
                                     }
                             },

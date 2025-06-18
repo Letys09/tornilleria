@@ -23,12 +23,13 @@ class VentaModel {
         return $this->response->SetResponse(true);
     }
 
-	public function getAllDataTable(){
+	public function getAllDataTable($fecha){
 		$this->response->result = $this->db
 			->from($this->table)
 			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d-%m-%Y') as date, CAST(fecha AS TIME) as hora, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, CONCAT_WS(' ', cliente.nombre, cliente.apellidos) as cliente, cliente.saldo_favor as saldo")
 			->where("tipo", 2)
 			->where("$this->table.sucursal_id", $_SESSION['sucursal_id'])
+			->where("DATE_FORMAT(fecha, '%Y-%m-%d') = '$fecha'")
 			->where("$this->table.status", 2)
 			->fetchAll();
 		return $this->response->SetResponse(true);
@@ -37,7 +38,8 @@ class VentaModel {
 	public function getByMD5($venta_id) {
 		return $this->db
 			->from($this->table)
-			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d/%m/%Y') as date, CAST(fecha AS TIME) as hora, DATE_FORMAT(fecha, '%d%m%Y') as fechaFolio")
+			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d/%m/%Y') as date, CAST(fecha AS TIME) as hora, DATE_FORMAT(fecha, '%d%m%Y') as fechaFolio,
+						CONCAT(cliente.nombre, ' ', cliente.apellidos, ', ', cliente.correo, ', ', cliente.telefono) AS cliente")
 			->where("MD5($this->table.id)", $venta_id)
 			->where("$this->table.status != 0")
 			->fetch();
@@ -46,9 +48,11 @@ class VentaModel {
 	public function getAllByDay($dia){
 		$this->response->result = $this->db
 			->from($this->table)
-			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d-%m-%Y') as date, CAST(fecha AS TIME) as hora, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, CONCAT_WS(' ', cliente.nombre, cliente.apellidos) AS cliente")
-			->where("DATE_FORMAT(fecha, '%Y-%m-%d') = '$dia'")
-			->where("tipo", 1)
+			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d-%m-%Y') as date, CAST(fecha AS TIME) as hora, 
+						CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, 
+						CONCAT_WS(' ', cliente.nombre, cliente.apellidos) AS cliente")
+			->where("DATE_FORMAT(fecha, '%Y-%m-%d') = '$dia' OR DATE_FORMAT(fecha_finaliza, '%Y-%m-%d') = '$dia'")
+			// ->where("tipo", 1)
 			->where("$this->table.sucursal_id", $_SESSION['sucursal_id'])
 			->where("$this->table.status", 1)
 			->fetchAll();

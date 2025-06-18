@@ -22,8 +22,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             return $res->withJson($venta);
         });
 
-        $this->get('getAllDataTable', function($req, $res, $args){
-            $ventas = $this->model->venta->getAllDataTable()->result;
+        $this->get('getAllDataTable/{fecha}', function($req, $res, $args){
+            $ventas = $this->model->venta->getAllDataTable($args['fecha'])->result;
             $data = [];
             foreach($ventas as $venta){
                 $fecha = explode('-', $venta->date);
@@ -393,6 +393,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                             'usuario_id' => $_SESSION['usuario_id'],
                             'fecha' => $fecha, 
                             'monto' => $pago['monto'],
+                            'monto_recibido' => $pago['monto_recibido'],
+                            'cambio' => $pago['cambio'],
                             'forma_pago' => $pago['forma_pago']
                         ];
                         $addPago = $this->model->venta_pago->add($dataPago);
@@ -499,6 +501,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             $this->model->transaction->iniciaTransaccion();
             date_default_timezone_set('America/Mexico_City');
             $parsedBody = $req->getParsedBody();
+            $detalles = isset($parsedBody['detalles']) ? $parsedBody['detalles'] : array(); unset($parsedBody['detalles']);
+            $fecha = date('Y-m-d H:i:s');
             $pagos = $this->model->venta_pago->getByVenta($parsedBody['venta_id'])->result;
             $pago_nuevo = floatval($parsedBody['pagado'] + $parsedBody['total']);
             foreach($pagos as $pago){
@@ -509,7 +513,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             $data = [
                 'venta_id' => $parsedBody['venta_id'],
                 'usuario_id' => $_SESSION['usuario_id'],
-                'fecha' => date('Y-m-d H:i:s'),
+                'fecha' => $fecha,
                 'monto' => $pago_nuevo,
                 'monto_recibido' => $pago_nuevo,
                 'cambio' => '0.00',
@@ -521,17 +525,119 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                     'subtotal' => $parsedBody['subtotal'],
                     'total' => $parsedBody['subtotal'],
                     'comentarios' => $parsedBody['comentarios'],
-                    'fecha_actualiza' => date('Y-m-d H:i:s'),
+                    'fecha_actualiza' => $fecha,
                     'en_uso' => 0,
                 ];
                 $edit_venta = $this->model->venta->edit($venta, $parsedBody['venta_id']);
+                if($edit_venta->response){
+                    foreach($detalles as $detalle){
+                        $producto_id = $detalle['producto_id'];
+                        $info_prod = $this->model->producto->get($producto_id)->result;
+                        $total = floatval($detalle['cantidad'] * $detalle['precio']);
+                        $dataDet = [
+                            'venta_id' => $parsedBody['venta_id'],
+                            'producto_id' => $producto_id,
+                            'fecha' => $fecha,
+                            'cantidad' => $detalle['cantidad'],
+                            'precio' => $detalle['precio'],
+                            'total' => $total,
+                        ];
+                        $addDet = $this->model->venta_detalle->add($dataDet);
+                        if($addDet->response){
+                            $data_prod = ['venta' => $info_prod->venta+1];
+                            $this->model->producto->edit('producto', 'id', $data_prod, $info_prod->id);
+                            $det_id = $addDet->result;
+                            $seg_log = $this->model->seg_log->add('Agrega detalle de venta', 'venta_detalle', $det_id, 1);
+                            if($info_prod->es_kilo == 0){
+                                $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $producto_id)->result;
+                                $inicial = $stock->final;
+                                if($inicial != 0){
+                                    if($inicial >= $detalle['cantidad']){
+                                        $final = floatval($inicial-$detalle['cantidad']);
+                                        $dataStock = [
+                                            'usuario_id' => $_SESSION['usuario_id'],
+                                            'sucursal_id' => $_SESSION['sucursal_id'],
+                                            'producto_id' => $producto_id,
+                                            'tipo' => -1,
+                                            'inicial' => $inicial,
+                                            'cantidad' => $detalle['cantidad'],
+                                            'final' => $final,
+                                            'fecha' => $fecha,
+                                            'origen_tipo' => 3,
+                                            'origen_tabla' => 'venta_detalle',
+                                            'origen_id' => $det_id
+                                        ];
+                                        $addStock = $this->model->prod_stock->add($dataStock);
+                                        if(!$addStock->response){
+                                            $addStock->state = $this->model->transaction->regresaTransaccion();
+                                            return $res->withJson($this->response->SetResponse(false, "No se agregó el registro del stock $addStock"));
+                                        }
+                                    }else{
+                                        $this->response = new Response(); 
+                                        $this->response->state = $this->model->transaction->regresaTransaccion(); 
+                                        return $res->withJson($this->response->SetResponse(false, "No hay suficiente stock del producto: $producto_id $info_prod->descripcion"));
+                                    }
+                                }else{
+                                    $this->response = new Response(); 
+                                    $this->response->state = $this->model->transaction->regresaTransaccion(); 
+                                    return $res->withJson($this->response->SetResponse(false, "No hay stock disponible del producto: $producto_id $info_prod->descripcion"));
+                                }
+                            }else{
+                                $info_kilo = $this->model->producto->getKiloBy($producto_id, 'producto_id')->result;
+                                $cantidad = round($info_kilo->cantidad * $detalle['cantidad']);
+                                $prod_origen = $info_kilo->producto_origen;
+                                $info_prod_origen = $this->model->producto->get($prod_origen)->result;
+                                $stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $prod_origen)->result;
+                                $inicial = $stock->final;
+                                if($inicial != 0){
+                                    if($inicial >= $cantidad){
+                                        $final = floatval($inicial-$cantidad);
+                                        $dataStock = [
+                                            'usuario_id' => $_SESSION['usuario_id'],
+                                            'sucursal_id' => $_SESSION['sucursal_id'],
+                                            'producto_id' => $prod_origen,
+                                            'tipo' => -1,
+                                            'inicial' => $inicial,
+                                            'cantidad' => $cantidad,
+                                            'final' => $final,
+                                            'fecha' => $fecha,
+                                            'origen_tipo' => 7,
+                                            'origen_tabla' => 'venta_detalle',
+                                            'origen_id' => $det_id
+                                        ];
+                                        $addStock = $this->model->prod_stock->add($dataStock);
+                                        if(!$addStock->response){
+                                            $addStock->state = $this->model->transaction->regresaTransaccion();
+                                            return $res->withJson($this->response->SetResponse(false, "No se agregó el registro del stock $addStock"));
+                                        }
+                                    }else{
+                                        $this->response = new Response(); 
+                                        $this->response->state = $this->model->transaction->regresaTransaccion(); 
+                                        return $res->withJson($this->response->SetResponse(false, 'No hay suficiente stock del producto: '.$info_prod_origen->descripcion.' para realizar la venta de '.$detalle['cantidad'].' kilo(s)'));
+                                    }
+                                }else{
+                                    $this->response = new Response(); 
+                                    $this->response->state = $this->model->transaction->regresaTransaccion(); 
+                                    return $res->withJson($this->response->SetResponse(false, 'No hay stock disponible del producto: '.$info_prod_origen->descripcion.' para realizar la venta de '.$detalle['cantidad'].' kilo(s)'));
+                                }                            
+                            }
+                        }else{
+                            $addDet->state = $this->model->transaction->regresaTransaccion();
+                            return $res->withJson($addDet);
+                        }
+                    }   
+                }else{
+                    $edit_venta->state = $this->model->transaction->regresaTransaccion();
+                    return $res->withJson($edit_venta);
+                }
+
                 $this->model->seg_log->add('Devolución de efectivo', 'venta_pago', $add_pago->result, 0);
                 $add_pago->state = $this->model->transaction->confirmaTransaccion();
+                return $res->withJson($add_pago);
             }else{
                 $add_pago->state = $this->model->transaction->regresaTransaccion();
+                return $res->withJson($add_pago);
             }
-
-            return $res->withJson($add_pago);
         });
 
         $this->post('finalizar/{id}', function($req, $res, $args){

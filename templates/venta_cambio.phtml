@@ -11,11 +11,12 @@
                             <div class="card-header-venta fw-bolder fs-5 text-uppercase" data-bs-toggle="collapse" href="#cliente" role="button" aria-expanded="true" aria-controls="cliente" style="background-color: #04aa6d; color:white;" id="header-cliente"><span><i class="fas fa-caret-down ms-1 me-1"></i>&nbsp;Cliente</span></div>
                             <div class="card-body" id="cliente">
                                 <div class="d-flex">
-                                    <div class="col-4">
-                                        <label for="clientes" class="form-label fw-bolder fs-5">Nombre del cliente</label>
-                                        <select class="form-control" id="clientes"></select>
+                                    <div class="col-5">
+                                        <label for="buscador" class="form-label fw-bolder fs-5">Nombre del cliente</label>
+                                        <input type="text" id="buscador" class="form-control" placeholder="Buscar por nombre de cliente o razón social">
+                                        <input type="hidden" id="venta_cliente_id" value="0">
                                     </div>
-                                    <div class="col-4 text-center">
+                                    <div class="col-2 text-center">
                                         <label for="" class="form-label fw-bolder fs-5 text-center">Venta</label>
                                         <div class="mt-1">
                                             <input type="radio" id="contado" name="venta-tipo" class="radio" value="1">
@@ -24,7 +25,7 @@
                                             <label for="credito" class="ventaCredito hidden">Crédito</label>
                                         </div>
                                     </div>
-                                    <div class="col-4 text-center">
+                                    <div class="col-5 text-center">
                                         <label for="descuento" class="form-label fw-bolder fs-5">Descuento %</label>
                                         <div class="input-group">
                                             <div class="input-group-text">
@@ -233,8 +234,20 @@
                                 <div class="modal-body flex-grow-1 form-horizontal">
                                     <div class="mb-1 form-group row">
                                         <div class="w-100 mb-1">
-                                            <label class="form-label fw-bolder fs-5" for="pago-monto">Monto</label>
+                                            <label class="form-label fw-bolder fs-5" for="pago-total">Total</label>
+                                            <input type="text" class="form-control deshabilitado" id="pago-total" readonly>
+                                        </div>
+                                        <div class="w-100 mb-1">
+                                            <label class="form-label fw-bolder fs-5" for="pago-monto">Pendiente</label>
                                             <input type="text" class="form-control deshabilitado" id="pago-monto" readonly>
+                                        </div>
+                                        <div class="w-100 mb-1 infoPago">
+                                            <label class="form-label fw-bolder fs-5" for="pago-recibido">Pago</label>
+                                            <input type="text" class="form-control" id="pago-recibido" placeholder="0.00">
+                                        </div>
+                                        <div class="w-100 mb-1 infoPago">
+                                            <label class="form-label fw-bolder fs-5" for="pago-cambio">Cambio</label>
+                                            <input type="text" class="form-control deshabilitado" id="pago-cambio" placeholder="0.00" readonly>
                                         </div>
                                         <div class="w-100">
                                             <label class="form-label fw-bolder fs-5" for="pago-forma_pago">Método de Pago</label>
@@ -275,6 +288,7 @@
             aplicar = 0,
             desc_cli = 0,
             tipo = 1,
+            continuar = true,
             eliminarDet = true,
             cargarV = true,
             recargar = false,
@@ -298,14 +312,42 @@
             'venta_id': collection
         });
 
-        <?php if(!$nueva) : ?> $('.title h2').html('Venta '+'<?= $folio ?>')
+        <?php if(!$nueva) : ?> 
+            $('.title h2').html('Venta '+'<?= $folio ?>')
+            $('#buscador').val('<?= $venta->cliente ?>').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+            $('#venta_cliente_id').val(<?= $venta->cliente_id ?>);
+            setTimeout(() => {
+                $('#venta_cliente_id').trigger('change');   
+                cargarVenta();
+            }, 2000);
         <?php else : ?> $('.title h2').html('Venta')
         <?php endif; ?>
 
-        getClientes()
+        let findClientes = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: {
+                url: `${apiUrl}/cliente/getBy/%QUERY`,
+                wildcard: '%QUERY'
+            }
+        });
+
+        $('#buscador').typeahead(
+            {hint: true, highlight: true, minLength: 2}, 
+            {display: 'cliente', source: findClientes}
+        );
+        
+        $('#buscador').bind('typeahead:select', function(ev, suggestion) {
+            let cliente_id = suggestion.id;
+            if($.isNumeric(cliente_id) && cliente_id > 0){
+                $('#buscador').val(suggestion.cliente);
+                $('#venta_cliente_id').val(cliente_id).trigger('change');
+            }
+        });
+
         getItems('tbl-prods')
 
-        $('#clientes').on('change', function(){
+        $('#venta_cliente_id').on('change', function(){
             $.blockUI()
             id = $(this).val()
             $('#aplicar').prop('checked', false).trigger('change')
@@ -550,6 +592,7 @@
             e.preventDefault()
             btn = $(this)
             btn.attr('disabled', true).prop('disabled', true)
+            subtotal = parseFloat($('#venta-subtotal').val());
             total = parseFloat($('#venta-total').val())
             cadenaTotal = total.toString();
             devolver = cadenaTotal.replace("-", "");
@@ -561,6 +604,21 @@
                 'pagado': parseFloat($('#total-pagado').val()),
                 'total': parseFloat($('#venta-total').val()),
             }
+
+            data.detalles = []
+            $.each($('#tbl-detalles tbody tr'), function(index, tr){
+                if($(tr).is(':visible') && !$(tr).hasClass('nodata')){
+                    detalle = {
+                        'detalle_id': $(tr).data('detalle_id'), 
+                        'clave': $(tr).data('clave'), 
+                        'producto_id': $(tr).data('producto_id'), 
+                        'cantidad': $(tr).find('.cant').val(),
+                        'precio': $(tr).find('.precio').text().replace('$', '').replace(' ', '')
+                    }
+                    data.detalles.push(detalle)
+                }
+            })
+
             <?php if($venta->date === date('d/m/Y')) : ?>
                 if(total < 0){
                     swal({
@@ -573,11 +631,12 @@
                         confirmButtonText: "¡Devolver!",
                         closeOnConfirm: false 
                     },function(){
+                        console.log(data)
                         $.post(apiUrl+'venta/devEfectivo', data, function(resp){
                             if(resp.response){
                                 swal("¡Hecho!",	"Devolución exitosa", "success");
                                 ticket($.md5(data.venta_id.toString()))
-                                window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
+                                // window.location.href = '< ?= URL_DEL ?>?project_id=< ?= PROJECT_ID ?>&coleccion='+collection
                             }else{
                                 swal("¡Ocurrió un problema!", "No pudimos realizar la devolución", "error")
                             }
@@ -587,6 +646,7 @@
                     guardar()
                 }else{
                     $('#frm-pago h4').html('agregar pago')
+                    $('#pago-total').val((subtotal).toFixed(2))
                     $('#pago-monto').val((total).toFixed(2))
                     $('#frm-pago').modal('show')
                     btn.attr('disabled', false).prop('disabled', false)
@@ -604,6 +664,27 @@
                     btn.attr('disabled', false).prop('disabled', false)
                 }
             <?php endif; ?>
+        })
+
+        $('#pago-forma_pago').on('change', function(){
+            val = $(this).val()
+            if(val == 1) $('.infoPago').removeClass('hidden')
+            else $('.infoPago').show().addClass('hidden')
+        })
+
+        $('#pago-recibido').on('change', function(){
+            pendiente = parseFloat($('#pago-monto').val())
+            recibido = parseFloat($(this).val())
+            if(recibido == ''){
+                error('pago-recibido', 'Ingrese la cantidad con la que está pagando el cliente')
+            }else if(recibido == 0){
+                error('pago-recibido', 'La cantidad con la que paga el cliente debe ser mayor a 0')
+            }else if(recibido < pendiente){
+                error('pago-recibido', 'La cantidad con la que paga el cliente debe ser mayor o igual al monto pendiente de la venta')
+            }else{
+                cambio = parseFloat(recibido-pendiente).toFixed(2)
+                $('#pago-cambio').val(cambio)
+            }
         })
 
         $('#btnSave').click(function(e){
@@ -633,23 +714,6 @@
                 $('#frm-pago').modal('hide');
             }
         })
-
-        function getClientes(){
-            $.blockUI()
-            $.get(apiUrl+'cliente/getCli', function(resp){
-                $.each(resp, function(index, item){
-                    $('#clientes').append('<option value="'+item.id+'">'+item.cliente+'</option>')
-                })
-                <?php if($nueva) : ?>
-                    $('#clientes').val(1)
-                <?php else : ?>
-                    $('#clientes').val(<?= $venta->cliente_id ?>).attr('disabled', true).prop('disabled', true).addClass('deshabilitado')
-                <?php endif; ?>
-                $('#clientes').trigger('change')
-                cargarVenta()
-                $.unblockUI()
-            },'json')
-        }
 
         function getItems(tbl){
             cleanTable(tbl)
@@ -726,6 +790,7 @@
         }
 
         function addPago(data){
+            console.log(data);
             container = $('#tbl-pagos tbody')
             $('#tbl-pagos tbody .nodataPagos').remove();
             tr = $('<tr class="pago" data-pago_id="'+data.id+'"></tr>')
@@ -770,8 +835,9 @@
             pagado = parseFloat($('#total-pagado').val()).toFixed(2)
             resta = parseFloat($('#venta-total').val()).toFixed(2)
             total = (parseFloat(pagado)+parseFloat(resta)).toFixed(2)
+            pendiente = parseFloat($('#pago-monto').val()).toFixed(2);
             data = {
-                cliente_id: $('#clientes').val(),
+                cliente_id: $('#venta_cliente_id').val(),
                 tipo: tipo,
                 subtotal: subtotal,
                 descuento: descuento,
@@ -791,10 +857,38 @@
                     data.detalles.push(detalle)
                 }
             })
-            if($('#clientes').val() == 1 || tipo == 1){
-                data.pago = {
-                    'monto': $('#venta-total').val(),
-                    'forma_pago': $('#pago-forma_pago').val()
+            if($('#venta_cliente_id').val() == 1 || tipo == 1){
+                continuar = false
+                if($('.infoPago').is(':visible')){
+                    recibido = $('#pago-recibido').val()
+                    if(recibido == ''){
+                        error('pago-recibido', 'Ingrese la cantidad con la que está pagando el cliente')
+                        $('#btnSave').attr('disabled', false).prop('disabled', false)
+                    }else if(recibido == 0){
+                        error('pago-recibido', 'La cantidad con la que paga el cliente debe ser mayor a 0')
+                        $('#btnSave').attr('disabled', false).prop('disabled', false)
+                    }else if(parseFloat(recibido) < pendiente){
+                        error('pago-recibido', 'La cantidad con la que paga el cliente debe ser mayor o igual al total de la venta')
+                        $('#btnSave').attr('disabled', false).prop('disabled', false)
+                    }else{
+                        cambio = parseFloat(recibido-pendiente).toFixed(2)
+                        $('#pago-cambio').val(cambio)
+                        data.pago = {
+                            'monto': pendiente,
+                            'monto_recibido': recibido,
+                            'cambio': cambio,
+                            'forma_pago': $('#pago-forma_pago').val()
+                        }
+                        continuar = true
+                    }
+                }else{
+                    data.pago = {
+                        'monto': data.total,
+                        'monto_recibido': 0,
+                        'cambio': 0,
+                        'forma_pago': $('#pago-forma_pago').val()
+                    }
+                    continuar = true
                 }
             }
             if(data.detalles.length == 0){
@@ -802,12 +896,16 @@
                 btn.attr('disabled', false).prop('disabled', false)
                 $.unblockUI()
             }else{
+                console.log(data)
                 venta_id = '<?= $venta_id ?>'
-                $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
-                    toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
-                    eliminarDet = false
-                    ticket($.md5(venta_id.toString()))
-                })
+                if(continuar){
+                    console.log('x')
+                    $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
+                        toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
+                        eliminarDet = false
+                        ticket($.md5(venta_id.toString()))
+                    })
+                }
             }
         }
 

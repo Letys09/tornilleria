@@ -11,11 +11,12 @@
                             <div class="card-header-venta fw-bolder fs-5 text-uppercase" data-bs-toggle="collapse" href="#cliente" role="button" aria-expanded="true" aria-controls="cliente" style="background-color: #04aa6d; color:white;" id="header-cliente"><span><i class="fas fa-caret-down ms-1 me-1"></i>&nbsp;Cliente</span></div>
                             <div class="card-body" id="cliente">
                                 <div class="d-flex">
-                                    <div class="col-4">
-                                        <label for="clientes" class="form-label fw-bolder fs-5">Nombre del cliente</label>
-                                        <select class="form-control" id="clientes"></select>
+                                    <div class="col-5">
+                                        <label for="buscador" class="form-label fw-bolder fs-5">Nombre del cliente</label>
+                                        <input type="text" id="buscador" class="form-control" placeholder="Buscar por nombre de cliente o razón social">
+                                        <input type="hidden" id="venta_cliente_id" value="0">
                                     </div>
-                                    <div class="col-4 text-center">
+                                    <div class="col-2 text-center">
                                         <label for="" class="form-label fw-bolder fs-5 text-center">Venta</label>
                                         <div class="mt-1">
                                             <input type="radio" id="contado" name="venta-tipo" class="radio" value="1">
@@ -24,7 +25,7 @@
                                             <label for="credito" class="ventaCredito hidden">Crédito</label>
                                         </div>
                                     </div>
-                                    <div class="col-4 text-center">
+                                    <div class="col-5 text-center">
                                         <label for="descuento" class="form-label fw-bolder fs-5">Descuento %</label>
                                         <div class="input-group">
                                             <div class="input-group-text">
@@ -288,7 +289,27 @@
             contador = 0;
 
         $('.title h2').html('Segunda Venta');
-        getClientes()
+        let findClientes = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: {
+                url: `${apiUrl}/cliente/getBy/%QUERY`,
+                wildcard: '%QUERY'
+            }
+        });
+
+        $('#buscador').typeahead(
+            {hint: true, highlight: true, minLength: 2}, 
+            {display: 'cliente', source: findClientes}
+        );
+        
+        $('#buscador').bind('typeahead:select', function(ev, suggestion) {
+            let cliente_id = suggestion.id;
+            if($.isNumeric(cliente_id) && cliente_id > 0){
+                $('#buscador').val(suggestion.cliente);
+                $('#venta_cliente_id').val(cliente_id).trigger('change');
+            }
+        });
         getItems('tbl-prods');
 
         document.addEventListener ("keydown", function (e) {
@@ -389,7 +410,7 @@
             })
         })
 
-        $('#clientes').on('change', function(){
+        $('#venta_cliente_id').on('change', function(){
             $.blockUI()
             id = $(this).val()
             $('#aplicar').prop('checked', false).trigger('change')
@@ -637,7 +658,7 @@
                 toastr['warning']('¡Verifique la información!', 'Debe agregar al menos un producto a la venta')
                 btn.attr('disabled', false).prop('disabled', false)
                 $.unblockUI()
-            }else if($('#clientes').val() == 1 || tipo == 1){
+            }else if($('#venta_cliente_id').val() == 1 || tipo == 1){
                 total = parseFloat($('#venta-total').val())
                 $('#frm-pago h4').html('agregar pago')
                 $('#pago-total').val((total).toFixed(2))
@@ -739,17 +760,6 @@
             return tr.is(ultimaFila);
         }
 
-        function getClientes(){
-            $.blockUI()
-            $.get(apiUrl+'cliente/getCli', function(resp){
-                $.each(resp, function(index, item){
-                    $('#clientes').append('<option value="'+item.id+'">'+item.cliente+'</option>')
-                })
-                $('#clientes').val(1).trigger('change')
-                $.unblockUI()
-            },'json')
-        }
-
         function getItems(tbl){
             cleanTable(tbl)
             $('#'+tbl+' tbody').empty()
@@ -815,7 +825,7 @@
             descuento = $('#venta-descuento').is(':visible') ? $('#venta-descuento').val() : 0
             total = $('#venta-total').val()
             data = {
-                cliente_id: $('#clientes').val(),
+                cliente_id: $('#venta_cliente_id').val(),
                 tipo: tipo,
                 subtotal: subtotal,
                 descuento: descuento,
@@ -835,7 +845,7 @@
                     data.detalles.push(detalle)
                 }
             })
-            if($('#clientes').val() == 1 || tipo == 1){
+            if($('#venta_cliente_id').val() == 1 || tipo == 1){
                 continuar = false
                 if($('.infoPago').is(':visible')){
                     recibido = $('#pago-recibido').val()
