@@ -8,10 +8,10 @@
          </ul>
         <div class="user-profile">
             <div class="profile-img">
-                <?php if($_SESSION['foto']) : ?>
+                <?php if($_SESSION['foto'] && $_SESSION['foto'] != '') : ?>
                     <img class="round" src="<?= URL_DATA ?>empleado/foto<?= $id ?>.jpg" alt="avatar" width="40" height="70">
                 <?php else: ?>
-                    <img class="round" src="<?= URL_DATA ?>empleado/profile.png" alt="avatar" width="40" height="70">
+                    <img class="round" src="<?= URL_DATA ?>" alt="avatar" width="40" height="70">
                 <?php endif; ?>
 			</div>
 			<div class="profile-text">

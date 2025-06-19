@@ -114,10 +114,10 @@
                             <span class="user-name fw-bolder"><?= $nombreEmp ?></span>
                         </div>
                         <span class="avatar">
-                        <?php if($_SESSION['foto']) : ?>
+                        <?php if($_SESSION['foto'] && $_SESSION['foto'] != '') : ?>
                             <img class="round" src="<?= URL_DATA ?>empleado/foto<?= $id ?>.jpg" alt="avatar" width="40" height="40">
                         <?php else : ?>
-                            <img class="round" src="<?= URL_DATA ?>empleado/profile.png" alt="avatar" width="40" height="40">
+                            <img class="round" src="<?= URL_DATA ?>" alt="avatar" width="40" height="40">
                         <?php endif; ?>
                             <span class="avatar-status-online"></span>
                         </span>
