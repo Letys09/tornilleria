@@ -13,8 +13,8 @@
                                 <div class="d-flex">
                                     <div class="col-5">
                                         <label for="buscador" class="form-label fw-bolder fs-5">Nombre del cliente</label>
-                                        <input type="text" id="buscador" class="form-control" placeholder="Buscar por nombre de cliente o razón social">
-                                        <input type="hidden" id="venta_cliente_id" value="0">
+                                        <input type="text" id="buscador" class="form-control" placeholder="Público en General">
+                                        <input type="hidden" id="venta_cliente_id" value="1">
                                     </div>
                                     <div class="col-2 text-center">
                                         <label for="" class="form-label fw-bolder fs-5 text-center">Venta</label>
@@ -239,7 +239,7 @@
                         </div>
                         <div class="buttonsEnd">
                             <button type="button" class="btn btn-outline-secondary mb-1" id="btnCancel">Cancelar</button>
-                            <button type="button" class="btn btn-new-info mb-1 data-submit" id="btnContinuar"></button>
+                            <button type="button" class="btn btn-new-info mb-1 data-submit" id="btnContinuar">Cobrar</button>
                             <input type="hidden" id="prod_id" value="0">
                         </div>
                     </div>
@@ -282,6 +282,28 @@
                                         <button type="button" class="btn btn-success mb-1" id="btnSave">Guardar</button>
                                         <input type="hidden" id="pago_id" value="0">
                                     </div>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
+
+                    <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-cantidad">
+                        <div class="modal-dialog modal-sm modal-dialog-centered">
+                            <form class="modal-content pt-0">
+                                <div class="modal-header" style="background-color: #04aa6d; justify-content: center;">
+                                    <h5 class="modal-title text-uppercase text-center text-white fw-bolder">número de piezas</h5>
+                                </div>
+                                <div class="modal-body flex-grow-1 form-horizontal">
+                                    <div class="row text-center">
+                                        <p></p>
+                                        <div class="px-4">
+                                            <input type="number" class="form-control" id="prod_cantidad" value="1" min="1" palceholder="Cantidad a agregar">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer justify-content-center py-0">
+                                    <input type="hidden" id="prod_cantidad_add" value="0">
+                                    <button type="button" class="btn btn-success mb-1" id="btnAddCant" data-kilo="0">AGREGAR</button>
                                 </div>
                             </form>
                         </div>
@@ -349,7 +371,15 @@
         });
 
         document.addEventListener ("keydown", function (e) {
+            const tag = e.target.tagName.toLowerCase();
+            const isInput = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+
+            if (isInput && $('#frm-cantidad').is(':visible')) {
+                return;
+            }
+
             if(e.which === 27) {
+                $('#frm-cantidad').modal('hide');
                 $('#frm-pago').modal('hide');
             }
 
@@ -559,14 +589,14 @@
             $.blockUI();
             delSeleccion();
             agregar = true;
-            prod_id = $(this).data('id')
-            es_kilo = $(this).data('kilo')
-            tr = $(this).closest('tr');
+            let prod_id = $(this).data('id'),
+                es_kilo = $(this).data('kilo'),
+                tr = $(this).closest('tr');
             $(tr).addClass('selected');
-            selectedRowIndex = $(tr).index();
-            clave = $(tr).find('td:eq(1)').text();
-            desc = $(tr).find('td:eq(2)').text();
-            concepto = '('+clave+') '+desc;
+            let selectedRowIndex = $(tr).index(),
+                clave = $(tr).find('td:eq(1)').text(),
+                desc = $(tr).find('td:eq(2)').text(),
+                concepto = '('+clave+') '+desc;
             if($('#tbl-detalles tbody tr').length != 0) {
                 $('.nodata').remove()
                 $.each($('#tbl-detalles tbody tr'), function(index, tr){
@@ -587,40 +617,14 @@
                         if(respStock){
                             if(respStock.final >= 1){
                                 stockDisp = parseFloat(respStock.final)
-                                let stock = (stockDisp.toFixed(1)).toString()
-                                $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
-                                    $('.name_prod').html('<b>'+concepto+'</b>')
-                                    $.each(resp, function(index, item){
-                                        $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
-                                    })
-                                    mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
-                                    $('#precio-distribuidor').val(parseInt(mayoreo)+1)
-                                    data = {
-                                        'detalle_id': '', 
-                                        'producto_id': prod_id, 
-                                        'cantidad': '1.0', 
-                                        'stock': stock, 
-                                        'clave': clave, 
-                                        'desc': desc, 
-                                        'concepto': concepto, 
-                                        'precio': resp.precio_menudeo, 
-                                        'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
-                                        'es_kilo': '0'
-                                    }
-                                    <?php if(!$nueva) : ?>
-                                        data['venta_id'] = '<?= $venta_id ?>'
-                                        data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
-                                        $.post(apiUrl+'venta_detalle/add/', data, function(res){
-                                            if(res.response){
-                                                data['detalle_id'] = res.result
-                                                addFirebase(data)
-                                            }
-                                        },'json')
-                                    <?php else : ?>        
-                                        addFirebase(data)
-                                    <?php endif; ?>
-                                    getTotales()
-                                },'json')
+                                let stock = (stockDisp.toFixed(1)).toString();
+                                $('#frm-cantidad p').html(`<b>CLAVE: ${clave}</b>`);
+                                $('#prod_cantidad_add').val(prod_id);
+                                $('#prod_cantidad').data('kilo', es_kilo);
+                                $('#prod_cantidad').data('clave', clave);
+                                $('#prod_cantidad').data('desc', desc);
+                                $('#frm-cantidad').modal('show');
+                                $.unblockUI()
                             }else{
                                 toastr['error']('¡Stock insuficiente!', 'No hay suficiente stock del producto')
                                 $.unblockUI()
@@ -630,56 +634,13 @@
                             $.unblockUI()
                         }
                     },'json')
-                }else{
-                    $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
-                        $.each(resp, function(index, item){
-                            $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
-                        })
-                        mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
-                        $('#precio-distribuidor').val(parseInt(mayoreo)+1)
-                        data = {
-                            'detalle_id': '', 
-                            'producto_id': prod_id, 
-                            'cantidad': '1.0', 
-                            'clave': clave, 
-                            'desc': desc, 
-                            'concepto': concepto, 
-                            'precio': resp.precio_menudeo, 
-                            'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
-                        }
-                        $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/1', function(respStock){
-                            $('.name_prod').html('<b>'+concepto+'</b>')
-                            if(respStock.response){
-                                data['es_kilo'] = respStock.cant_necesaria.toFixed(1)
-                                data['stock'] = respStock.stock_disp
-                                if(respStock.max < 1){
-                                    data['cantidad'] = respStock.max;
-                                }
-                                <?php if(!$nueva) : ?>
-                                    data['venta_id'] = '<?= $venta_id ?>'
-                                    data['importe'] = parseFloat(1*resp.precio_menudeo).toFixed(2)
-                                    $.post(apiUrl+'venta_detalle/add/', data, function(res){
-                                        if(res.response){
-                                            data['detalle_id'] = res.result
-                                            addFirebase(data)
-                                        }
-                                    },'json')
-                                <?php else : ?>        
-                                    addFirebase(data)
-                                <?php endif; ?>
-                                getTotales() 
-                                $.unblockUI()
-                            }else{
-                                toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
-                                if($('#tbl-detalles tbody tr').length == 0) 
-                                    $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
-                                $.unblockUI()
-                            }
-                        },'json')
-                    },'json')
                 }
             }
         })
+
+        $('#frm-cantidad').on('shown.bs.modal', function () {
+            $('#prod_cantidad').val(1).focus();
+        });
 
         $('#tbl-detalles').on('change', '.cant', function(){
             $.blockUI()
@@ -748,6 +709,111 @@
             }
         })
 
+        $('body').on('change', '#prod_cantidad', function(){
+            let elem = $(this)
+            let cantidad = parseFloat($(elem).val());
+            let prod_id = $('#prod_cantidad_add').val();
+            let kilo = $('#prod_cantidad').data('kilo');
+            $('#btnAddCant').attr('disabled', false).prop('disabled', false).removeClass('deshabilitado');
+            if(cantidad < 1 && kilo == 0){
+                toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
+                $(elem).val('1.0')
+                $('#btnAddCant').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+                $.unblockUI()
+            }
+
+            if(kilo == 0){
+                $.get(`${apiUrl}prod_stock/getStock/${prod_id}`, function(resp){
+                    if(cantidad > resp.final){
+                        toastr["error"](`Disponible: ${resp.final} pzas.`, "No hay suficiente stock del producto");
+                        elem.focus().select();
+                        $('#btnAddCant').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+                    }
+                    $.unblockUI()
+                },'json')
+            }else{
+                $.get(`${apiUrl}prod_stock/getStockByKilo/${prod_id}/${cantidad}`, function(resp){
+                    if(resp.response){
+                        if(cantidad > parseFloat(resp.max)){
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            $('.cant').val(resp.max).trigger('change');
+                            $('#btnAddCant').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+                        }
+                    }else{
+                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                        $('#btnAddCant').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+                    }
+                    $.unblockUI();
+                },'json')
+            }
+        });
+
+        $('#btnAddCant').on('click', function(){
+            let elem = $('#prod_cantidad');
+            let cantidad = parseFloat($(elem).val());
+            let prod_id = $('#prod_cantidad_add').val();
+            let kilo = $('#prod_cantidad').data('kilo');
+            let clave = $('#prod_cantidad').data('clave');
+            let desc = $('#prod_cantidad').data('desc');
+            if(cantidad < 1 && kilo == 0){
+                toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
+                $(elem).val('1.0')
+                $.unblockUI()
+            }
+
+            if(kilo == 0){
+                $.get(`${apiUrl}prod_stock/getStock/${prod_id}`, function(respStock){
+                    let stockDisp = parseFloat(respStock.final)
+                    if(cantidad <= stockDisp){
+                        let stock = (stockDisp.toFixed(1)).toString()
+                        $.get(`${apiUrl}producto/getRangos/${prod_id}`, function(resp){
+                            data = {
+                                'detalle_id': '', 
+                                'producto_id': prod_id, 
+                                'cantidad': cantidad, 
+                                'stock': stock, 
+                                'clave': clave, 
+                                'desc': desc, 
+                                'concepto': `(${clave}) ${desc}`, 
+                                'precio': resp.precio_menudeo, 
+                                'total': parseFloat(cantidad*resp.precio_menudeo).toFixed(2), 
+                                'es_kilo': '0'
+                            }
+                            <?php if(!$nueva) : ?>
+                                data['venta_id'] = '<?= $venta_id ?>'
+                                data['importe'] = parseFloat(cantidad*resp.precio_menudeo).toFixed(2)
+                                $.post(`${apiUrl}venta_detalle/add/`, data, function(res){
+                                    if(res.response){
+                                        data['detalle_id'] = res.result
+                                        addFirebase(data)
+                                    }
+                                },'json')
+                            <?php else : ?>        
+                                addFirebase(data)
+                            <?php endif; ?>
+                            getTotales()
+                        },'json')
+                    }else{
+                        toastr["error"](`Disponible: ${stockDisp} pzas.`, "No hay suficiente stock del producto");
+                        elem.focus().select();
+                    }
+                    $.unblockUI()
+                },'json')
+            }else{
+                $.get(`${apiUrl}prod_stock/getStockByKilo/${prod_id}/${cantidad}`, function(resp){
+                    if(resp.response){
+                        if(cantidad > parseFloat(resp.max)){
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            $('.cant').val(resp.max).trigger('change');
+                        }
+                    }else{
+                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                    }
+                    $.unblockUI();
+                },'json')
+            }
+        });
+
         $('#tbl-detalles').on('click', '.btnDelDet', function(e){
             e.preventDefault()
             tr = $(this).parents('tr')
@@ -771,6 +837,11 @@
                 $('#pago-total').val((total).toFixed(2))
                 $('#frm-pago').modal('show')
                 btn.attr('disabled', false).prop('disabled', false)
+            }else if($('#venta_cliente_id').val() == 0){
+                continuar = false
+                toastr['warning']('¡Verifique la información!', 'Debe seleccionar un cliente')
+                btn.attr('disabled', false).prop('disabled', false)
+                $.unblockUI()
             }else{
                 guardar()
             }
@@ -935,6 +1006,9 @@
                 'stock': data.stock,
                 'detalle_id': data.detalle_id
             });
+
+            $('#frm-cantidad').modal('hide');
+            $('#bus').focus();
         }
 
         function addPago(data){
@@ -1203,7 +1277,7 @@
                 });
 
                 $('#tbl-prods tbody').on('click', 'tr', function () {
-                    const index = tabla_prods.row(this).index();
+                    const index = $(this).index();
                     if (selectedRowIndex !== index) {
                         selectRow(index);
                     }

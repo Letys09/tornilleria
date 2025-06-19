@@ -152,6 +152,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                         'fecha' => $fecha,
                         'cantidad' => $detalle['cantidad'],
                         'precio' => $detalle['precio'],
+                        'importe' => $total,
                         'total' => $total,
                     ];
                     $addDet = $this->model->venta_detalle->add($dataDet);
