@@ -634,6 +634,25 @@
                             $.unblockUI()
                         }
                     },'json')
+                }else{
+                     $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/1', function(respStock){
+                        if(respStock.response){
+                            stockDisp = parseFloat(respStock.final)
+                            let stock = (stockDisp.toFixed(1)).toString();
+                            $('#frm-cantidad p').html(`<b>CLAVE: ${clave}</b>`);
+                            $('#prod_cantidad_add').val(prod_id);
+                            $('#prod_cantidad').data('kilo', es_kilo);
+                            $('#prod_cantidad').data('clave', clave);
+                            $('#prod_cantidad').data('desc', desc);
+                            $('#frm-cantidad').modal('show');
+                            $.unblockUI()
+                        }else{
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            if($('#tbl-detalles tbody tr').length == 0) 
+                                $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                            $.unblockUI()
+                        }
+                    },'json')
                 }
             }
         })
@@ -800,9 +819,42 @@
                     $.unblockUI()
                 },'json')
             }else{
-                $.get(`${apiUrl}prod_stock/getStockByKilo/${prod_id}/${cantidad}`, function(resp){
-                    if(resp.response){
-                        if(cantidad > parseFloat(resp.max)){
+                $.get(`${apiUrl}prod_stock/getStockByKilo/${prod_id}/${cantidad}`, function(respStock){
+                    if(respStock.response){
+                        if(cantidad <= parseFloat(respStock.max)){
+                            $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
+                                data = {
+                                    'detalle_id': '', 
+                                    'producto_id': prod_id, 
+                                    'cantidad': cantidad, 
+                                    'clave': clave, 
+                                    'desc': desc, 
+                                    'concepto': `(${clave}) ${desc}`, 
+                                    'precio': resp.precio_menudeo, 
+                                    'total': parseFloat(cantidad*resp.precio_menudeo).toFixed(2), 
+                                }
+
+                                data['es_kilo'] = respStock.cant_necesaria.toFixed(1)
+                                data['stock'] = respStock.stock_disp
+                                if(respStock.max < 1){
+                                    data['cantidad'] = respStock.max;
+                                }
+                                <?php if(!$nueva) : ?>
+                                    data['venta_id'] = '<?= $venta_id ?>'
+                                    data['importe'] = parseFloat(cantidad*resp.precio_menudeo).toFixed(2)
+                                    $.post(`${apiUrl}venta_detalle/add/`, data, function(res){
+                                        if(res.response){
+                                            data['detalle_id'] = res.result
+                                            addFirebase(data)
+                                        }
+                                    },'json')
+                                <?php else : ?>        
+                                    addFirebase(data)
+                                <?php endif; ?>
+                                getTotales() 
+                            }, 'json');
+                            $.unblockUI()
+                        }else{
                             toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
                             $('.cant').val(resp.max).trigger('change');
                         }
