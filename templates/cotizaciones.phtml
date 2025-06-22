@@ -159,6 +159,7 @@
                             url: apiUrl+'cotizacion/getAllDataTable',
                             type: 'GET',
                         },
+                        order: [[0, 'desc']],
                         columns: [
                             {data: 'fecha'},
                             {data: 'folio'},
@@ -199,12 +200,15 @@
                                                 feather.icons['file-text'].toSvg({ class: 'font-small-4 me-20' })+
                                             '</button>'+
                                         '</div>'
-                                    );
+                                    )
                                 }
                             },
                             {
                                 targets: 0,
                                 render: function (data, type, full, meta) {
+                                    if (type === 'sort') {
+                                        return full['id'];
+                                    }
                                     var salida =
                                         '<div class="d-flex flex-column text-center">' +
                                             '<span >' +

@@ -11,12 +11,13 @@
                             <div class="card-header-venta fw-bolder fs-5 text-uppercase" data-bs-toggle="collapse" href="#cliente" role="button" aria-expanded="true" aria-controls="cliente" style="background-color: darkgray; color:white;"><span><i class="fas fa-caret-down ms-1 me-1"></i>&nbsp;Cliente</span></div>
                             <div class="card-body" id="cliente">
                                 <div class="d-flex">
-                                    <div class="form-group row">
-                                        <label class="col-sm-4 form-label fw-bolder fs-5" for="clientes">Nombre del cliente</label>
-                                        <div class="col-sm-8">
-                                            <select class="form-control" id="clientes"></select>
+                                        <div class="col-3 text-center">
+                                            <label class="col-6 form-label fw-bolder fs-5" for="buscador">Nombre del cliente</label>
                                         </div>
-                                    </div>
+                                        <div class="col-6">
+                                            <input type="text" id="buscador" class="form-control" placeholder="Público en General">
+                                            <input type="hidden" id="cot_cliente_id" value="1">
+                                        </div>
                                     <input type="hidden" id="cotizacion_id" value="0">
                                 </div>
                             </div>
@@ -199,8 +200,39 @@
         <?php else : ?> $('.title h2').html('Cotización')
         <?php endif; ?>
 
-        getClientes()
+        let findClientes = new Bloodhound({
+            datumTokenizer: Bloodhound.tokenizers.obj.whitespace('value'),
+            queryTokenizer: Bloodhound.tokenizers.whitespace,
+            remote: {
+                url: `${apiUrl}/cliente/getBy/%QUERY`,
+                wildcard: '%QUERY'
+            }
+        });
+
+        $('#buscador').typeahead(
+            {hint: true, highlight: true, minLength: 2}, 
+            {display: 'cliente', source: findClientes}
+        );
+        
+        $('#buscador').bind('typeahead:select', function(ev, suggestion) {
+            let cliente_id = suggestion.id;
+            if($.isNumeric(cliente_id) && cliente_id > 0){
+                $('#buscador').val(suggestion.cliente);
+                $('#cot_cliente_id').val(cliente_id).trigger('change');
+            }
+        });
+
         getItems('tbl-prods')
+
+        <?php if($nueva) : ?>
+            $('#cot_cliente_id').val(1)
+        <?php else : ?>
+            $('#buscador').val('<?= $cotizacion->cliente ?>').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+            $('#cot_cliente_id').val(<?= $cotizacion->cliente_id ?>)
+            setTimeout(() => {
+                $('#cot_cliente_id').trigger('change')
+            }, 2000);
+        <?php endif; ?>
 
         $('#btnCancel').click(function(e){
             e.preventDefault()
@@ -233,7 +265,7 @@
             <?php endif; ?>
         })
 
-        $('#clientes').on('change', function(){
+        $('#cot_cliente_id').on('change', function(){
             $.blockUI()
             id = $(this).val()
             cargarCot()
@@ -393,22 +425,6 @@
             },'json')
         })
 
-        function getClientes(){
-            $.blockUI()
-            $.get(apiUrl+'cliente/getCli', function(resp){
-                $.each(resp, function(index, item){
-                    $('#clientes').append('<option value="'+item.id+'">'+item.cliente+'</option>')
-                })
-                <?php if($nueva) : ?>
-                    $('#clientes').val(1)
-                <?php else : ?>
-                    $('#clientes').val(<?= $cotizacion->cliente_id ?>).attr('disabled', true).prop('disabled', true).addClass('deshabilitado')
-                <?php endif; ?>
-                $('#clientes').trigger('change')
-                $.unblockUI()
-            },'json')
-        }
-
         function getItems(tbl){
             cleanTable(tbl)
             $('#'+tbl+' tbody').empty()
@@ -466,7 +482,7 @@
         function guardar(){
             $.blockUI()
             data = {
-                cliente_id: $('#clientes').val(),
+                cliente_id: $('#cot_cliente_id').val(),
                 total: $('#cotizacion-total').val(),
                 comentarios: $.trim($('#cotizacion-comentarios').val()),
             }

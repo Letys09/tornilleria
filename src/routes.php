@@ -247,16 +247,17 @@
 					$detalle->clave = $prod->clave;
 					$detalle->concepto = '('.$prod->clave.') '.$prod->descripcion;
 					$detalle->es_kilo = $prod->es_kilo;
+					$detalle->stock = '0.0';
 					$info_stock = $this->model->prod_stock->getStock($_SESSION['sucursal_id'], $detalle->producto_id);
-					if(is_object($info_stock->result)) $detalle->stock = $info_stock->final;
-					else $detalle->stock = '0.0';
+					if($info_stock->response){
+						if(is_object($info_stock->result)) $detalle->stock = $info_stock->result->final;
+					}
 				}
 				$params['nueva'] = false;
 			}else{
 				$params['nueva'] = true;
 				$params['detalles'] = [];
 			}
-
 			return $this->renderer->render($response, 'cotizacion.phtml', $params);
 		});
 

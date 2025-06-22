@@ -35,7 +35,8 @@ class CotizacionModel {
 	public function getByMD5($venta_id) {
 		return $this->db
 			->from($this->table)
-			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d/%m/%Y') as date, CAST(fecha AS TIME) as hora, DATE_FORMAT(fecha, '%d%m%Y') as fechaFolio")
+			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d/%m/%Y') as date, CAST(fecha AS TIME) as hora, 
+						DATE_FORMAT(fecha, '%d%m%Y') as fechaFolio, CONCAT_WS(' ', cliente.nombre, cliente.apellidos) as cliente")
 			->where("MD5($this->table.id)", $venta_id)
 			->where("$this->table.status != 0")
 			->fetch();
