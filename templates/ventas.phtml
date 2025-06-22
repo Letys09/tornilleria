@@ -373,6 +373,7 @@
                             url: `${apiUrl}venta/getAllDataTable/${fecha}`,
                             type: 'GET',
                         },
+                        order: [[0, 'desc']],
                         columns: [
                             {data: 'fecha'},
                             {data: 'folio'},
@@ -385,48 +386,11 @@
                         ],
                         columnDefs: [
                             {
-                                targets: -1,
-                                title: 'Acciones',
-                                orderable: false,
-                                render: function (data, type, full, meta) {
-                                    id = full['id']; saldo = full['saldo']; cliente_id = full['cliente_id'];
-                                    unlock = full['en_uso'] == 1 ? '' : 'hidden'
-                                    finalizar = full['pendiente'] != 0 ? 'hidden' : ''
-                                    return (
-                                        `<div class="text-center">
-                                            <?php if(in_array(MOD_EDITAR, $permisos)) : ?>
-                                                <button type="button" class="btn btn-outline-new-info btn-sm btnAbrir" data-id="${id}" data-toggle="tooltip" title="Editar" style="margin-right:4px;">
-                                                    ${feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })}
-                                                </button>
-                                            <?php endif; ?>
-                                            <?php if(in_array(MOD_ADDPAGO, $permisos)) : ?>
-                                                <button type="button" class="btn btn-outline-dark btn-sm btnAddPago" data-id="${id}" data-saldo="${saldo}" data-cliente="${cliente_id}" data-toggle="tooltip" title="Pagar" style="margin-right:4px;">
-                                                    ${feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' })}
-                                                </button>
-                                            <?php endif; ?>
-                                            <?php if(in_array(MOD_FINALIZAR, $permisos)) : ?>
-                                                <button type="button" class="btn btn-outline-new-success btn-sm btnFinalizar ${finalizar}" data-id="${id}" data-toggle="tooltip" title="Finalizar venta" style="margin-right:4px;">
-                                                    ${feather.icons['check'].toSvg({ class: 'font-small-4 me-20' })}
-                                                </button>
-                                            <?php endif; ?>
-                                            <button type="button" class="btn btn-outline-warning btn-sm btnDesbloquear ${unlock}" data-id="${id}" data-toggle="tooltip" title="Desbloquear" style="margin-right:4px;">
-                                                ${feather.icons['unlock'].toSvg({ class: 'font-small-4 me-20' })}
-                                            </button>
-                                            <button type="button" class="btn btn-outline-dark btn-sm btnTicket" data-id="${id}" data-toggle="tooltip" title="Imprimir ticket" style="margin-right:4px;">
-                                                ${feather.icons['file-text'].toSvg({ class: 'font-small-4 me-20' })}
-                                            </button>
-                                            <?php if(in_array(MOD_DEL_CREDITO, $permisos)) : ?>
-                                                <button type="button" class="btn btn-outline-danger btn-sm btnDelete" data-id="${id}" data-toggle="tooltip" title="Eliminar venta" style="margin-right:4px;">
-                                                    ${feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })}
-                                                </button>
-                                            <?php endif; ?>
-                                        </div>`
-                                        );
-                                    }
-                            },
-                            {
                                 targets: 0,
                                 render: function (data, type, full, meta) {
+                                    if (type === 'sort') {
+                                        return full['id'];
+                                    }
                                     var salida =
                                         '<div class="d-flex flex-column text-center">' +
                                             '<span >' +
@@ -475,8 +439,47 @@
                                     return salida;
                                 }
                             },
+                            {
+                                targets: -1,
+                                title: 'Acciones',
+                                orderable: false,
+                                render: function (data, type, full, meta) {
+                                    id = full['id']; saldo = full['saldo']; cliente_id = full['cliente_id'];
+                                    unlock = full['en_uso'] == 1 ? '' : 'hidden'
+                                    finalizar = full['pendiente'] != 0 ? 'hidden' : ''
+                                    return (
+                                        `<div class="text-center">
+                                            <?php if(in_array(MOD_EDITAR, $permisos)) : ?>
+                                                <button type="button" class="btn btn-outline-new-info btn-sm btnAbrir" data-id="${id}" data-toggle="tooltip" title="Editar" style="margin-right:4px;">
+                                                    ${feather.icons['edit'].toSvg({ class: 'font-small-4 me-20' })}
+                                                </button>
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_ADDPAGO, $permisos)) : ?>
+                                                <button type="button" class="btn btn-outline-dark btn-sm btnAddPago" data-id="${id}" data-saldo="${saldo}" data-cliente="${cliente_id}" data-toggle="tooltip" title="Pagar" style="margin-right:4px;">
+                                                    ${feather.icons['dollar-sign'].toSvg({ class: 'font-small-4 me-20' })}
+                                                </button>
+                                            <?php endif; ?>
+                                            <?php if(in_array(MOD_FINALIZAR, $permisos)) : ?>
+                                                <button type="button" class="btn btn-outline-new-success btn-sm btnFinalizar ${finalizar}" data-id="${id}" data-toggle="tooltip" title="Finalizar venta" style="margin-right:4px;">
+                                                    ${feather.icons['check'].toSvg({ class: 'font-small-4 me-20' })}
+                                                </button>
+                                            <?php endif; ?>
+                                            <button type="button" class="btn btn-outline-warning btn-sm btnDesbloquear ${unlock}" data-id="${id}" data-toggle="tooltip" title="Desbloquear" style="margin-right:4px;">
+                                                ${feather.icons['unlock'].toSvg({ class: 'font-small-4 me-20' })}
+                                            </button>
+                                            <button type="button" class="btn btn-outline-dark btn-sm btnTicket" data-id="${id}" data-toggle="tooltip" title="Imprimir ticket" style="margin-right:4px;">
+                                                ${feather.icons['file-text'].toSvg({ class: 'font-small-4 me-20' })}
+                                            </button>
+                                            <?php if(in_array(MOD_DEL_CREDITO, $permisos)) : ?>
+                                                <button type="button" class="btn btn-outline-danger btn-sm btnDelete" data-id="${id}" data-toggle="tooltip" title="Eliminar venta" style="margin-right:4px;">
+                                                    ${feather.icons['trash'].toSvg({ class: 'font-small-4 me-20' })}
+                                                </button>
+                                            <?php endif; ?>
+                                        </div>`
+                                        );
+                                    }
+                            }
                         ],
-                        order: [[1, 'desc']], 
                         dom:
                             '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
                             '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +

@@ -207,6 +207,7 @@
                             url: apiUrl+'venta/getAllByDay/'+fecha,
                             type: 'GET',
                         },
+                        order: [[0, 'desc']],
                         columns: [
                             {data: 'fecha'},
                             {data: 'folio'},
@@ -215,7 +216,37 @@
                             {data: 'total'},
                             {data: ''}
                         ],
-                        columnDefs: [
+                        columnDefs: [  
+                            {
+                                targets: 0,
+                                render: function (data, type, full, meta) {
+                                    if (type === 'sort') {
+                                        return full['id'];
+                                    }
+                                    var salida =
+                                        '<div class="d-flex flex-column">' +
+                                            '<span >' +
+                                                full['fecha'] +
+                                            '</span>' +
+                                            '<small class="emp_post text-muted">' +
+                                            full['hora'] +
+                                            '</small>' +
+                                        '</div>';
+                                    return salida;
+                                }
+                            },                          
+                            {
+                                targets: 4,
+                                render: function (data, type, full, meta) {
+                                    var salida =
+                                        '<div class="d-flex flex-column text-end">' +
+                                            '<span > $' +
+                                                full['total'] +
+                                            '</span>' +
+                                        '</div>';
+                                    return salida;
+                                }
+                            }, 
                             {
                                 targets: -1,
                                 title: 'Acciones',
@@ -243,36 +274,8 @@
                                         </div>`
                                     );
                                 }
-                            },  
-                            {
-                                targets: 0,
-                                render: function (data, type, full, meta) {
-                                    var salida =
-                                        '<div class="d-flex flex-column">' +
-                                            '<span >' +
-                                                full['fecha'] +
-                                            '</span>' +
-                                            '<small class="emp_post text-muted">' +
-                                            full['hora'] +
-                                            '</small>' +
-                                        '</div>';
-                                    return salida;
-                                }
-                            },                          
-                            {
-                                targets: 4,
-                                render: function (data, type, full, meta) {
-                                    var salida =
-                                        '<div class="d-flex flex-column text-end">' +
-                                            '<span > $' +
-                                                full['total'] +
-                                            '</span>' +
-                                        '</div>';
-                                    return salida;
-                                }
-                            },                          
+                            }                         
                         ],
-                        order: [[1, 'desc']], 
                         dom:
                             '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
                             '<"col-sm-12 col-lg-2 d-flex justify-content-center justify-content-lg-start" f>' +
