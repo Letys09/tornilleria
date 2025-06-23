@@ -200,10 +200,15 @@
 			$params['folio'] = $params['venta']->folio;
 			$params['atendio'] = $this->model->usuario->get($params['venta']->usuario_id)->result->nombre;
 			if($params['venta']->tipo == 1){
-				$info_pago = $this->model->venta_pago->getByVenta($params['venta']->id)->result[0];
-				$params['venta']->metodo = $info_pago->forma_pago;
-				$params['venta']->recibido = $info_pago->monto_recibido;
-				$params['venta']->cambio = $info_pago->cambio;
+				$recibido = 0; $cambio = 0;
+				$info_pago = $this->model->venta_pago->getByVenta($params['venta']->id)->result;
+				foreach($info_pago as $pago){
+					$recibido += $pago->monto_recibido;
+					$cambio += $pago->cambio;
+					$params['venta']->metodo = $pago->forma_pago;
+				}
+				$params['venta']->recibido = number_format($recibido, 2, '.', ',');
+				$params['venta']->cambio = number_format($cambio, 2, '.', ',');
 			}
 			$detalles = $this->model->venta_detalle->getByVenta($params['venta']->id)->result;
 			$params['sucursal'] = $this->model->sucursal->get($_SESSION['sucursal_id'])->result;
