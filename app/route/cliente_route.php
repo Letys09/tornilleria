@@ -14,10 +14,21 @@ use App\Lib\Auth,
 
         $this->get('getAllDataTable', function($req, $res, $args){
 			$clientes = $this->model->cliente->getAllDataTable();
-
 			$data = [];
 			if(!isset($_SESSION)) { session_start(); }
 			foreach($clientes->result as $cliente) {
+                $ventas = $this->model->venta->getPendiente($cliente->id);
+                $pendiente = 0; $total = 0; $pagado = 0;
+                if($ventas->response){
+                    foreach($ventas->result as $venta){
+                        $total += $venta->total; 
+                        $pagos = $this->model->venta_pago->getByVenta($venta->id)->result;
+                        foreach($pagos as $pago){
+                            $pagado += $pago->monto;
+                        }
+                    }
+                    $pendiente = $total-$pagado;
+                }
                 $data[] = array(
 					"id" => $cliente->id,
 					"nombre" => $cliente->nombre,
@@ -25,7 +36,7 @@ use App\Lib\Auth,
 					"correo" => $cliente->correo,
 					"telefono" => $cliente->telefono,
 					"descuento" => $cliente->descuento.' %',
-					"saldo" => '$ '.$cliente->saldo_favor,
+					"pendiente" => '$ '.number_format($pendiente, 2, '.', ','),
 				);
 			}
 

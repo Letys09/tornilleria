@@ -228,5 +228,19 @@ class VentaModel {
 		}
 		return $this->response;
 	}
+
+	public function getPendiente($cliente_id){
+		$this->response->result = $this->db
+			->from("$this->table")
+			->select(null)
+			->select("id, total")
+			->where("sucursal_id", $_SESSION['sucursal_id'])
+			->where("cliente_id", $cliente_id)
+			->where("$this->table.tipo", 2)
+			->where("$this->table.status", 2)
+			->fetchAll();
+		if($this->response->result) return $this->response->SetResponse(true);
+		else return $this->response->SetResponse(false);
+	}
 }
 ?>
