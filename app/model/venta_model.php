@@ -51,10 +51,10 @@ class VentaModel {
 			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d-%m-%Y') as date, CAST(fecha AS TIME) as hora, 
 						CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, 
 						CONCAT_WS(' ', cliente.nombre, cliente.apellidos) AS cliente")
+			->where("$this->table.status", 1)
 			->where("DATE_FORMAT(fecha, '%Y-%m-%d') = '$dia' OR DATE_FORMAT(fecha_finaliza, '%Y-%m-%d') = '$dia'")
 			// ->where("tipo", 1)
 			->where("$this->table.sucursal_id", $_SESSION['sucursal_id'])
-			->where("$this->table.status", 1)
 			->fetchAll();
 		if($this->response->result) return $this->response->SetResponse(true);
 		else return $this->response->SetResponse(false, 'No hay visitas del día '.$dia);
