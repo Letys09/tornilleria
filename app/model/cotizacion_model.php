@@ -42,6 +42,18 @@ class CotizacionModel {
 			->fetch();
 	}
 
+	public function getByVenta($venta_id){
+		$this->response = new Response();
+		$this->response->result = $this->db
+			->from($this->table)
+			->select(null)
+			->select("id")
+			->where("venta_id", $venta_id)
+			->fetch();
+		if($this->response->result) return $this->response->SetResponse(true);
+		else return $this->response->SetResponse(false);
+	}
+
 	public function enUso($id){
 		$this->response->result = $this->db
 			->from($this->table)

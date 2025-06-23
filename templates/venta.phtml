@@ -467,8 +467,10 @@
 
         <?php if(!$nueva) : ?>
             $('.title h2').html('Venta '+'<?= $folio ?>')
-            $('#buscador').val('<?= $venta->cliente ?>').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+            $('#buscador').val('<?= $venta->cliente ?>');
             $('#venta_cliente_id').val(<?= $venta->cliente_id ?>);
+            desc_cli = '<?= $venta->descuento ?>';
+            $('#descuento').val(desc_cli).trigger('change');
             setTimeout(() => {
                 $('#venta_cliente_id').trigger('change');   
                 cargarVenta();
@@ -516,40 +518,23 @@
             $.blockUI()
             id = $(this).val()
             $('#aplicar').prop('checked', false).trigger('change')
-            if(id != 1){
-                $.get(apiUrl+'cliente/get/'+id, function(resp){
-                    desc_cli = resp.result.descuento; 
-                    $('#aplicar').attr('disabled', false).prop('disabled', false)
-                    $('.ventaCredito').removeClass('hidden')
-                    $('#descuento').val(resp.result.descuento)
-                    <?php if($nueva) : ?> 
-                        tipo = 2;
-                        $("input[type='radio'][name='venta-tipo']").prop('disabled', false).prop('disabled', false);
-                    <?php else : ?> 
-                        tipo = '<?= $venta->tipo ?>'
-                        $("input[type='radio'][name='venta-tipo']").prop('disabled', true).prop('disabled', true);
-                        descAplicado = '<?= $venta->descuento ?>'
-                        descAplicado != '' && descAplicado != 0 ? $('#aplicar').prop('checked', true) : $('#aplicar').prop('checked', false)
-                        $('#aplicar').attr('disabled', true).prop('disabled', true).trigger('change')
-                    <?php endif; ?>
-                    $("input[type='radio'][name='venta-tipo'][value='"+tipo+"']").prop('checked',true).trigger('change');
-                },'json')
-                $('#btnContinuar').html('Guardar')
-                $.unblockUI()
-            }else{
-                desc_cli = 0; tipo = 1;
-                $('#header-cliente').css('background-color', '#04aa6d')
-                $('#header-productos').css('background-color', '#04aa6d')
-                $('#header-rangos').css('background-color', '#04aa6d')
-                $('#header-prods_agregados').css('background-color', '#04aa6d')
-                $('#header-pagos').css('background-color', '#04aa6d')
-                $('#aplicar').attr('disabled', true).prop('disabled', 'disabled').prop('checked', false)
-                $('.ventaCredito').addClass('hidden')
-                $('#descuento').val('')
-                $("input[type='radio'][name='venta-tipo'][value='1']").prop('checked',true);
-                $('#btnContinuar').html('Cobrar')
-                $.unblockUI()
-            }
+            $.get(apiUrl+'cliente/get/'+id, function(resp){
+                $('#aplicar').attr('disabled', false).prop('disabled', false)
+                $('.ventaCredito').removeClass('hidden')
+                <?php if($nueva || $fromCotizacion) : ?> 
+                    tipo = 2;
+                    $("input[type='radio'][name='venta-tipo']").prop('disabled', false).prop('disabled', false);
+                <?php else : ?> 
+                    tipo = '<?= $venta->tipo ?>'
+                    $("input[type='radio'][name='venta-tipo']").prop('disabled', true).prop('disabled', true);
+                    descAplicado = '<?= $venta->descuento ?>'
+                    descAplicado != '' && descAplicado != 0 ? $('#aplicar').prop('checked', true) : $('#aplicar').prop('checked', false)
+                    $('#aplicar').attr('disabled', true).prop('disabled', true).trigger('change')
+                <?php endif; ?>
+                $("input[type='radio'][name='venta-tipo'][value='"+tipo+"']").prop('checked',true).trigger('change');
+            },'json')
+            $('#btnContinuar').html('Guardar')
+            $.unblockUI()
         })
 
         $('input[type=radio][name=venta-tipo]').on('change', function(){
@@ -574,7 +559,7 @@
         $('#aplicar').change(function(){
             aplicar = $(this).is(':checked') ? 1 : 0;
             if(aplicar){
-                $('#descuento').val(desc_cli)
+                $('#descuento').val(desc_cli).removeClass('deshabilitado').attr('disabled', false).prop('disabled', false)
                 $('#venta-descuento').val(desc_cli)
                 getTotales()
             }else{
@@ -582,6 +567,13 @@
                 $('#venta-descuento').val(0)
                 getTotales()
             }
+        })
+
+        $('#descuento').on('change', function(){
+            let descuento = $(this).val();
+            desc_cli = descuento;
+            $('#venta-descuento').val(desc_cli);
+            getTotales();
         })
 
         $('#tbl-prods').on('click', '.btnAdd', function(e){
@@ -1026,6 +1018,8 @@
                     })
                     $('.ventaPagos').removeClass('hidden')
                 },'json')
+
+                if(desc_cli > 0) $('#aplicar').attr('checked', true).prop('checked', true).trigger('change');
             <?php endif; ?>
                 firebaseChanges()
         }
@@ -1185,6 +1179,7 @@
                     },'json')
                 <?php else : ?>
                     venta_id = '<?= $venta_id ?>'
+                    if(data.tipo == 2 && (parseFloat($('#venta-pagado').val()) < parseFloat($('#venta-total').val()) )) data.status = 2;
                     $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
                         toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
                         eliminarDet = false

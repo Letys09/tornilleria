@@ -316,6 +316,8 @@
             $('.title h2').html('Venta '+'<?= $folio ?>')
             $('#buscador').val('<?= $venta->cliente ?>').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
             $('#venta_cliente_id').val(<?= $venta->cliente_id ?>);
+            desc_cli = '<?= $venta->descuento ?>';
+            $('#descuento').val(desc_cli).trigger('change');
             setTimeout(() => {
                 $('#venta_cliente_id').trigger('change');   
                 cargarVenta();
@@ -353,10 +355,8 @@
             $('#aplicar').prop('checked', false).trigger('change')
             if(id != 1){
                 $.get(apiUrl+'cliente/get/'+id, function(resp){
-                    desc_cli = resp.result.descuento; 
                     $('#aplicar').attr('disabled', false).prop('disabled', false)
                     $('.ventaCredito').removeClass('hidden')
-                    $('#descuento').val(resp.result.descuento)
                     <?php if($nueva) : ?> 
                         tipo = 2;
                         $("input[type='radio'][name='venta-tipo']").prop('disabled', false).prop('disabled', false);
@@ -417,6 +417,13 @@
                 $('#venta-descuento').val(0)
                 getTotales()
             }
+        })
+
+        $('#descuento').on('change', function(){
+            let descuento = $(this).val();
+            desc_cli = descuento;
+            $('#venta-descuento').val(desc_cli);
+            getTotales();
         })
 
         $('#tbl-prods').on('click', '.btnAdd', function(e){

@@ -74,21 +74,24 @@
 			$permisos = $this->model->usuario->getAcciones($user, 0);
 			$arrPermisos = getPermisos($permisos); 
 			$params['permisos'] = $arrPermisos; 
+			$params['fromCotizacion'] = false;
 
 			if(isset($args['id'])){
 				$params['venta'] = $this->model->venta->getByMd5($args['id']);
-				$params['venta_id'] = $params['venta']->id;
+				$venta_id = $params['venta']->id;
+				$params['venta_id'] = $venta_id;
 				$params['folio'] = $params['venta']->folio;
 				$data = ['en_uso' => 1];
-				$this->model->venta->edit($data, $params['venta']->id);
+				$this->model->venta->edit($data, $venta_id);
 				$params['nueva'] = false;
+				$info_cot = $this->model->cotizacion->getByVenta($venta_id);
+				if($info_cot->response) $params['fromCotizacion'] = true;
 			}else{
 				$params['nueva'] = true;
 				$params['detalles'] = [];
 				$params['pagos'] = [];
 			}
 			return $this->renderer->render($response, 'venta.phtml', $params);
-
 		});
 
 		$app->get('/venta/cambio/{id}', function(Request $request, Response $response, array $args) use ($container){

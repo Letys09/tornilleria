@@ -281,6 +281,9 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             $pago = isset($parsedBody['pago']) ? $parsedBody['pago'] : ''; unset($parsedBody['pago']);
             $fecha = date('Y-m-d H:i:s');
             $venta = [
+                'cliente_id' => $parsedBody['cliente_id'],
+                'tipo' => $parsedBody['tipo'],
+                'descuento' => $parsedBody['descuento'],
                 'subtotal' => $parsedBody['subtotal'],
                 'total' => $parsedBody['total'],
                 'comentarios' => $parsedBody['comentarios'],
