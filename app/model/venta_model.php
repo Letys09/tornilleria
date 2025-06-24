@@ -23,13 +23,13 @@ class VentaModel {
         return $this->response->SetResponse(true);
     }
 
-	public function getAllDataTable($fecha){
+	public function getAllDataTable($desde, $hasta){
 		$this->response->result = $this->db
 			->from($this->table)
 			->select("sucursal.identificador, DATE_FORMAT(fecha, '%d-%m-%Y') as date, CAST(fecha AS TIME) as hora, CONCAT_WS(' ', usuario.nombre, usuario.apellidos) as usuario, CONCAT_WS(' ', cliente.nombre, cliente.apellidos) as cliente, cliente.saldo_favor as saldo")
 			->where("tipo", 2)
 			->where("$this->table.sucursal_id", $_SESSION['sucursal_id'])
-			->where("DATE_FORMAT(fecha, '%Y-%m-%d') = '$fecha'")
+			->where("DATE_FORMAT(fecha, '%Y-%m-%d') BETWEEN '$desde' AND '$hasta'")
 			->where("$this->table.status", 2)
 			->fetchAll();
 		return $this->response->SetResponse(true);

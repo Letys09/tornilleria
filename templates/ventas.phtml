@@ -25,7 +25,15 @@
                         <div class="card-body border-bottom">
                             <div class="card-body border-bottom alignRight">
                                 <div class="dt-buttons btn-group">
-                                    <input type="date" id="fecha" class="form-control" data-toggle="tooltip" title="Fecha" value="<?= date('Y-m-d')?>">
+                                    <div class="col-sm me-2">
+                                        <input type="date" id="desde" class="form-control" data-toggle="tooltip" title="Desde" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-01')?>">
+                                    </div>
+                                    <div class="col-sm me-2">
+                                        <input type="date" id="hasta" class="form-control" data-toggle="tooltip" title="Hasta" max="<?= date('Y-m-d')?>" value="<?= date('Y-m-d')?>">
+                                    </div>
+                                    <div>
+                                        <button type="button" class="btn btn-s btn-success" id="btnBuscar"><i class="fas fa-search"></i> Buscar</button>
+                                    </div>
                                 </div>
                             </div>
                             <div class="card-datatable table-responsive pt-0">
@@ -72,12 +80,6 @@
                                                 <div class="w-100">
                                                     <div id="texto" class="alert alert-danger hidden" role="alert"></div>
                                                 </div>
-                                                <!-- <div class="w-100 fin hidden">
-                                                    <label class="form-label fw-bolder fs-5" for="finalizar">Finalizar Venta</label>
-                                                    <div class="form-check form-check-warning form-switch">
-                                                        <input type="checkbox" checked class="form-check-input" id="finalizar" />
-                                                    </div>
-                                                </div> -->
                                             </div>
                                         </div>
                                         <div class="modal-footer">
@@ -132,8 +134,9 @@
 
             getItems('tbl-ventas')
 
-            $('#fecha').change(function(){
-                getItems('tbl-ventas', $(this).val())
+            $('#btnBuscar').click(function(e){
+                e.preventDefault();
+                getItems('tbl-ventas',)
             })
 
             $('#tbl-ventas').on('click', '.btnAbrir', function(){
@@ -366,14 +369,15 @@
             }
 
             function createTable(tbl){
-                let fecha = $('#fecha').val();
+                let desde = $('#desde').val();
+                let hasta = $('#hasta').val();
                 if($('#'+tbl).length){
                     $('#'+tbl).DataTable({
                         ajax:{
-                            url: `${apiUrl}venta/getAllDataTable/${fecha}`,
+                            url: `${apiUrl}venta/getAllDataTable/${desde}/${hasta}`,
                             type: 'GET',
                         },
-                        order: [[0, 'desc']],
+                        order: [[1, 'desc']],
                         columns: [
                             {data: 'fecha'},
                             {data: 'folio'},

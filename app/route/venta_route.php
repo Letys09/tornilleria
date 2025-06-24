@@ -22,8 +22,8 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             return $res->withJson($venta);
         });
 
-        $this->get('getAllDataTable/{fecha}', function($req, $res, $args){
-            $ventas = $this->model->venta->getAllDataTable($args['fecha'])->result;
+        $this->get('getAllDataTable/{desde}/{hasta}', function($req, $res, $args){
+            $ventas = $this->model->venta->getAllDataTable($args['desde'], $args['hasta'])->result;
             $data = [];
             foreach($ventas as $venta){
                 $fecha = explode('-', $venta->date);
