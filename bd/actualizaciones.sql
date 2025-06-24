@@ -50,3 +50,6 @@ ALTER TABLE `sucursal` CHANGE `folio_cotizacion` `folio_cotizacion` VARCHAR(45) 
 INSERT INTO `seg_accion` (`id`, `seg_modulo_id`, `nombre`, `descripcion`, `status`, `url`, `id_html`, `icono`, `visible`) VALUES (NULL, '7', 'Corte de Caja', NULL, '1', '/reporte/corte_caja', NULL, 'fas fa-cash-register', NULL) 
 
 ALTER TABLE `venta_pago` ADD `monto_recibido` DECIMAL(10,2) NULL DEFAULT NULL AFTER `monto`, ADD `cambio` DECIMAL(10,2) NULL DEFAULT NULL AFTER `monto_recibido`; 
+
+-- Bug datos cancelación
+ALTER TABLE `venta` CHANGE `tipo_cancelacion` `tipo_cancelacion` TINYINT(1) NOT NULL COMMENT '1 -> devolución total venta\r\n'; 

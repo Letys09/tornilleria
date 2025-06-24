@@ -426,8 +426,16 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
             $detalles = $this->model->venta_detalle->getByVenta($args['id'])->result;
             $pagos = $this->model->venta_pago->getByVenta($args['id'])->result;
             $fecha = date('Y-m-d H:i:s');
+
+            $dataDel = [
+                'status' => 0,
+                'cancelada' => date('Y-m-d H:i:s'),
+                'tipo_cancelacion' => 1,
+                'motivo_cancela' => 'Devolución total de venta',
+                'usuario_cancela' => $_SESSION['usuario_id'],
+            ];
             
-            $del_venta = $this->model->venta->del($args['id']);
+            $del_venta = $this->model->venta->edit($dataDel, $args['id']);
             if($del_venta->response){
                 foreach($detalles as $detalle){
                     $prod_id = $detalle->producto_id;
