@@ -289,6 +289,7 @@ use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
                 'comentarios' => $parsedBody['comentarios'],
                 'fecha_actualiza' => $fecha,
                 'en_uso' => 0,
+                'status' => $parsedBody['status'],
             ];
             $edit = $this->model->venta->edit($venta, $args['id']);
             if($edit->response){

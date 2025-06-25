@@ -31,7 +31,7 @@
                                             <div class="input-group-text">
                                                 <input class="form-check-input mt-0" type="checkbox" id="aplicar" data-toogle="tooltip" title="Aplicar descuento" disabled>
                                             </div>
-                                            <input type="number" min="0" max="100" class="form-control text-end deshabilitado" id="descuento" value="0">
+                                            <input type="number" min="0" max="100" class="form-control text-end" id="descuento" value="0">
                                         </div>
                                     </div>
                                     <!-- <input type="hidden" id="venta_id" value="0"> -->
@@ -328,6 +328,7 @@
             desc_cli = 0,
             continuar = true,
             tipo = 1,
+            bloquear = true,
             eliminarDet = true,
             cargarV = true,
             firebaseConfig = {
@@ -615,10 +616,24 @@
             $.get(apiUrl+'cliente/get/'+id, function(resp){
                 $('#aplicar').attr('disabled', false).prop('disabled', false)
                 $('.ventaCredito').removeClass('hidden')
-                <?php if($nueva || $fromCotizacion) : ?> 
+                <?php if($nueva) : ?> 
                     tipo = 2;
                     $("input[type='radio'][name='venta-tipo']").prop('disabled', false).prop('disabled', false);
+                    if(parseFloat(resp.result.descuento) > 0){
+                        bloquear = true;
+                        desc_cli = resp.result.descuento;
+                        $('#aplicar').prop('checked', true).trigger('change')
+                    }
+                <?php elseif($fromCotizacion) : ?> 
+                    if(parseFloat(resp.result.descuento) > 0){
+                        bloquear = false;
+                        desc_cli = resp.result.descuento;
+                        $('#aplicar').prop('checked', true).trigger('change')
+                    }
+                    tipo = '<?= $venta->tipo ?>'
+                    $("input[type='radio'][name='venta-tipo']").prop('disabled', false).prop('disabled', false);
                 <?php else : ?> 
+                    bloquear = false;
                     tipo = '<?= $venta->tipo ?>'
                     $("input[type='radio'][name='venta-tipo']").prop('disabled', true).prop('disabled', true);
                     descAplicado = '<?= $venta->descuento ?>'
@@ -652,15 +667,12 @@
 
         $('#aplicar').change(function(){
             aplicar = $(this).is(':checked') ? 1 : 0;
-            if(aplicar){
-                $('#descuento').val(desc_cli).removeClass('deshabilitado').attr('disabled', false).prop('disabled', false)
-                $('#venta-descuento').val(desc_cli)
-                getTotales()
-            }else{
-                $('#descuento').val('').addClass('deshabilitado').attr('disabled', true).prop('disabled', 'disabled')
-                $('#venta-descuento').val(0)
-                getTotales()
-            }
+            if(bloquear) $('#descuento').addClass('deshabilitado');
+            else $('#descuento').removeClass('deshabilitado');
+            $('#descuento').val(desc_cli).attr('disabled', bloquear).prop('disabled', bloquear)
+            if(aplicar == 1) $('#venta-descuento').val(desc_cli)
+            else $('#venta-descuento').val(0)
+            getTotales()
         })
 
         $('#descuento').on('change', function(){
@@ -1168,6 +1180,7 @@
 
         function getTotales(){
             $.blockUI()
+            let aplicar = $('#aplicar').is(':checked') ? 1 : 0;
             subtotal = 0; total = 0; pagado = 0;
             $.each($('#tbl-detalles tbody tr.detalle'), function(index, tr){
                 val = parseFloat($(tr).find('.total').text().replace('$', ''))
@@ -1210,6 +1223,7 @@
                 descuento: descuento,
                 total: total,
                 comentarios: $.trim($('#venta-comentarios').val()),
+                status: 1,
             }
             data.detalles = []
             $.each($('#tbl-detalles tbody tr'), function(index, tr){
@@ -1279,7 +1293,7 @@
                         toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
                         eliminarDet = false
                         ticket($.md5(venta_id.toString()))
-                        window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
+                        window.location.href = '< ?= URL_DEL ?>?project_id=< ?= PROJECT_ID ?>&coleccion='+collection
                     })
                 <?php endif; ?>
             }
