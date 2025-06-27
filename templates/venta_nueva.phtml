@@ -219,7 +219,7 @@
                         </div>
                         <div class="buttonsEnd">
                             <button type="button" class="btn btn-outline-secondary mb-1" id="btnCancel">Cancelar</button>
-                            <button type="button" class="btn btn-new-info mb-1 data-submit" id="btnContinuar"></button>
+                            <button type="button" class="btn btn-new-info mb-1 data-submit" id="btnContinuar">Cobrar</button>
                             <input type="hidden" id="prod_id" value="0">
                         </div>
                     </div>
@@ -384,6 +384,11 @@
             }
 
             if (event.key === 'F1') {
+                event.preventDefault();
+                $('#btnContinuar').trigger('click');
+            }
+
+            if (event.key === 'F2') {
                 event.preventDefault();
                 $('#btnSave').trigger('click');
             }
@@ -603,10 +608,6 @@
                             $(tr).find('.precio').html('$ '+precio)
                             $(tr).find('.total').html('$ '+total)
                             getTotales()
-
-                            if(ultimo()) {
-                                $('#btnContinuar').trigger('click');
-                            }
                         },'json');
                     }else{
                         toastr["error"](`Disponible: ${resp.final} pzas.`, "No hay suficiente stock del producto")
@@ -625,10 +626,6 @@
                                 $(tr).find('.precio').html('$ '+precio)
                                 $(tr).find('.total').html('$ '+total)
                                 getTotales()
-
-                                if(ultimo()) {
-                                    $('#btnContinuar').trigger('click');
-                                }
                             },'json');
                         }else{
                             toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
@@ -754,12 +751,6 @@
             }
         }
 
-        function ultimo() {
-            let rows = getDetalles();
-            let ultimaFila = rows[rows.length - 1];
-            return tr.is(ultimaFila);
-        }
-
         function getItems(tbl){
             cleanTable(tbl)
             $('#'+tbl+' tbody').empty()
@@ -881,7 +872,14 @@
             }
 
             if(continuar){
-                if(data.detalles.length == 0){
+                if(data.cliente_id == 0 || data.cliente_id == null || isNaN(data.cliente_id)){
+                    error('buscador', 'Debe seleccionar y buscar un cliente')
+                    btn.attr('disabled', false).prop('disabled', false)
+                    if($('#frm-pago').is(':visible')){
+                        $('#frm-pago').modal('hide');
+                    }
+                    $.unblockUI()
+                } else if(data.detalles.length == 0){
                     toastr['warning']('¡Verifique la información!', 'Debe agregar al menos un producto a la venta')
                     btn.attr('disabled', false).prop('disabled', false)
                     $.unblockUI()
