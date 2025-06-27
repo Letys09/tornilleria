@@ -638,12 +638,11 @@
                         confirmButtonText: "¡Devolver!",
                         closeOnConfirm: false 
                     },function(){
-                        console.log(data)
                         $.post(apiUrl+'venta/devEfectivo', data, function(resp){
                             if(resp.response){
                                 swal("¡Hecho!",	"Devolución exitosa", "success");
                                 ticket($.md5(data.venta_id.toString()))
-                                // window.location.href = '< ?= URL_DEL ?>?project_id=< ?= PROJECT_ID ?>&coleccion='+collection
+                                window.location.href = '<?= URL_DEL ?>?project_id=<?= PROJECT_ID ?>&coleccion='+collection
                             }else{
                                 swal("¡Ocurrió un problema!", "No pudimos realizar la devolución", "error")
                             }
@@ -797,7 +796,6 @@
         }
 
         function addPago(data){
-            console.log(data);
             container = $('#tbl-pagos tbody')
             $('#tbl-pagos tbody .nodataPagos').remove();
             tr = $('<tr class="pago" data-pago_id="'+data.id+'"></tr>')
@@ -850,6 +848,7 @@
                 descuento: descuento,
                 total: total,
                 comentarios: $.trim($('#venta-comentarios').val()),
+                status: 1,
             }
             data.detalles = []
             $.each($('#tbl-detalles tbody tr'), function(index, tr){
@@ -903,10 +902,9 @@
                 btn.attr('disabled', false).prop('disabled', false)
                 $.unblockUI()
             }else{
-                console.log(data)
                 venta_id = '<?= $venta_id ?>'
+                if(data.tipo == 2 && (parseFloat($('#total-pagado').val()) < parseFloat($('#venta-total').val()) )) data.status = 2;
                 if(continuar){
-                    console.log('x')
                     $.post(apiUrl+'venta/edit/'+venta_id, data, function(resp){
                         toastr['success']('¡Venta actualizada!', 'Venta actualizada con éxito')
                         eliminarDet = false
