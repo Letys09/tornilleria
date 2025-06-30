@@ -19,7 +19,7 @@
                                     <div class="col-2 text-center">
                                         <label for="" class="form-label fw-bolder fs-5 text-center">Venta</label>
                                         <div class="mt-1">
-                                            <input type="radio" id="contado" name="venta-tipo" class="radio" value="1">
+                                            <input type="radio" id="contado" name="venta-tipo" class="radio" value="1" checked>
                                             <label for="contado">Contado</label> &nbsp;
                                             <input type="radio" id="credito" name="venta-tipo" class="radio ventaCredito hidden" value="2">
                                             <label for="credito" class="ventaCredito hidden">Crédito</label>
@@ -31,7 +31,7 @@
                                             <div class="input-group-text">
                                                 <input class="form-check-input mt-0" type="checkbox" id="aplicar" data-toogle="tooltip" title="Aplicar descuento" disabled>
                                             </div>
-                                            <input type="number" min="0" max="100" class="form-control text-end deshabilitado" id="descuento" value="0">
+                                            <input type="number" min="0" max="100" class="form-control text-end" id="descuento" value="0">
                                         </div>
                                     </div>
                                     <!-- <input type="hidden" id="venta_id" value="0"> -->
@@ -266,6 +266,29 @@
                             </form>
                         </div>
                     </div>
+
+                    <div class="modal fade" data-bs-backdrop="static" data-bs-keyboard="false" id="frm-cantidad">
+                        <div class="modal-dialog modal-sm modal-dialog-centered">
+                            <form class="modal-content pt-0">
+                                <div class="modal-header" style="background-color: #04aa6d;">
+                                    <h5 class="modal-title text-uppercase text-center text-white fw-bolder">número de piezas</h5>
+                                    <button type="button" class="btn-sm btn-close" data-bs-dismiss="modal" aria-label="Close" style="background-color: #04aa6d;"></button>
+                                </div>
+                                <div class="modal-body flex-grow-1 form-horizontal">
+                                    <div class="row text-center">
+                                        <p></p>
+                                        <div class="px-4">
+                                            <input type="number" class="form-control" id="prod_cantidad" value="1" min="1" palceholder="Cantidad a agregar">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="modal-footer justify-content-center py-0">
+                                    <input type="hidden" id="prod_cantidad_add" value="0">
+                                    <button type="button" class="btn btn-success mb-1" id="btnAddCant" data-kilo="0">AGREGAR</button>
+                                </div>
+                            </form>
+                        </div>
+                    </div>
                 </div>
             </div>
         </div>
@@ -313,14 +336,29 @@
         getItems('tbl-prods');
 
         document.addEventListener ("keydown", function (e) {
-            if(e.which === 27) {
-                $('#frm-pago').modal('hide');
+            const tag = e.target.tagName.toLowerCase();
+            const isInput = tag === 'input' || tag === 'textarea' || e.target.isContentEditable;
+            const modalCantidadVisible = $('#frm-cantidad').is(':visible');
+            const modalPagoVisible = $('#frm-pago').is(':visible');
+
+            if (e.which === 13 && modalCantidadVisible) {
+                e.preventDefault();
+                $('#btnAddCant').trigger('click');
+                return;
             }
+
+            if (e.which === 27) {
+                $('#frm-cantidad').modal('hide');
+                $('#frm-pago').modal('hide');
+                return;
+            }
+
+            if (isInput) return;
             
             if(e.which === 13){
-                if($('#frm-pago').is(':visible')){
+                if(modalPagoVisible){
                     $('#pago-forma_pago').focus();
-                }else if(editCant == false){
+                } else if (!editCant) {
                     addSelected(selectedRowIndex);
                 }else{
                     contador += 1;
@@ -362,19 +400,17 @@
                 selectRow(selectedRowIndex);
             }
 
-            if(e.which === 09){
+            if (e.which === 9 && !e.shiftKey) {
                 e.preventDefault();
-
-                if($('#frm-pago').is(':visible')){
+                if (modalPagoVisible) {
                     $('#pago-recibido').focus();
-                }else{
+                } else {
                     editCant = true;
                     selectInput(contador);
                 }
-
             }
 
-            if(e.which === 09 && e.shiftKey){
+            if(e.which === 9 && e.shiftKey){
                 e.preventDefault();
                 editCant = true;
                 contador -= 1;
@@ -469,7 +505,8 @@
         $('#aplicar').change(function(){
             aplicar = $(this).is(':checked') ? 1 : 0;
             if(aplicar){
-                $('#descuento').val(desc_cli)
+                $('#aplicar').removeClass('deshabilitado').attr('disabled', false).prop('disabled', false)
+                $('#descuento').val(desc_cli).removeClass('deshabilitado').attr('disabled', false).prop('disabled', false);
                 $('#venta-descuento').val(desc_cli)
                 getTotales()
             }else{
@@ -512,28 +549,14 @@
                         if(respStock){
                             if(respStock.final >= 1){
                                 stockDisp = parseFloat(respStock.final)
-                                let stock = (stockDisp.toFixed(1)).toString()
-                                $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
-                                    $('.name_prod').html('<b>'+concepto+'</b>')
-                                    $.each(resp, function(index, item){
-                                        $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
-                                    })
-                                    mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
-                                    $('#precio-distribuidor').val(parseInt(mayoreo)+1)
-                                    data = {
-                                        'producto_id': prod_id, 
-                                        'cantidad': '1.0', 
-                                        'stock': stock, 
-                                        'clave': clave, 
-                                        'desc': desc, 
-                                        'concepto': concepto, 
-                                        'precio': resp.precio_menudeo, 
-                                        'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
-                                        'es_kilo': '0'
-                                    }
-                                    addDetalle(data)
-                                    getTotales()
-                                },'json')
+                                let stock = (stockDisp.toFixed(1)).toString();
+                                $('#frm-cantidad p').html(`<b>CLAVE: ${clave}</b>`);
+                                $('#prod_cantidad_add').val(prod_id);
+                                $('#prod_cantidad').data('kilo', es_kilo);
+                                $('#prod_cantidad').data('clave', clave);
+                                $('#prod_cantidad').data('desc', desc);
+                                $('#frm-cantidad').modal('show');
+                                $.unblockUI()
                             }else{
                                 toastr['error']('¡Stock insuficiente!', 'No hay suficiente stock del producto')
                                 $.unblockUI()
@@ -544,44 +567,31 @@
                         }
                     },'json')
                 }else{
-                    $.get(apiUrl+'producto/getRangos/'+prod_id, function(resp){
-                        $.each(resp, function(index, item){
-                            $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
-                        })
-                        mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
-                        $('#precio-distribuidor').val(parseInt(mayoreo)+1)
-                        data = {
-                            'detalle_id': '', 
-                            'producto_id': prod_id, 
-                            'cantidad': '1.0', 
-                            'clave': clave, 
-                            'desc': desc, 
-                            'concepto': concepto, 
-                            'precio': resp.precio_menudeo, 
-                            'total': parseFloat(1*resp.precio_menudeo).toFixed(2), 
+                    $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/1', function(respStock){
+                        if(respStock.response){
+                            stockDisp = parseFloat(respStock.final)
+                            let stock = (stockDisp.toFixed(1)).toString();
+                            $('#frm-cantidad p').html(`<b>CLAVE: ${clave}</b>`);
+                            $('#prod_cantidad_add').val(prod_id);
+                            $('#prod_cantidad').data('kilo', es_kilo);
+                            $('#prod_cantidad').data('clave', clave);
+                            $('#prod_cantidad').data('desc', desc);
+                            $('#frm-cantidad').modal('show');
+                            $.unblockUI()
+                        }else{
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            if($('#tbl-detalles tbody tr').length == 0) 
+                                $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
+                            $.unblockUI()
                         }
-                        $.get(apiUrl+'prod_stock/getStockByKilo/'+prod_id+'/1', function(respStock){
-                            $('.name_prod').html('<b>'+concepto+'</b>')
-                            if(respStock.response){
-                                data['es_kilo'] = respStock.cant_necesaria.toFixed(1)
-                                data['stock'] = respStock.stock_disp
-                                if(respStock.max < 1){
-                                    data['cantidad'] = respStock.max;
-                                }
-                                addDetalle(data)
-                                getTotales() 
-                                $.unblockUI()
-                            }else{
-                                toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
-                                if($('#tbl-detalles tbody tr').length == 0) 
-                                    $('#tbl-detalles tbody').append('<tr class="nodata"><td colspan="9" class="text-center p-10 nodata">No se han agregado productos a la venta</td></tr>')
-                                $.unblockUI()
-                            }
-                        },'json')
                     },'json')
                 }
             }
         })
+
+        $('#frm-cantidad').on('shown.bs.modal', function () {
+            $('#prod_cantidad').val(1).focus().select();
+        });
 
         $('#tbl-detalles').on('change', '.cant', function(){
             $.blockUI()
@@ -629,7 +639,7 @@
                             },'json');
                         }else{
                             toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
-                            $('.cant').val(resp.max).trigger('change');
+                            $(tr).find('.cant').val(resp.max).trigger('change');
                         }
                     }else{
                         toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
@@ -638,6 +648,125 @@
                 },'json')
             }
         })
+
+        $('body').on('change', '#prod_cantidad', function(){
+            let elem = $(this)
+            let cantidad = parseFloat($(elem).val());
+            let prod_id = $('#prod_cantidad_add').val();
+            let kilo = $('#prod_cantidad').data('kilo');
+            $('#btnAddCant').attr('disabled', false).prop('disabled', false).removeClass('deshabilitado');
+            if(cantidad < 1 && kilo == 0){
+                toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
+                $(elem).val('1.0')
+                $('#btnAddCant').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+                $.unblockUI()
+            }
+
+            if(kilo == 0){
+                $.get(`${apiUrl}prod_stock/getStock/${prod_id}`, function(resp){
+                    if(cantidad > resp.final){
+                        toastr["error"](`Disponible: ${resp.final} pzas.`, "No hay suficiente stock del producto");
+                        elem.focus().select();
+                        $('#btnAddCant').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+                    }
+                    $.unblockUI()
+                },'json')
+            }else{
+                $.get(`${apiUrl}prod_stock/getStockByKilo/${prod_id}/${cantidad}`, function(resp){
+                    if(resp.response){
+                        if(cantidad > parseFloat(resp.max)){
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            $('.cant').val(resp.max).trigger('change');
+                            $('#btnAddCant').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+                        }
+                    }else{
+                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                        $('#btnAddCant').attr('disabled', true).prop('disabled', true).addClass('deshabilitado');
+                    }
+                    $.unblockUI();
+                },'json')
+            }
+        });
+
+        $('#btnAddCant').on('click', function(e){
+            e.preventDefault();
+            let elem = $('#prod_cantidad');
+            let cantidad = parseFloat($(elem).val());
+            let prod_id = $('#prod_cantidad_add').val();
+            let kilo = $('#prod_cantidad').data('kilo');
+            let clave = $('#prod_cantidad').data('clave');
+            let desc = $('#prod_cantidad').data('desc');
+            if(cantidad < 1 && kilo == 0){
+                toastr["error"]("¡Error!", "No se puede vender menos de 1 pieza")
+                $(elem).val('1.0')
+                $.unblockUI()
+            }
+
+            if(kilo == 0){
+                $.get(`${apiUrl}prod_stock/getStock/${prod_id}`, function(respStock){
+                    let stockDisp = parseFloat(respStock.final)
+                    if(cantidad <= stockDisp){
+                        let stock = (stockDisp.toFixed(1)).toString()
+                        $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                            precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                            total = parseFloat(precio*cantidad).toFixed(2)
+                            data = {
+                                'detalle_id': '', 
+                                'producto_id': prod_id, 
+                                'cantidad': cantidad, 
+                                'stock': stock, 
+                                'clave': clave, 
+                                'desc': desc, 
+                                'concepto': `(${clave}) ${desc}`, 
+                                'precio': precio, 
+                                'total': total, 
+                                'es_kilo': '0',
+                                'stock': stock,
+                            }
+                            addDetalle(data)
+                            getTotales()
+                        },'json')
+                    }else{
+                        toastr["error"](`Disponible: ${stockDisp} pzas.`, "No hay suficiente stock del producto");
+                        elem.focus().select();
+                    }
+                    $.unblockUI()
+                },'json')
+            }else{
+                $.get(`${apiUrl}prod_stock/getStockByKilo/${prod_id}/${cantidad}`, function(respStock){
+                    if(respStock.response){
+                        if(cantidad <= parseFloat(respStock.max)){
+                            $.get(apiUrl+'producto/getPrecioByCant/'+prod_id+'/'+cantidad, function(resp){
+                                precio = resp != null ? parseFloat(resp).toFixed(2) : parseFloat(0).toFixed(2) 
+                                total = parseFloat(precio*cantidad).toFixed(2)
+                                data = {
+                                    'detalle_id': '', 
+                                    'producto_id': prod_id, 
+                                    'cantidad': cantidad, 
+                                    'clave': clave, 
+                                    'desc': desc, 
+                                    'concepto': `(${clave}) ${desc}`, 
+                                    'precio': precio, 
+                                    'total': total, 
+                                    'es_kilo': '1',
+                                    'stock': respStock.max,
+                                }
+                                
+                                addDetalle(data)
+                                getTotales() 
+                            }, 'json');
+                            $.unblockUI()
+                        }else{
+                            toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                            $('.cant').val(resp.max).trigger('change');
+                        }
+                    }else{
+                        toastr["error"]("¡Stock insuficiente!", "No hay suficiente stock del producto")
+                    }
+                    $.unblockUI();
+                },'json')
+            }
+        });
 
         $('#tbl-detalles').on('click', '.btnDelDet', function(e){
             e.preventDefault()
@@ -714,10 +843,26 @@
         }
 
         function selectRow(index) {
+             $.blockUI();
             var rows = getRows();
             delSeleccion();
             $(rows[index]).addClass('selected');
             selectedRowIndex = index;
+            let producto_id = $(rows[index]).data('id');
+
+            clave = $(rows[index]).find('td:eq(1)').text();
+            desc = $(rows[index]).find('td:eq(2)').text();
+            concepto = `(${clave}) ${desc}`;
+
+            $.get(`${apiUrl}producto/getRangos/${producto_id}`, function(resp){
+                $('.name_prod').html('<b>'+concepto+'</b>')
+                $.each(resp, function(index, item){
+                    $('#precio-'+index).val(item).attr('disabled', true).prop('disabled', 'disabled')
+                })
+                mayoreo = resp.mayoreo != null ? resp.mayoreo : 0
+                $('#precio-distribuidor').val(parseInt(mayoreo)+1)
+                $.unblockUI();
+            },'json')
         }
 
         function addSelected(index) {
@@ -761,7 +906,7 @@
             precio = data.precio == null ? parseFloat(0).toFixed(2) : data.precio  
             container = $('#tbl-detalles tbody')
             $('#tbl-detalles tbody .nodata').remove();
-            tr = $('<tr class="detalle" data-producto_id="'+data.producto_id+'" data-clave="'+data.clave+'" data-stock="'+data.stock+'" data-kilo="'+data.es_kilo+'"></tr>')
+            tr = $('<tr class="detalle" data-detalle_id="'+data.detalle_id+'" data-producto_id="'+data.producto_id+'" data-clave="'+data.clave+'" data-stock="'+data.stock+'" data-kilo="'+data.es_kilo+'"></tr>')
             tr.append('<td class="text-start venta-cantidad" width="10%"><input type="text" class="form-control text-center cant" value="'+data.cantidad+'"></td>')
             tr.append('<td width="45%"><button type="button" class="btn btn-light btnConcepto">'+data.concepto+'</button></td>')
             tr.append('<td class="text-center precio" width="15%">$ '+precio+'</td>')
@@ -770,6 +915,8 @@
 
             td.append('<button type="button" class="btn btn-outline-danger btn-sm btnDelDet" data-toogle="tooltip" title="Eliminar"><i class="fas fa-trash"></i></button>')
             container.append(tr)
+            $('#frm-cantidad').modal('hide');
+            $('#bus').focus();
             getTotales()
             $.unblockUI()
         }
@@ -790,6 +937,7 @@
 
         function getTotales(){
             $.blockUI()
+            let aplicar = $('#aplicar').is(':checked') ? 1 : 0;
             subtotal = 0; total = 0; pagado = 0;
             $.each($('#tbl-detalles tbody tr.detalle'), function(index, tr){
                 val = parseFloat($(tr).find('.total').text().replace('$', ''))
@@ -822,6 +970,7 @@
                 descuento: descuento,
                 total: total,
                 comentarios: $.trim($('#venta-comentarios').val()),
+                status: 1,
             }
             data.detalles = []
             $.each($('#tbl-detalles tbody tr'), function(index, tr){
@@ -863,7 +1012,7 @@
                 }else{
                     data.pago = {
                         'monto': data.total,
-                        'monto_recibido': 0,
+                        'monto_recibido': data.total,
                         'cambio': 0,
                         'forma_pago': $('#pago-forma_pago').val()
                     }
@@ -997,6 +1146,9 @@
                             visible: false, targets: [0]
                         }
                     ],
+                    createdRow: function(row, data, dataIndex) {
+                        $(row).attr('data-id', data['data_id']);
+                    },
                     order: [[0, 'desc']], 
                     dom:
                         '<"d-flex justify-content-between align-items-center header-actions mx-2 row mt-75"' +
@@ -1018,10 +1170,24 @@
                         $('#tbl-prods_length label:eq(0)').addClass('hidden');
                         $('.busqueda').removeClass('hidden');
                         $('#tbl-prods tbody tr').first().addClass('selected')
+                        selectRow(0);
                     }
                 });
 
                 let intervaloBusqueda = null;
+                $('#tbl-prods tbody').on('mouseover', 'tr', function () {
+                    const index = $(this).index();
+                    if (selectedRowIndex !== index) {
+                        selectRow(index);
+                    }
+                });
+
+                $('#tbl-prods tbody').on('click', 'tr', function () {
+                    const index = $(this).index();
+                    if (selectedRowIndex !== index) {
+                        selectRow(index);
+                    }
+                });
                 $(document).on('keyup', '#bus',  function(e){
                     temporal = moment().format('x')+"-"+Math.random();
                     evaluar(temporal);
